@@ -220,7 +220,7 @@ def make_window():
         addr = values["-CADD-"]
         browser = values["BROWSER"]
 
-        if event == "UPDATE":
+        if event == "UPDATE" and selectedEnviron != '':
             env_used = selectedEnviron
             read_username_password()
             read_producers()
