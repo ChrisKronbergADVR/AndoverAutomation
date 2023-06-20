@@ -1,7 +1,7 @@
 # AndoverAutomation
 Python Automation with GUI for Andover Local and QA Environments
 
-If you already have python installed, you can skip step 1
+### If you already have python installed, you can skiop the python install
 ---
 
 ## 1. Intstalling Python
@@ -27,7 +27,7 @@ If you already have python installed, you can skip step 1
 <br>
 <br>
 
-<h4>&ensp; 2. Check the python version to make sure it is installed with the command below in a command prompt or terminal. This can be done from vs code as well</h4>
+<h4>&ensp; 1. Check the python version to make sure it is installed with the command below in a command prompt or terminal. This can be done from vs code as well</h4>
 
 &emsp;&emsp;&emsp;&emsp;```python --version```
 
@@ -40,7 +40,7 @@ If you already have python installed, you can skip step 1
 &emsp;&emsp;&emsp;&emsp;&emsp;```python3 --version```
 
 <br>
-<h4>&ensp; 3. Check the pip version to make sure it is installed with the commands below</h4>
+<h4>&ensp; 2. Check the pip version to make sure it is installed with the commands below</h4>
 
 &emsp;&emsp;&emsp;&emsp;&emsp;```pip --version```
 
@@ -49,7 +49,7 @@ If you already have python installed, you can skip step 1
 &emsp;&emsp;&emsp;&emsp;&emsp;```pip3.10 --version``` 
 
 <br>
-<h4>&ensp; 4. Click the code button</h4>
+<h4>&ensp; 3. Click the code button</h4>
 
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src = "docImages\codeButton.png" height="300rem">
 
@@ -65,3 +65,17 @@ If you already have python installed, you can skip step 1
 ### 2. After you have completed all of the above steps, the packages needed in running this autmation are: pysimplegui, selenium
 
 - The commands to enter into a command prompt are: ```pip install selenium``` and ```pip install pysimplegui```
+
+
+### 3. To run the file you can navigate to the directory in command prompt by opening command prompt and using cd (change directory) or copy the file path from the file explorer.
+<br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\file_in_exporer.jpg" height="300rem">
+
+<br>
+
+ - To run the program: open the command prompt and paste the file path
+ - The program should run after pressing the enter key
+
+<br>
+ &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\cmd_prompt.jpg" height="300rem">
+<br>
