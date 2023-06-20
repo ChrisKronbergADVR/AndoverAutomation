@@ -505,10 +505,10 @@ def click_radio(browser):
     if(my_value):
         find_Element(browser,radio_id+ str(radio_number)).click()
     else:
-        while(my_value != None):
+        while(not my_value):
             radio_number -=1
             my_value = find_Element(browser,radio_id+ str(radio_number))
-            if(my_value != None):
+            if(my_value):
                 find_Element(browser,radio_id+ str(radio_number)).click()
                 break
         
@@ -526,7 +526,7 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     find_Element(browser,"QuickAction_NewQuote").click()
 
     find_Element(browser,line_of_business,By.LINK_TEXT).click()
-    if(user_name != "qaagent02"):
+    if(user_chosen != "qaagent02" and user_chosen != "agent04" and user_chosen != "agent"):
         find_Element(browser,"ProviderNumber").send_keys(producer)
 
     #select entity type
