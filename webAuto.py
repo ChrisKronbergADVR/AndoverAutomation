@@ -165,6 +165,9 @@ def make_window():
                         [sg.Text("Address"),sg.InputText(size = (TEXTLEN,1), key = "-CADD-")],
                         [sg.Text("City"),sg.InputText(size = (TEXTLEN,1), key = "-CITY-")],
                         [sg.Button("Add Address",key="-ADDRESS-")],
+                        [sg.Text()],
+                        [sg.Text("Address: "),sg.Text(key = "ADD_DISP")],
+                        [sg.Text("City: "),sg.Text(key = "CITY_DISP")],
                         ]
     
     create_producer_layout = [
@@ -261,6 +264,9 @@ def make_window():
         if event == "-ADDRESS-":
             custom_address["Address"] = addr
             custom_address["City"] = city
+            window["ADD_DISP"].update(value = addr)
+            window["CITY_DISP"].update(value = city)
+            window.refresh()
             add_custom = True
 
         if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"]:
