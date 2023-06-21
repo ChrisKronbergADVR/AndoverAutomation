@@ -1,4 +1,3 @@
-.vscode/launch.json
 Address.py
 Application.py
 async.py
@@ -43,3 +42,4 @@ csvFiles/uat4_prod.csv
 csvFiles/uat4_user.csv
 csvFiles/users.csv
 dist/webAuto.exe
+.vscode/launch.json
