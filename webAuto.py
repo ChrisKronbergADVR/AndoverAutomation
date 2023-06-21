@@ -35,6 +35,7 @@ folder = "csvFiles/"
 custom_address = {"Address":"","City":""}
 add_custom = False
 user_chosen = "admin"
+agent_list = ["qaagent02", "qaagent01","agent04","agent","agent05","testagent4058","testagent0827","testagent4188","testagent9749","agent6578","agentuser7737","agentuser7791","testagent6131","testagent9679","kaylaagent","QAPolicyAgent1"]
 
 addresses = {
             "CT1":["CT","Waterbury","1250 W Main St"],
@@ -67,7 +68,7 @@ env_files_plus_users= {
             "UAT4":{"Users":{"file":"uat4_user.csv","Usernames":{}},
                    "Producers":{"file":"uat4_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}}}
 
-#Functions for creating, reading and writing to files
+#Functions for creating, reading and writing to files 
 def create_files():
     if(not path.exists("csvFiles")):
         os.mkdir("csvFiles")
@@ -82,6 +83,7 @@ def create_files():
             file_prods.close()
             file_users.close()
 
+#This function takes a file and user dictionary and writes the username and password to a csv file 
 def write_username_password(file,user_dict):
     with open(file,'w',newline='') as csvfile:
         fieldnames = ['Username', 'Password']
@@ -125,6 +127,7 @@ def read_producers():
             for row in reader:
                 env_files_plus_users[env_used]['Producers']['ProducerNames'].append(row["Producer"])
          
+#Function
 def make_window():
     global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,add_custom,user_chosen
     sg.theme(THEME)
@@ -282,18 +285,25 @@ def login(browser,user = "admin",password = "Not9999!"):
 def find_Element(browser,browser_Element, id = By.ID):
     elem = browser.find_element(id,browser_Element)
     return elem
-
+  
 def delete_quote(browser):
     #delete created Quote
     find_Element(browser,"Delete").click()
     find_Element(browser,"dialogOK").click()
     
-def remove_javascript(browser,element,script):
+def remove_javascript(browser):
+    element_used = "js_error_list"
+    script = """
+        const parent = document.getElementById("js_error_list");
+        if(parent != null)
+        {
+            parent.style.display = "none";
+        }
+    """
     try:
-        t = find_Element(browser,element).is_displayed()
-        print(t)
+        t = find_Element(browser,element_used).is_displayed()
         if(t == True):
-            print("executed javascriopt to remove errors")
+            print("executed javascript to remove errors")
             browser.execute_script(script)
     except:
         pass
@@ -302,17 +312,7 @@ def remove_javascript(browser,element,script):
 
 #*function used for waiting for page to load after a button is clicked and the page has to refresh
 def waitPageLoad(browser):
-    element_used = "js_error_list"
-    script1 = """
-        const parent = document.getElementById("js_error_list");
-        if(parent != null)
-        {
-            parent.style.display = "none";
-        }
-    """
-    #script2 = "document.getElementById(\"js_eror_list\").innerHTML = \"\""
-    remove_javascript(browser,element_used,script1)
-
+    remove_javascript(browser)
     script = "return window.seleniumPageLoadOutstanding == 0;"
     WebDriverWait(browser, 60).until(lambda browser:browser.execute_script(script)) 
     
@@ -498,20 +498,16 @@ def billing(browser):
     find_Element(browser,"Save").click()
     waitPageLoad(browser)
 
+def save(browser):
+    find_Element(browser,"Save").click()
+
 def click_radio(browser):
-    radio_number = 11
-    radio_id = "QuoteCustomerClearingRef_"
-    my_value = find_Element(browser,radio_id+ str(radio_number))
-    if(my_value):
-        find_Element(browser,radio_id+ str(radio_number)).click()
-    else:
-        while(not my_value):
-            radio_number -=1
-            my_value = find_Element(browser,radio_id+ str(radio_number))
-            if(my_value):
-                find_Element(browser,radio_id+ str(radio_number)).click()
-                break
-        
+    e_name = "QuoteCustomerClearingRef"
+    table = browser.find_elements(By.NAME,e_name)
+    radio_number = len(table)
+    my_value = e_name+"_"+str(radio_number)
+    find_Element(browser,my_value).click()
+ 
 def create_new_quote(browser,date,state,producer,first_name,last_name,address,city,test:bool):
     #New Quote
     find_Element(browser,"QuickAction_NewQuote_Holder").click()
@@ -526,7 +522,10 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     find_Element(browser,"QuickAction_NewQuote").click()
 
     find_Element(browser,line_of_business,By.LINK_TEXT).click()
-    if(user_chosen != "qaagent02" and user_chosen != "agent04" and user_chosen != "agent"):
+
+    selectedAgent = [user_chosen for user in agent_list if user_chosen == user]
+
+    if(len(selectedAgent) == 0):
         find_Element(browser,"ProviderNumber").send_keys(producer)
 
     #select entity type
