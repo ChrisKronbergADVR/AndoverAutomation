@@ -147,7 +147,7 @@ def make_window():
                         [sg.Text("Select Producer"),sg.DropDown(list(env_files_plus_users[env_used]["Producers"]["ProducerNames"]),size=(TEXTLEN,1),key="-PRODUCER-")],
                         [sg.Button("Delete Producer",key="-REMPROD-")],
                         [sg.Text()],
-                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-")],
+                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-"),sg.Checkbox(text="Use Custom Address")],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-")],
                         [sg.Text()],
                         [sg.Text("Enter Date or Select Date Below")],
@@ -158,7 +158,8 @@ def make_window():
                         [sg.Text('Last Name'), sg.InputText(size=(TEXTLEN,1), key="-LAST-")],
                         [sg.Text("Create Quote,Applicaiton or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
                         [sg.Text()],
-                        [sg.Button('Submit'), sg.Button('Cancel')]]
+                        [sg.Button('Submit'), sg.Button('Cancel')],
+                        ]
     
     add_address_layout= [
                         [sg.Text("")],
@@ -189,7 +190,8 @@ def make_window():
                         ]
                         
     exist_app_layout = [ [sg.Text('Enter Information for An Existing Application')],
-                        [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]]
+                        [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
+                        ]
 
 
     layout = [[sg.Text('Andover Automation', size=(38, 1), justification='center', font=("Helvetica", 16), relief=sg.RELIEF_RIDGE, key='-TEXTHEADING-', enable_events=True)]]
