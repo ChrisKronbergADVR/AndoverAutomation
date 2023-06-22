@@ -1,7 +1,7 @@
 # AndoverAutomation
 Python Automation with GUI for Andover Local and QA Environments
 
-### If you already have python installed, you can skiop the python install
+### If you already have python installed, you can skip the python install
 ---
 
 ## 1. Intstalling Python
