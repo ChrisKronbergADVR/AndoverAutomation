@@ -32,8 +32,7 @@ producer_selected = "DEF"
 doc_types = ["Quote","Application","Policy"]
 create_type = doc_types[1]
 folder = "csvFiles/"
-custom_address = {"Address":"","City":""}
-add_custom = False
+custom_address = {"Address":"","City":"","Flag":False}
 user_chosen = "admin"
 agent_list = ["qaagent02", "qaagent01","agent04","agent","agent05","testagent4058","testagent0827","testagent4188","testagent9749","agent6578","agentuser7737","agentuser7791","testagent6131","testagent9679","kaylaagent","QAPolicyAgent1"]
 
@@ -67,6 +66,7 @@ env_files_plus_users= {
                    "Producers":{"file":"uat3_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}},
             "UAT4":{"Users":{"file":"uat4_user.csv","Usernames":{}},
                    "Producers":{"file":"uat4_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}}}
+
 
 #Functions for creating, reading and writing to files 
 def create_files():
@@ -127,7 +127,7 @@ def read_producers():
             for row in reader:
                 env_files_plus_users[env_used]['Producers']['ProducerNames'].append(row["Producer"])
          
-#Function
+#Function for making the GUI
 def make_window():
     global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,add_custom,user_chosen
     sg.theme(THEME)
@@ -147,7 +147,7 @@ def make_window():
                         [sg.Text("Select Producer"),sg.DropDown(list(env_files_plus_users[env_used]["Producers"]["ProducerNames"]),size=(TEXTLEN,1),key="-PRODUCER-")],
                         [sg.Button("Delete Producer",key="-REMPROD-")],
                         [sg.Text()],
-                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-"),sg.Checkbox(text="Use Custom Address")],
+                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-"),sg.Checkbox(text="Use Custom Address",key="ADD_CHECK")],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-")],
                         [sg.Text()],
                         [sg.Text("Enter Date or Select Date Below")],
@@ -189,7 +189,7 @@ def make_window():
                         [sg.Button("Add Producer",key="-ADDP-")],
                         ]
                         
-    exist_app_layout = [ [sg.Text('Enter Information for An Existing Application')],
+    exist_app_layout = [[sg.Text('Enter Information for An Existing Application')],
                         [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
                         ]
 
@@ -227,6 +227,7 @@ def make_window():
         city = values["-CITY-"]
         addr = values["-CADD-"]
         browser = values["BROWSER"]
+        cust_addr = values["ADD_CHECK"]
 
         if event == "UPDATE" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
             env_used = selectedEnviron
@@ -269,7 +270,6 @@ def make_window():
             window["ADD_DISP"].update(value = addr)
             window["CITY_DISP"].update(value = city)
             window.refresh()
-            add_custom = True
 
         if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"]:
             line_of_business = values["-LOB-"]
@@ -279,6 +279,8 @@ def make_window():
             producer_selected = producer
             create_type = doc_type
             user_chosen = selectedUser
+            if(cust_addr):
+                custom_address["Flag"] = True
             window.close()
             return first_name,last_name,selectedUser
     window.close()
@@ -669,7 +671,7 @@ def main():
     state1,CITY,ADDRESS = addresses[str(state_chosen+"1")]
     custom_city = custom_address["City"]
     custom_add = custom_address["Address"]
-    if(add_custom):
+    if(custom_address["Flag"]):
         create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,TEST)
     else:
         create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,TEST)
