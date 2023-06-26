@@ -335,7 +335,7 @@ def make_window():
             window["CITY_DISP"].update(value = city)
             window.refresh()
 
-        if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"] and verified:
+        if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"]:
             line_of_business = values["-LOB-"]
             browser_chosen = browser
             state_chosen = STATES[values["-STATE-"]]
