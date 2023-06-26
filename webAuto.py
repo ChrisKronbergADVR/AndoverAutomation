@@ -13,7 +13,6 @@ from os import path
 import os
 from time import sleep
 from datetime import datetime,timedelta
-#TODO: Add a requirements.txt file for installing all modules
 import requests
 from xml_to_dict import XMLtoDict
 
@@ -591,7 +590,6 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     #sleep needed to enter value 
     waitPageLoad(browser)
     #State Select
-    #!find_Element(browser,"NEW QUOTE",By.LINK_TEXT).send_keys(state)
     Select(find_Element(browser,"QuickAction_StateCd")).select_by_value(state)
     Select(find_Element(browser,"QuickAction_CarrierGroupCd")).select_by_value(CARRIER)
     find_Element(browser,"QuickAction_NewQuote").click()
@@ -635,7 +633,6 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
         Select(find_Element(browser,"BasicPolicy.GeographicTerritory")).select_by_value("Metro")
         Select(find_Element(browser,"BasicPolicy.PolicyCarrierCd")).select_by_value("MMFI")
 
-    #!Select by
     waitPageLoad(browser)
     if(line_of_business == "Businessowners"):
         find_Element(browser,"DefaultAddress").click()
@@ -662,7 +659,6 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     waitPageLoad(browser)
     core_coverages(browser)
     waitPageLoad(browser)
-    #!find_Element(browser,"Closeout").click()
     if(create_type == "Application" or create_type == "Policy"):
         if user_chosen != 'admin':
             click_radio(browser)
