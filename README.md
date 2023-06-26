@@ -62,10 +62,9 @@ Python Automation with GUI for Andover Local and QA Environments
 <hr>
 <br>
 
-### 2. After you have completed all of the above steps, the packages needed in running this autmation are: pysimplegui, selenium
-
-- The commands to enter into a command prompt are: ```pip install selenium``` and ```pip install pysimplegui```
-
+### 2. After you have completed all of the above steps, the packages needed to run this script are in the file requirements.txt
+- first make sure you are in the directory with requirements.txt file
+- The commands to enter into a command prompt are: ```pip install -r requirements.txt``
 
 ### 3. To run the file you can navigate to the directory in command prompt by opening command prompt and using cd (change directory) or copy the file path from the file explorer.
 <br>
