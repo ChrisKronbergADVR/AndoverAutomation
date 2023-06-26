@@ -13,6 +13,9 @@ from os import path
 import os
 from time import sleep
 from datetime import datetime,timedelta
+#TODO: Add a requirements.txt file for installing all modules
+import requests
+from xml_to_dict import XMLtoDict
 
 #*Constants
 TEST = False
@@ -32,7 +35,7 @@ producer_selected = "DEF"
 doc_types = ["Quote","Application","Policy"]
 create_type = doc_types[1]
 folder = "csvFiles/"
-custom_address = {"Address":"","City":"","Flag":False}
+custom_address = {"Address":"","Address2":"","City":"","Flag":False}
 user_chosen = "admin"
 agent_list = ["qaagent02", "qaagent01","agent04","agent","agent05","testagent4058","testagent0827","testagent4188","testagent9749","agent6578","agentuser7737","agentuser7791","testagent6131","testagent9679","kaylaagent","QAPolicyAgent1"]
 
@@ -65,8 +68,8 @@ env_files_plus_users= {
             "UAT3":{"Users":{"file":"uat3_user.csv","Usernames":{}},
                    "Producers":{"file":"uat3_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}},
             "UAT4":{"Users":{"file":"uat4_user.csv","Usernames":{}},
-                   "Producers":{"file":"uat4_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}}}
-
+                   "Producers":{"file":"uat4_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}}
+                   }
 
 #Functions for creating, reading and writing to files 
 def create_files():
@@ -127,9 +130,34 @@ def read_producers():
             for row in reader:
                 env_files_plus_users[env_used]['Producers']['ProducerNames'].append(row["Producer"])
          
+def verify_address(city,state,address1,address2=None):
+
+    if(address2 == None):
+        address_validaiton_request = requests.post(f"""http://production.shippingapis.com/ShippingAPI.dll?API=Verify
+                                                    &XML=<AddressValidateRequest USERID="005FSELF04917"><Address
+                                                    ID="0"><Address1>{address1}</Address1>
+                                                    <Address2></Address2><City>{city}</City><State>{state}</State>
+                                                    <Zip5></Zip5><Zip4></Zip4></Address></AddressValidateRequest>""")
+    else:
+        address_validaiton_request = requests.post(f"""http://production.shippingapis.com/ShippingAPI.dll?API=Verify
+                                                    &XML=<AddressValidateRequest USERID="005FSELF04917"><Address
+                                                    ID="0"><Address1>{address1}</Address1>
+                                                    <Address2>{address2}</Address2><City>{city}</City><State>{state}</State>
+                                                    <Zip5></Zip5><Zip4></Zip4></Address></AddressValidateRequest>""")
+
+    print(address_validaiton_request.text)
+    parser = XMLtoDict()
+    my_data = parser.parse(address_validaiton_request.text)
+    address_data = my_data['AddressValidateResponse']['Address']
+    verified = False
+    if(list(address_data.keys())[0] != 'Error'):
+        verified = True
+
+    return verified
+
 #Function for making the GUI
 def make_window():
-    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,add_custom,user_chosen
+    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified
     sg.theme(THEME)
     userList = []
     browsers = ["Chrome","Edge"]
@@ -141,15 +169,17 @@ def make_window():
 
     new_app_layout = [  [sg.Text('Enter Information for Creating An Application')],
                         [sg.Text()],
-                        [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1))],
-                        [sg.Button("Delete User",key="-REMU-")],
+                        [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1)),sg.Text("                      "),sg.Button("Delete User",size=(10,1),key="-REMU-")],
                         [sg.Text()],
-                        [sg.Text("Select Producer"),sg.DropDown(list(env_files_plus_users[env_used]["Producers"]["ProducerNames"]),size=(TEXTLEN,1),key="-PRODUCER-")],
-                        [sg.Button("Delete Producer",key="-REMPROD-")],
+                        [sg.Text("Select Producer"),sg.DropDown(list(env_files_plus_users[env_used]["Producers"]["ProducerNames"]),size=(TEXTLEN,1),key="-PRODUCER-"),sg.Text("     "),sg.Button("Delete Producer",size=(10,2),key="-REMPROD-")],
                         [sg.Text()],
-                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-"),sg.Checkbox(text="Use Custom Address",key="ADD_CHECK")],
+                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-"),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
+                        [sg.Text("Address 1 (Required)",visible=False,justification="left",key = "-AddText1-",),sg.Text("   "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD1-")],
+                        [sg.Text("Address 2 (Not Required)",visible=False,justification="left", key = "-AddText2-"),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD2-")],
+                        [sg.Text("City (Required)",visible=False,justification="left", key = "-CityText-"),sg.Text("            "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CITY-")],
+                        [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
+                        [sg.Text()],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-")],
-                        [sg.Text()],
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
@@ -160,11 +190,9 @@ def make_window():
                         [sg.Text()],
                         [sg.Button('Submit'), sg.Button('Cancel')],
                         ]
-    
+
     add_address_layout= [
                         [sg.Text("")],
-                        [sg.Text("Address"),sg.InputText(size = (TEXTLEN,1), key = "-CADD-")],
-                        [sg.Text("City"),sg.InputText(size = (TEXTLEN,1), key = "-CITY-")],
                         [sg.Button("Add Address",key="-ADDRESS-")],
                         [sg.Text()],
                         [sg.Text("Address: "),sg.Text(key = "ADD_DISP")],
@@ -195,15 +223,16 @@ def make_window():
 
 
     layout = [[sg.Text('Andover Automation', size=(38, 1), justification='center', font=("Helvetica", 16), relief=sg.RELIEF_RIDGE, key='-TEXTHEADING-', enable_events=True)]]
-    layout += [[sg.Text('Select Local or QA Environment'), sg.DropDown(list(gw_environment.keys()),key="-ENVLIST-"), sg.Button("Update", key = "UPDATE")],
+    layout += [[sg.Text('Select Local or QA Environment'), sg.DropDown(list(gw_environment.keys()),enable_events=True,key="-ENVLIST-")],
                [sg.Text('Select Browser'), sg.DropDown(browsers, key = "BROWSER")],
                [sg.HorizontalSeparator()]]
     layout+=[[sg.TabGroup([[  sg.Tab('Creating New Applications', new_app_layout),
                                sg.Tab('Add Users and Producers', new_user_layout),
                                #sg.Tab('Create Producer for All States', create_producer_layout),
-                               sg.Tab('Add Custom Address', add_address_layout),
+                               #sg.Tab('Add Custom Address', add_address_layout),
                                ]],key = "-TABGROUP-",expand_x=True, expand_y=True)]]
 
+    # sg.Button("Update", key = "UPDATE")
     # Create the Window
     window = sg.Window('Automation for Andover', layout)
     # Event Loop to process "events" and get the "values" of the inputs
@@ -225,11 +254,13 @@ def make_window():
         producer = values["-PRODUCER-"]
         doc_type = values["-CREATE-"]
         city = values["-CITY-"]
-        addr = values["-CADD-"]
+        addr = values["-CADD1-"]
+        addr2 = values["-CADD2-"]
         browser = values["BROWSER"]
         cust_addr = values["ADD_CHECK"]
+        state = values["-STATE-"]
 
-        if event == "UPDATE" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
+        if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
             env_used = selectedEnviron
             read_username_password()
             read_producers()
@@ -242,6 +273,39 @@ def make_window():
             add_user(user_name,password)
             userList = list(env_files_plus_users[env_used]["Users"]["Usernames"].keys())
             window["-ULIST-"].update(values = userList)
+            window.refresh()
+
+        if event == "BTN_VERIFY" and city and addr and state:
+            verified = verify_address(city,STATES[state],addr)
+
+            if verified:
+                sg.popup_auto_close('Custom Address Has been Verified Successfully!')
+                window["-VERIFY_BUTTON-"].update(visible = True)
+                custom_address["Address"] = addr
+                custom_address["City"] = city
+                custom_address["Address2"] = addr2
+            else:
+                window["-VERIFY_BUTTON-"].update(visible = False)
+                sg.popup_auto_close('This Address Has Not been Verified. Check the address and enter it again.')
+
+        if  cust_addr:
+            window["-AddText1-"].update(visible = True)
+            window["-CADD1-"].update(visible = True)
+            window["-AddText2-"].update(visible = True)
+            window["-CADD2-"].update(visible = True)
+            window["-CityText-"].update(visible = True)
+            window["-CITY-"].update(visible = True)
+            window["BTN_VERIFY"].update(visible = True)
+            window.refresh()
+
+        if  not cust_addr:
+            window["-AddText1-"].update(visible = False)
+            window["-CADD1-"].update(visible = False)
+            window["-AddText2-"].update(visible = False)
+            window["-CADD2-"].update(visible = False)
+            window["-CityText-"].update(visible = False)
+            window["-CITY-"].update(visible = False)
+            window["BTN_VERIFY"].update(visible = False)
             window.refresh()
 
         if event == "-ADDP-" and selectedEnviron!= '':
@@ -266,12 +330,13 @@ def make_window():
         
         if event == "-ADDRESS-":
             custom_address["Address"] = addr
+            custom_address["Address2"] = addr2
             custom_address["City"] = city
             window["ADD_DISP"].update(value = addr)
             window["CITY_DISP"].update(value = city)
             window.refresh()
 
-        if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"]:
+        if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"] and verified:
             line_of_business = values["-LOB-"]
             browser_chosen = browser
             state_chosen = STATES[values["-STATE-"]]
@@ -279,7 +344,7 @@ def make_window():
             producer_selected = producer
             create_type = doc_type
             user_chosen = selectedUser
-            if(cust_addr):
+            if(verified):
                 custom_address["Flag"] = True
             window.close()
             return first_name,last_name,selectedUser
