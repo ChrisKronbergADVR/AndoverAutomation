@@ -302,6 +302,7 @@ def make_window():
             window["-CityText-"].update(visible = False)
             window["-CITY-"].update(visible = False)
             window["BTN_VERIFY"].update(visible = False)
+            window["-VERIFY_BUTTON-"].update(visible = False)
             window.refresh()
 
         if event == "-ADDP-" and selectedEnviron!= '':
