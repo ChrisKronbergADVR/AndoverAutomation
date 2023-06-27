@@ -14,7 +14,7 @@ import os
 from time import sleep
 from datetime import datetime,timedelta
 import requests
-from xml_to_dict import XMLtoDict
+
 
 #*Constants
 TEST = False
@@ -37,6 +37,7 @@ folder = "csvFiles/"
 custom_address = {"Address":"","Address2":"","City":"","Flag":False}
 user_chosen = "admin"
 agent_list = ["qaagent02", "qaagent01","agent04","agent","agent05","testagent4058","testagent0827","testagent4188","testagent9749","agent6578","agentuser7737","agentuser7791","testagent6131","testagent9679","kaylaagent","QAPolicyAgent1"]
+verified = False
 
 addresses = {
             "CT1":["CT","Waterbury","1250 W Main St"],
@@ -130,6 +131,7 @@ def read_producers():
                 env_files_plus_users[env_used]['Producers']['ProducerNames'].append(row["Producer"])
          
 def verify_address(city,state,address1,address2=None):
+    global verified
 
     if(address2 == None):
         address_validaiton_request = requests.post(f"""http://production.shippingapis.com/ShippingAPI.dll?API=Verify
@@ -144,20 +146,14 @@ def verify_address(city,state,address1,address2=None):
                                                     <Address2>{address2}</Address2><City>{city}</City><State>{state}</State>
                                                     <Zip5></Zip5><Zip4></Zip4></Address></AddressValidateRequest>""")
 
-    print(address_validaiton_request.text)
-    parser = XMLtoDict()
-    my_data = parser.parse(address_validaiton_request.text)
-    address_data = my_data['AddressValidateResponse']['Address']
-    verified = False
-    if(list(address_data.keys())[0] != 'Error'):
+    if(not address_validaiton_request.text.__contains__('Error')):
         verified = True
 
     return verified
 
 #Function for making the GUI
 def make_window():
-    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified
-    verified = False
+    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen
     sg.theme(THEME)
     userList = []
     browsers = ["Chrome","Edge"]
