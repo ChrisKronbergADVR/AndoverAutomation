@@ -15,7 +15,6 @@ from time import sleep
 from datetime import datetime,timedelta
 import requests
 
-
 #*Constants
 TEST = False
 THEME = "TanBlue"
@@ -132,6 +131,7 @@ def read_producers():
          
 def verify_address(city,state,address1,address2=None):
     global verified
+    verified = False
 
     if(address2 == None):
         address_validaiton_request = requests.post(f"""http://production.shippingapis.com/ShippingAPI.dll?API=Verify
