@@ -153,7 +153,7 @@ def verify_address(city,state,address1,address2=None):
 
 #Function for making the GUI
 def make_window():
-    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen
+    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified
     sg.theme(THEME)
     userList = []
     browsers = ["Chrome","Edge"]
