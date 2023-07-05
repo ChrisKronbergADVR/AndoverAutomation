@@ -311,14 +311,14 @@ def make_window():
             window["-PRODUCER-"].update(values = prodList)
             window.refresh()
                     
-        if event == "-REMU-" and len(env_files_plus_users[env_used]["Users"]["Usernames"].keys()) > 0:
+        if event == "-REMU-" and len(env_files_plus_users[env_used]["Users"]["Usernames"].keys()) > 0 and selectedUser != "" :
             del env_files_plus_users[env_used]["Users"]["Usernames"][selectedUser]
             userList = env_files_plus_users[env_used]["Users"]["Usernames"]
             write_username_password(folder+env_files_plus_users[env_used]["Users"]["file"],userList)
             window["-ULIST-"].update(values = list(userList.keys()))
             window.refresh()
 
-        if event == "-REMPROD-" and len(env_files_plus_users[env_used]["Producers"]["ProducerNames"]) > 0:
+        if event == "-REMPROD-" and len(env_files_plus_users[env_used]["Producers"]["ProducerNames"]) > 0 and producer!="":
             env_files_plus_users[env_used]["Producers"]["ProducerNames"].remove(producer)
             prod_list = env_files_plus_users[env_used]["Producers"]["ProducerNames"]
             write_producer(folder+env_files_plus_users[env_used]["Producers"]["file"],prod_list)
