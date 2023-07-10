@@ -280,6 +280,7 @@ def make_window():
                 custom_address["Address"] = addr
                 custom_address["City"] = city
                 custom_address["Address2"] = addr2
+                custom_address["Flag"] = True
             else:
                 window["-VERIFY_BUTTON-"].update(visible = False)
                 sg.popup_auto_close('This Address Has Not been Verified. Check the address and enter it again.')
@@ -333,7 +334,7 @@ def make_window():
             window["CITY_DISP"].update(value = city)
             window.refresh()
 
-        if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"]:
+        if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"] and (custom_address["Flag"] or cust_addr == False):
             line_of_business = values["-LOB-"]
             browser_chosen = browser
             state_chosen = STATES[values["-STATE-"]]
@@ -341,8 +342,6 @@ def make_window():
             producer_selected = producer
             create_type = doc_type
             user_chosen = selectedUser
-            if(verified):
-                custom_address["Flag"] = True
             window.close()
             return first_name,last_name,selectedUser
     window.close()
