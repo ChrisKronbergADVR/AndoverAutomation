@@ -563,7 +563,7 @@ def billing(browser):
     
     script1 = "document.getElementById('BasicPolicy.PayPlanCd_9').checked = true;"
     browser.execute_script(script1)
-    waitPageLoad(browser) 
+    waitPageLoad(browser)
     #!find_Element(browser,"BasicPolicy.PayPlanCd_9").click()
     #click the save button
     find_Element(browser,"Save").click()
@@ -601,8 +601,9 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     #select entity type
     if(line_of_business == "Dwelling Property" or line_of_business == "Businessowners"):
         Select(find_Element(browser,"Insured.EntityTypeCd")).select_by_value("Individual")
-    
-    if not(state_chosen == "NJ" or state == "MA" or state_chosen == "NY" or state_chosen == "CT" or state_chosen == "RI"):
+
+    if not(state_chosen == "NJ" or state == "MA" or state_chosen == "NY" or state_chosen == "CT" or state_chosen == "RI") and line_of_business == "Homeowners":
+        Select(find_Element(browser,"InsuredPersonal.OccupationClassCd")).select_by_value("Other")
         Select(find_Element(browser,"InsuredPersonal.OccupationClassCd")).select_by_value("Other")
         find_Element(browser,"InsuredPersonal.OccupationOtherDesc").send_keys("No")
 
