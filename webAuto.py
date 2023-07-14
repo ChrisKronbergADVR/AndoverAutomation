@@ -557,7 +557,7 @@ def core_coverages(browser):
         Select(find_Element(browser,"Risk.FrameClearance15ftInd")).select_by_value("No")
         Select(find_Element(browser,"Risk.ShortTermRent")).select_by_value("No")
         Select(find_Element(browser,"Risk.MercantileOfficeOccupantsInd")).select_by_value("No")
-        if(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NH"):
+        if(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NH" or state_chosen=="CT"):
             find_Element(browser,"Building.NumOfApartmentCondoBuilding").send_keys(5)
             find_Element(browser,"Building.MaxNumOfAptCondoBetweenBrickWalls").send_keys(5)
         if(state_chosen == "MA"):
