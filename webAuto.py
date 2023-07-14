@@ -160,7 +160,7 @@ def make_window():
     y = datetime.today()+timedelta(days=65)
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
-    LOB = ["Dwelling Property","Homeowners"]
+    LOB = ["Dwelling Property","Homeowners","Businessowners"]
     STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
 
     new_app_layout = [  [sg.Text('Enter Information for Creating An Application')],
@@ -352,7 +352,7 @@ def login(browser,user = "admin",password = "Not9999!"):
     find_Element(browser,"j_username").send_keys(user)
     find_Element(browser,"j_password").send_keys(password + Keys.RETURN)    
 
-#*function for finding elements in the browser
+#*function for finding elements in the browser``
 def find_Element(browser,browser_Element, id = By.ID):
     elem = browser.find_element(id,browser_Element)
     return elem
@@ -484,13 +484,13 @@ def underwriting_questions(browser):
             Select(find_Element(browser,"Question_MAFireRiskNumber1RealEstateTaxesDelinquent")).select_by_value(no_value)
             Select(find_Element(browser,"Question_MAFireRiskNumber1CodeViolations")).select_by_value(no_value)
 
-        if(line_of_business == "Businessowners"):
-            Select(find_Element(browser,"Question_01CoverageCancellation")).select_by_value("No")
-            find_Element(browser,"Question_03PreviousCarrierPropertyLimitsPremium").send_keys("No")
-            Select(find_Element(browser,"Question_08NumLosses")).select_by_value("0")
-            find_Element(browser,"Question_05ProducerName").send_keys("No")
-            find_Element(browser,"Question_06ProducerInspectionDt").send_keys(producer_inspection_date)
-            Select(find_Element(browser,"Question_09Broker")).select_by_value("No")
+    if(line_of_business == "Businessowners"):
+        Select(find_Element(browser,"Question_01CoverageCancellation")).select_by_value(no_value)
+        find_Element(browser,"Question_03PreviousCarrierPropertyLimitsPremium").send_keys("No")
+        Select(find_Element(browser,"Question_08NumLosses")).select_by_value("0")
+        find_Element(browser,"Question_05ProducerName").send_keys("No")
+        find_Element(browser,"Question_06ProducerInspectionDt").send_keys(producer_inspection_date)
+        Select(find_Element(browser,"Question_09Broker")).select_by_value(no_value)
             
      #click the save button
     find_Element(browser,"Save").click()
@@ -535,7 +535,12 @@ def core_coverages(browser):
             
             
     if(line_of_business == "Businessowners"):
-        Select(find_Element(browser,"Building.BuildingClassDescription")).select_by_value("More than 33% Office")
+        if(state_chosen == "NJ" or state_chosen == "NY"):
+            Select(find_Element(browser,"Building.BuildingClassDescription")).select_by_value("75% or more Apartments")
+            if state_chosen == "NJ":
+                Select(find_Element(browser,"Building.DistanceToHydrant")).select_by_value("1000")
+        else:
+            Select(find_Element(browser,"Building.BuildingClassDescription")).select_by_value("67% or more Apartments")
         Select(find_Element(browser,"Building.ContentClassDescription")).select_by_value("None - Building Owner only")
         Select(find_Element(browser,"Risk.PremisesAlarm")).select_by_value("None")
         find_Element(browser,"Risk.ListOfTenantsAndOccupancy").send_keys("No")
@@ -544,27 +549,43 @@ def core_coverages(browser):
         find_Element(browser,"Risk.NumOfStories").send_keys(3)
         Select(find_Element(browser,"Risk.BasementInd")).select_by_value("No")
         Select(find_Element(browser,"Risk.BldgCentralHeatInd")).select_by_value("No")
+        Select(find_Element(browser,"Risk.CircuitBreakerProtInd")).select_by_value("No")
+        Select(find_Element(browser,"Risk.PremisesAlarm")).select_by_value("None")
+        Select(find_Element(browser,"Risk.UndergradResidentInd")).select_by_value("No")
+        if not(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NY" or state_chosen == "RI"):
+            Select(find_Element(browser,"Risk.SpaceHeatersInd")).select_by_value("No")
+        Select(find_Element(browser,"Risk.FrameClearance15ftInd")).select_by_value("No")
+        Select(find_Element(browser,"Risk.ShortTermRent")).select_by_value("No")
+        Select(find_Element(browser,"Risk.MercantileOfficeOccupantsInd")).select_by_value("No")
+        if(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NH"):
+            find_Element(browser,"Building.NumOfApartmentCondoBuilding").send_keys(5)
+            find_Element(browser,"Building.MaxNumOfAptCondoBetweenBrickWalls").send_keys(5)
+        if(state_chosen == "MA"):
+            Select(find_Element(browser,"Risk.ExcessLinesInd")).select_by_value("No")
+            Select(find_Element(browser,"Risk.YrsInBusinessInd")).select_by_value("1")
+        find_Element(browser,"Save").click()
+        find_Element(browser,"Save").click()
         Select(find_Element(browser,"Risk.RoofUpdatedIn15YrsInd")).select_by_value("No")
         Select(find_Element(browser,"Risk.AdequateSmokeDetInd")).select_by_value("No")
         Select(find_Element(browser,"Risk.BldgOccGt75PctInd")).select_by_value("No")
         Select(find_Element(browser,"Risk.EgressFromAllUnitsInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.FrameClearance15ftInd")).select_by_value("No")
         Select(find_Element(browser,"Risk.MaintProgramInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.CircuitBreakerProtectionInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.StabLokCircuitInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.SpaceHeatersInd")).select_by_value("No")
-    
+        
+        
      #click the save button
     find_Element(browser,"Save").click()
 
 def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
-    
-    script1 = "document.getElementById('BasicPolicy.PayPlanCd_9').checked = true;"
+    if(line_of_business != "Businessowners"):
+        script1 = "document.getElementById('BasicPolicy.PayPlanCd_9').checked = true;"
+    else:
+        script1 = "document.getElementById('BasicPolicy.PayPlanCd_10').checked = true;"
     browser.execute_script(script1)
+
     waitPageLoad(browser)
-    #!find_Element(browser,"BasicPolicy.PayPlanCd_9").click()
+
     #click the save button
     find_Element(browser,"Save").click()
     waitPageLoad(browser)
@@ -649,19 +670,20 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     find_Element(browser,"InsuredPhonePrimary.PhoneNumber").send_keys(5555555555)
     find_Element(browser,"InsuredEmail.EmailAddr").send_keys("test@mail.com")
     waitPageLoad(browser)
-    if(user_chosen == "admin"):
+    if(user_chosen == "admin" and line_of_business != "Businessowners"):
         find_Element(browser,"InsuredInsuranceScore.OverriddenInsuranceScore").send_keys("950")
 
     #*click the save button
     find_Element(browser,"Save").click()
     waitPageLoad(browser)
-    core_coverages(browser)
-    waitPageLoad(browser)
+    
     if(create_type == "Application" or create_type == "Policy"):
         if user_chosen != 'admin':
             click_radio(browser)
         find_Element(browser,"Bind").click()
-
+        
+        core_coverages(browser)
+        waitPageLoad(browser)
         if(state_chosen == "NJ" and line_of_business == "Homeowners"):
             find_Element(browser,"Wizard_Risks").click()
             waitPageLoad(browser)
