@@ -35,7 +35,7 @@ create_type = doc_types[1]
 folder = "csvFiles/"
 custom_address = {"Address":"","Address2":"","City":"","Flag":False}
 user_chosen = "admin"
-agent_list = ["qaagent02", "qaagent01","agent04","agent","agent05","testagent4058","testagent0827","testagent4188","testagent9749","agent6578","agentuser7737","agentuser7791","testagent6131","testagent9679","kaylaagent","QAPolicyAgent1"]
+agent_list = ["qaagent02", "qaagent01","agent04","Agent","agent","agent05","testagent4058","testagent0827","testagent4188","testagent9749","agent6578","agentuser7737","agentuser7791","testagent6131","testagent9679","kaylaagent","QAPolicyAgent1"]
 verified = False
 
 addresses = {
@@ -676,13 +676,14 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     #*click the save button
     find_Element(browser,"Save").click()
     waitPageLoad(browser)
+    core_coverages(browser)
     
     if(create_type == "Application" or create_type == "Policy"):
         if user_chosen != 'admin':
             click_radio(browser)
         find_Element(browser,"Bind").click()
         
-        core_coverages(browser)
+        #core_coverages(browser)
         waitPageLoad(browser)
         if(state_chosen == "NJ" and line_of_business == "Homeowners"):
             find_Element(browser,"Wizard_Risks").click()
