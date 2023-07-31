@@ -35,7 +35,6 @@ create_type = doc_types[1]
 folder = "csvFiles/"
 custom_address = {"Address":"","Address2":"","City":"","Flag":False}
 user_chosen = "admin"
-agent_list = ["qaagent02", "qaagent01","agent04","Agent","agent","agent05","testagent4058","testagent0827","testagent4188","testagent9749","agent6578","agentuser7737","agentuser7791","testagent6131","testagent9679","kaylaagent","QAPolicyAgent1"]
 verified = False
 
 addresses = {
@@ -614,9 +613,8 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
 
     find_Element(browser,line_of_business,By.LINK_TEXT).click()
 
-    selectedAgent = [user_chosen for user in agent_list if user_chosen == user]
-
-    if(len(selectedAgent) == 0):
+    selectedAgent = user_chosen.lower()
+    if(not(selectedAgent.__contains__("agent"))):
         find_Element(browser,"ProviderNumber").send_keys(producer)
 
     #select entity type
@@ -677,7 +675,7 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     find_Element(browser,"Save").click()
     waitPageLoad(browser)
     core_coverages(browser)
-    
+
     if(create_type == "Application" or create_type == "Policy"):
         if user_chosen != 'admin':
             click_radio(browser)
