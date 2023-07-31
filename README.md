@@ -1,10 +1,10 @@
-# AndoverAutomation
+                                                     # AndoverAutomation
 Python Automation with GUI for Andover Local and QA Environments
 
-### If you already have python installed, you can skip the python install
+### If you already have Python installed, you can skip the Python install
 ---
 
-## 1. Intstalling Python
+## 1. Installing Python
 - click  [here](https://www.python.org/ftp/python/3.11.4/python-3.11.4-amd64.exe) to download python version 3.11.4
 
 
@@ -18,7 +18,7 @@ Python Automation with GUI for Andover Local and QA Environments
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src = "docImages\first.png" height="300rem">
 <br>
 <br>
-&emsp;&emsp;&emsp;&emsp;- Make sure to add the environment variable checkbox when installing python also.
+&emsp;&emsp;&emsp;&emsp;- Make sure to add the environment variable checkbox when installing Python also.
 <br>
 <br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src = "docImages\secondPic.png" height="300rem">
@@ -27,13 +27,13 @@ Python Automation with GUI for Andover Local and QA Environments
 <br>
 <br>
 
-<h4>&ensp; 1. Check the python version to make sure it is installed with the command below in a command prompt or terminal. This can be done from vs code as well</h4>
+<h4>&ensp; 1. Check the Python version to make sure it is installed with the command below in a command prompt or terminal. This can be done from vs code as well</h4>
 
 &emsp;&emsp;&emsp;&emsp;```python --version```
 
-&emsp;&emsp;&emsp;&emsp;- if it returns a version number for python, it is working correctly. It should return =>  Python 3.11.4 or the python version that is installed
+&emsp;&emsp;&emsp;&emsp;- if it returns a version number for Python, it is working correctly. It should return =>  Python 3.11.4 or the python version that is installed
 
-&emsp;&emsp;&emsp;&emsp;- if it does not return python with a version number try the suggestions below in a terminal or command prompt: 
+&emsp;&emsp;&emsp;&emsp;- if it does not return Python with a version number try the suggestions below in a terminal or command prompt: 
 
 &emsp;&emsp;&emsp;&emsp;&emsp;```py --version```
 
@@ -53,7 +53,7 @@ Python Automation with GUI for Andover Local and QA Environments
 
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src = "docImages\codeButton.png" height="300rem">
 
-- You can click the copy button to copy the code and then add git clone to the beginning of it in a terminal or command prompt. I have already copied and added git clone so you do not have to do that with the text below. you can just copy what is below and paste it  ito a terminal or command prompt.
+- You can click the copy button to copy the code and then add git clone to the beginning of it in a terminal or command prompt. I have already copied and added git clone so you do not have to do that with the text below. you can just copy what is below and paste it  into a terminal or command prompt.
 
 &emsp;&emsp;&emsp;&emsp;&emsp;```git clone https://github.com/ChrisKronbergADVR/AndoverAutomation.git```
 
@@ -63,11 +63,11 @@ Python Automation with GUI for Andover Local and QA Environments
 <br>
 
 ### 2. After you have completed all of the above steps, the packages needed to run this script are in the file requirements.txt
-- first make sure you are in the directory with requirements.txt file
+- first, make sure you are in the directory with the requirements.txt file
 - The command to enter into a command prompt is: ```pip install -r requirements.txt```
 - If the command above does not work then try: ```pip3 install -r requirements.txt```
 
-### 3. To run the file you can navigate to the directory in command prompt by opening command prompt and using cd (change directory) or copy the file path from the file explorer.
+### 3. To run the file you can navigate to the directory in command prompt by opening command prompt and using cd (change directory) or copying the file path from the file explorer.
 <br>
 &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\file_in_exporer.jpg" height="300rem">
 
@@ -84,9 +84,9 @@ Python Automation with GUI for Andover Local and QA Environments
 
 ## 2. How to use the GUI
 
-### There are pictures below of the gui with numbers letting you know each function of this application
-<div align=”center”><img src = "docImages\DetailedGUI1.jpg" height="700rem"></div>
-<p style="text-align: center;">GUI Image 1</p>
+### There are pictures below of the GUI with numbers letting you know each function of this application
+<p align=”center”><img src = "docImages\DetailedGUI1.jpg" height="700rem"></p>
+<p align="center">GUI Image 1</p>
 
 #### 1. This is where the Environment is selected. This is either one of the many QA environments or local development environment.
 #### 2. Select the web browser you would like to use. This can be either the google chrome or Edge browser
@@ -102,17 +102,17 @@ Python Automation with GUI for Andover Local and QA Environments
 #### 12. Select the date from clicking the date select button or entering the date in the input box to the left of the button
 #### 13. Enter the Insured's first and last name here
 #### 14. Click on the dropdown box for selecting a quote, application or policy
-#### 15. Click submit if everything has been entered and looks good. Otherwise you can go back and change information or click cancel to exit the application.
+#### 15. Click submit if everything has been entered and looks good. Otherwise, you can go back and change information or click cancel to exit the application.
 
 <br>
-<div align=”center”><img src = "docImages\DetailedGUI2.jpg" height="700rem"></div>
-<p style="text-align: center;">GUI Image 2</p>
+<p align=”center”><img src = "docImages\DetailedGUI2.jpg" height="700rem"></p>
+<p align="center">GUI Image 2</p>
 <br>
 <hr>
 
 ### Adding users and Producers
-<div align=”center”><img src = "docImages\DetailedGUI3.jpg" height="700rem"></div>
-<p style="text-align: center;">GUI Image 3</p>
+<p align=”center”><img src = "docImages\DetailedGUI3.jpg" height="700rem"></p>
+<p align="center">GUI Image 3</p>
 
 
 #### 1. Select the environment in either QA or development environment
