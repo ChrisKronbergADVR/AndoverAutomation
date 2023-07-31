@@ -85,7 +85,7 @@ Python Automation with GUI for Andover Local and QA Environments
 ## 2. How to use the GUI
 
 ### There are pictures below of the GUI with numbers letting you know each function of this application
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\DetailedGUI1.jpg" height="700rem">
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\DetailedGUI1.jpg" height="700rem">
 <p align="center">GUI Image 1</p>
 
 #### 1. This is where the Environment is selected. This is either one of the many QA environments or local development environment.
@@ -105,13 +105,14 @@ Python Automation with GUI for Andover Local and QA Environments
 #### 15. Click submit if everything has been entered and looks good. Otherwise, you can go back and change information or click cancel to exit the application.
 
 <br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\DetailedGUI2.jpg" height="700rem">
+
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\DetailedGUI2.jpg" height="700rem">
 <p align="center">GUI Image 2</p>
 <br>
 <hr>
 
 ### Adding users and Producers
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\DetailedGUI3.jpg" height="700rem">
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\DetailedGUI3.jpg" height="700rem">
 <p align="center">GUI Image 3</p>
 
 
