@@ -87,7 +87,7 @@ Python Automation with GUI for Andover Local and QA Environments
 ### There are pictures below of the GUI with numbers letting you know each function of this application
 <br>
 <p align="center" width="100%"><img src = "docImages\DetailedGUI1.jpg" height="700rem"></p>
-<p style="margin-left:45%">GUI Image 1</p>
+<p align="center">GUI Image 1</p>
 
 #### 1. This is where the Environment is selected. This is either one of the many QA environments or local development environment.
 #### 2. Select the web browser you would like to use. This can be either the google chrome or Edge browser
@@ -108,13 +108,13 @@ Python Automation with GUI for Andover Local and QA Environments
 <br>
 <p align="center" width="100%">
 <img src = "docImages\DetailedGUI2.jpg" height="700rem"></p>
-<p style="margin-left:45%">GUI Image 2</p>
+<p align="center">GUI Image 2</p>
 <br>
 <hr>
 
 ### Adding users and Producers
 <p align="center" width="100%"><img  src = "docImages\DetailedGUI3.jpg" height="700rem"></p>
-<p style="margin-left:45%">GUI Image 3</p>
+<p align="center">GUI Image 3</p>
 
 
 #### 1. Select the environment in either QA or development environment
