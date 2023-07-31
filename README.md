@@ -86,7 +86,7 @@ Python Automation with GUI for Andover Local and QA Environments
 
 ### There are pictures below of the gui with numbers letting you know each function of this application
 
-<center><img src = "docImages\DetailedGui1.jpg" height="700rem"></center>
+<center><img src = "docImages\DetailedGUI1.jpg" height="700rem"></center>
 <center>GUI Image 1</center>
 
 #### 1. This is where the Environment is selected. This is either one of the many QA environments or local development environment.
@@ -106,13 +106,13 @@ Python Automation with GUI for Andover Local and QA Environments
 #### 15. Click submit if everything has been entered and looks good. Otherwise you can go back and change information or click cancel to exit the application.
 
 <br>
-<center><img src = "docImages\DetailedGui2.jpg" height="700rem"></center>
+<center><img src = "docImages\DetailedGUI2.jpg" height="700rem"></center>
 <center>GUI Image 2</center>
 <br>
 <hr>
 
 ### Adding users and Producers
-<center><img src = "docImages\DetailedGui3.jpg" height="700rem"></center>
+<center><img src = "docImages\DetailedGUI3.jpg" height="700rem"></center>
 <center>GUI Image 3</center>
 
 #### 1. Select the environment in either QA or development environment
