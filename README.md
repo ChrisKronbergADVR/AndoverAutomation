@@ -1,6 +1,8 @@
                                                      # AndoverAutomation
 Python Automation with GUI for Andover Local and QA Environments
 
+### **** If you find any bugs or features you would like to be added. click on the issues Tab on Github - New Issue Button then either bug report Button or feature request Button and fill out the Information. ****
+
 ### If you already have Python installed, you can skip the Python install
 ---
 
