@@ -15,13 +15,13 @@ Python Automation with GUI for Andover Local and QA Environments
 &emsp;&emsp;&emsp;&emsp;- Make sure the pip selection is checked like it is  in the image below.
 <br>
 <br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src = "docImages\first.png" height="300rem">
+<p align="center" width="100%"><img src = "docImages\first.png" height="300rem"></p>
 <br>
 <br>
 &emsp;&emsp;&emsp;&emsp;- Make sure to add the environment variable checkbox when installing Python also.
 <br>
 <br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src = "docImages\secondPic.png" height="300rem">
+<p align="center" width="100%"><img src = "docImages\secondPic.png" height="300rem"></p>
 <br>
 <br>
 <br>
@@ -51,7 +51,7 @@ Python Automation with GUI for Andover Local and QA Environments
 <br>
 <h4>&ensp; 3. Click the code button</h4>
 
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src = "docImages\codeButton.png" height="300rem">
+<p align="center" width="100%"><img src = "docImages\codeButton.png" height="300rem"></p>
 
 - You can click the copy button to copy the code and then add git clone to the beginning of it in a terminal or command prompt. I have already copied and added git clone so you do not have to do that with the text below. you can just copy what is below and paste it  into a terminal or command prompt.
 
@@ -69,7 +69,7 @@ Python Automation with GUI for Andover Local and QA Environments
 
 ### 3. To run the file you can navigate to the directory in command prompt by opening command prompt and using cd (change directory) or copying the file path from the file explorer.
 <br>
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\file_in_exporer.jpg" height="300rem">
+<p align="center" width="100%"><img src = "docImages\file_in_exporer.jpg" height="300rem"></p>
 
 <br>
 
@@ -77,7 +77,7 @@ Python Automation with GUI for Andover Local and QA Environments
  - The program should run after pressing the enter key
 
 <br>
- &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;<img src = "docImages\cmd_prompt.jpg" height="300rem">
+<p align="center" width="100%"><img src = "docImages\cmd_prompt.jpg" height="300rem"></p>
 <br>
 
 <hr>
