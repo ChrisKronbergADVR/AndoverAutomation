@@ -471,12 +471,12 @@ def underwriting_questions(browser):
         Select(find_Element(browser,"Question_09Broker")).select_by_visible_text("No")
             
      #click the save button
-    find_Element(browser,"Save").click()
+    save(browser)
     waitPageLoad(browser)
 
     if line_of_business == "Dwelling Property" and state_chosen == "RI":
         find_Element(browser,"Question_RiskNumber1InspectorName").send_keys("No")
-        find_Element(browser,"Save").click()
+        save(browser)
 
 def core_coverages(browser):
     
@@ -542,13 +542,15 @@ def core_coverages(browser):
         send_value(browser,"Risk.NumOfStories",3)
         send_value(browser,"Risk.ListOfTenantsAndOccupancy","None")
 
-        find_Element(browser,"Save").click() 
 
+        save(browser)
+        save(browser)
+        waitPageLoad(browser)
         for value in core_values_after:
             check_for_value(browser,value,"No")
         
      #click the save button
-    find_Element(browser,"Save").click()
+    save(browser)
 
 def billing(browser):
     waitPageLoad(browser)
@@ -562,7 +564,7 @@ def billing(browser):
     waitPageLoad(browser)
 
     #click the save button
-    find_Element(browser,"Save").click()
+    save(browser)
     waitPageLoad(browser)
 
 def save(browser):
@@ -653,7 +655,7 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
         find_Element(browser,"InsuredInsuranceScore.OverriddenInsuranceScore").send_keys("950")
 
     #*click the save button
-    find_Element(browser,"Save").click()
+    save(browser)
     waitPageLoad(browser)
     if(line_of_business != "Businessowners"):
         core_coverages(browser)
@@ -672,7 +674,7 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
             waitPageLoad(browser)
             Select(find_Element(browser,"Building.InspectionSurveyReqInd")).select_by_value("No")
             #click the save button
-            find_Element(browser,"Save").click()
+            save(browser)
 
         underwriting_questions(browser)
         billing(browser)
