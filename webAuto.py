@@ -360,7 +360,21 @@ def delete_quote(browser):
     #delete created Quote
     find_Element(browser,"Delete").click()
     find_Element(browser,"dialogOK").click()
-    
+
+def check_for_value(browser,element,value):
+    try:
+        if(find_Element(browser,element).is_displayed()):
+            Select(find_Element(browser,element)).select_by_value(value)
+    except:
+        pass
+
+def send_value(browser,element,value):
+    try:
+        if(find_Element(browser,element).is_displayed()):
+            find_Element(browser,element).send_keys(value)
+    except:
+        pass
+
 def remove_javascript(browser):
     element_used = "js_error_list"
     script = """
@@ -401,70 +415,44 @@ def copy_to_mailing(browser,addr,city,state):
     Select(find_Element(browser,"InsuredMailingAddr.StateProvCd")).select_by_value(state)
 
 def underwriting_questions(browser):
-    no_value = "NO"
     y = datetime.today()+timedelta(days=60)
     producer_inspection_date = y.strftime("%m/%d/%Y")
     find_Element(browser,"Wizard_Underwriting").click()
     waitPageLoad(browser)
+
+    questions_home = ["Question_IslandProperty","Question_IsolatedProperty","Question_IslandHome","Question_InspectorName","Question_PrevKnown",
+                 "Question_PrevDiscussed","Question_OtherInsurance","Question_VacantOrOccupied", "Question_OnlineHome", "Question_OnlineHome",
+                 "Question_SeasonalHome", "Question_FrameDwellings", "Question_DayCareOnPremises", "Question_UndergraduateStudents","Question_SolarPanels","Question_UndergraduateStudents",
+                 "Question_DogsCare", "Question_ElectricalService", "Question_WiringInUse", "Question_StoveOnPremises", "Question_OilHeated", "Question_PoolOnPremises",
+                 "Question_TrampolineOnPremises","Question_AnyOutbuildings","Question_CancelledRecently","Question_ArsonConvicted","Question_PriorCarrier"]
+    
+    questions_dwell = ["Question_PolicyKnownPersonally","Question_PolicyOtherIns","Question_PolicyArson","Question_RiskNumber1PrevDisc","Question_RiskNumber1Vacant","Question_RiskNumber1OnlineHome"
+                       ,"Question_RiskNumber1Isolated","Question_RiskNumber1Island","Question_RiskNumber1Seasonal","Question_RiskNumber1SolarPanels","Question_RiskNumber1Adjacent","Question_RiskNumber1ChildCare",
+                       "Question_RiskNumber1OtherBusiness","Question_RiskNumber1Undergrad","Question_RiskNumber1DogsAnimals","Question_RiskNumber1Electrical","Question_RiskNumber1EdisonFuses","Question_RiskNumber1Stove",
+                       "Question_RiskNumber1OilHeated","Question_RiskNumber1Pool","Question_RiskNumber1Trampoline","Question_RiskNumber1Outbuildings","Question_RiskNumber1InsDeclined","Question_MAFireRiskNumber1OtherFireInsuranceApp",
+                       "Question_MAFireRiskNumber1OtherFireInsuranceActive","Question_MAFireRiskNumber1FireInPast","Question_MAFireRiskNumber1PropertyForSale","Question_MAFireRiskNumber1ApplicantMortgageeCrime",
+                       "Question_MAFireRiskNumber1ShareholderTrusteeCrime","Question_MAFireRiskNumber1MortgagePaymentsDelinquent","Question_MAFireRiskNumber1RealEstateTaxesDelinquent","Question_MAFireRiskNumber1CodeViolations"]
     
     if(line_of_business == "Homeowners"):
-        if not(state_chosen == 'IL' or state_chosen == 'ME' or state_chosen == 'MA' or state_chosen == "NH" or state_chosen == 'NJ' or state_chosen == "NY" or state_chosen == "CT"):
-            find_Element(browser,"Question_InspectorName").send_keys("No")
-            Select(find_Element(browser,"Question_IslandHome")).select_by_visible_text("No")
-        if not(state_chosen == 'IL'):
-            Select(find_Element(browser,"Question_IsolatedProperty")).select_by_visible_text("No")
-        if not(state_chosen == 'IL' or state_chosen == "NH" or state_chosen == "MA" or state_chosen == "NY" or state_chosen == "CT" or state_chosen == "RI"):
-            Select(find_Element(browser,"Question_IslandProperty")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_PrevKnown")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_PrevDiscussed")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_OtherInsurance")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_VacantOrOccupied")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_OnlineHome")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_SeasonalHome")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_SolarPanels")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_FrameDwellings")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_DayCareOnPremises")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_UndergraduateStudents")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_DogsCare")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_ElectricalService")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_WiringInUse")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_StoveOnPremises")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_OilHeated")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_PoolOnPremises")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_TrampolineOnPremises")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_AnyOutbuildings")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_CancelledRecently")).select_by_visible_text("No")
-        Select(find_Element(browser,"Question_ArsonConvicted")).select_by_visible_text("No")
+        for question in questions_home:
+            try:   
+                if(find_Element(browser,question).is_displayed() == True):
+                    Select(find_Element(browser,question)).select_by_visible_text("No")
+            except:
+                pass
+    
         Select(find_Element(browser,"Question_AnyLapsePast")).select_by_value("No-New Purchase")
         find_Element(browser,"Question_PurchasePrice").send_keys(500000)
-        #find_Element(browser,"Question_PriorCarrier").send_keys("No")
         find_Element(browser,"Question_ClaimsRecently").send_keys(0)
 
     if(line_of_business == "Dwelling Property"):
-        Select(find_Element(browser,"Question_PolicyKnownPersonally")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_PolicyOtherIns")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_PolicyArson")).select_by_value(no_value )
-        Select(find_Element(browser,"Question_RiskNumber1PrevDisc")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1Vacant")).select_by_value(no_value)
-        if not(state_chosen == 'IL'):
-            Select(find_Element(browser,"Question_RiskNumber1OnlineHome")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_RiskNumber1Isolated")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_RiskNumber1Island")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1Seasonal")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1SolarPanels")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1Adjacent")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1ChildCare")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1OtherBusiness")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1Undergrad")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1DogsAnimals")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1Electrical")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1EdisonFuses")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1Stove")).select_by_value("No")
-        Select(find_Element(browser,"Question_RiskNumber1OilHeated")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1Pool")).select_by_value("No")
-        Select(find_Element(browser,"Question_RiskNumber1Trampoline")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1Outbuildings")).select_by_value(no_value)
-        Select(find_Element(browser,"Question_RiskNumber1InsDeclined")).select_by_value(no_value)
+        for question in questions_dwell:
+            try:   
+                if(find_Element(browser,question).is_displayed() == True):
+                    Select(find_Element(browser,question)).select_by_visible_text("No")
+            except:
+                pass
+ 
         Select(find_Element(browser,"Question_RiskNumber1Lapse")).select_by_value("No-New purchase")
         find_Element(browser,"Question_RiskNumber1NumClaims").send_keys(0)
         if(state_chosen == 'MA'):
@@ -473,23 +461,14 @@ def underwriting_questions(browser):
             find_Element(browser,"Question_MAFireRiskNumber1EstimatedValue").send_keys("150000")
             Select(find_Element(browser,"Question_MAFireRiskNumber1ValuationMethod")).select_by_value("Replacement Cost")
             Select(find_Element(browser,"Question_MAFireRiskNumber1AppraisalMethod")).select_by_value("Professional Appraisal")
-            Select(find_Element(browser,"Question_MAFireRiskNumber1OtherFireInsuranceApp")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_MAFireRiskNumber1OtherFireInsuranceActive")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_MAFireRiskNumber1FireInPast")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_MAFireRiskNumber1PropertyForSale")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_MAFireRiskNumber1ApplicantMortgageeCrime")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_MAFireRiskNumber1ShareholderTrusteeCrime")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_MAFireRiskNumber1MortgagePaymentsDelinquent")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_MAFireRiskNumber1RealEstateTaxesDelinquent")).select_by_value(no_value)
-            Select(find_Element(browser,"Question_MAFireRiskNumber1CodeViolations")).select_by_value(no_value)
 
     if(line_of_business == "Businessowners"):
-        Select(find_Element(browser,"Question_01CoverageCancellation")).select_by_value(no_value)
+        Select(find_Element(browser,"Question_01CoverageCancellation")).select_by_visible_text("No")
         find_Element(browser,"Question_03PreviousCarrierPropertyLimitsPremium").send_keys("No")
         Select(find_Element(browser,"Question_08NumLosses")).select_by_value("0")
         find_Element(browser,"Question_05ProducerName").send_keys("No")
         find_Element(browser,"Question_06ProducerInspectionDt").send_keys(producer_inspection_date)
-        Select(find_Element(browser,"Question_09Broker")).select_by_value(no_value)
+        Select(find_Element(browser,"Question_09Broker")).select_by_visible_text("No")
             
      #click the save button
     find_Element(browser,"Save").click()
@@ -500,6 +479,12 @@ def underwriting_questions(browser):
         find_Element(browser,"Save").click()
 
 def core_coverages(browser):
+    
+    core_values = ["Risk.ListOfTenantsAndOccupancy","Risk.BasementInd","Risk.BldgCentralHeatInd","Risk.CircuitBreakerProtInd","Risk.UndergradResidentInd",
+                   "Risk.SpaceHeatersInd","Risk.FrameClearance15ftInd","Risk.ShortTermRent","Risk.MercantileOfficeOccupantsInd","Risk.ExcessLinesInd"]
+    
+    core_values_after = ["Risk.RoofUpdatedIn15YrsInd","Risk.AdequateSmokeDetInd","Risk.BldgOccGt75PctInd","Risk.EgressFromAllUnitsInd","Risk.MaintProgramInd"]
+
     find_Element(browser,"Wizard_Risks").click()
     waitPageLoad(browser)
 
@@ -541,35 +526,26 @@ def core_coverages(browser):
         else:
             Select(find_Element(browser,"Building.BuildingClassDescription")).select_by_value("67% or more Apartments")
         Select(find_Element(browser,"Building.ContentClassDescription")).select_by_value("None - Building Owner only")
-        Select(find_Element(browser,"Risk.PremisesAlarm")).select_by_value("None")
-        find_Element(browser,"Risk.ListOfTenantsAndOccupancy").send_keys("No")
         find_Element(browser,"Building.BuildingLimit").send_keys(500000)
         find_Element(browser,"Risk.SqFtArea").send_keys(2000)
-        find_Element(browser,"Risk.NumOfStories").send_keys(3)
-        Select(find_Element(browser,"Risk.BasementInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.BldgCentralHeatInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.CircuitBreakerProtInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.PremisesAlarm")).select_by_value("None")
-        Select(find_Element(browser,"Risk.UndergradResidentInd")).select_by_value("No")
-        if not(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NY" or state_chosen == "RI"):
-            Select(find_Element(browser,"Risk.SpaceHeatersInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.FrameClearance15ftInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.ShortTermRent")).select_by_value("No")
-        Select(find_Element(browser,"Risk.MercantileOfficeOccupantsInd")).select_by_value("No")
+
+        for value in core_values:
+            check_for_value(browser,value,"No")
+
+        check_for_value(browser,"Risk.PremisesAlarm","None")
+        check_for_value(browser,"Risk.YrsInBusinessInd","1")
+        
         if(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NH" or state_chosen=="CT"):
             find_Element(browser,"Building.NumOfApartmentCondoBuilding").send_keys(5)
             find_Element(browser,"Building.MaxNumOfAptCondoBetweenBrickWalls").send_keys(5)
-        if(state_chosen == "MA"):
-            Select(find_Element(browser,"Risk.ExcessLinesInd")).select_by_value("No")
-            Select(find_Element(browser,"Risk.YrsInBusinessInd")).select_by_value("1")
-        find_Element(browser,"Save").click()
-        find_Element(browser,"Save").click()
-        Select(find_Element(browser,"Risk.RoofUpdatedIn15YrsInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.AdequateSmokeDetInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.BldgOccGt75PctInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.EgressFromAllUnitsInd")).select_by_value("No")
-        Select(find_Element(browser,"Risk.MaintProgramInd")).select_by_value("No")
-        
+
+        send_value(browser,"Risk.NumOfStories",3)
+        send_value(browser,"Risk.ListOfTenantsAndOccupancy","None")
+
+        find_Element(browser,"Save").click() 
+
+        for value in core_values_after:
+            check_for_value(browser,value,"No")
         
      #click the save button
     find_Element(browser,"Save").click()
@@ -620,11 +596,16 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     #select entity type
     if(line_of_business == "Dwelling Property" or line_of_business == "Businessowners"):
         Select(find_Element(browser,"Insured.EntityTypeCd")).select_by_value("Individual")
+    
+    waitPageLoad(browser)
 
-    if not(state_chosen == "NJ" or state == "MA" or state_chosen == "NY" or state_chosen == "CT" or state_chosen == "RI") and line_of_business == "Homeowners":
-        Select(find_Element(browser,"InsuredPersonal.OccupationClassCd")).select_by_value("Other")
-        Select(find_Element(browser,"InsuredPersonal.OccupationClassCd")).select_by_value("Other")
-        find_Element(browser,"InsuredPersonal.OccupationOtherDesc").send_keys("No")
+    try:
+        if(find_Element(browser,"InsuredPersonal.OccupationClassCd").is_displayed() == True):
+            Select(find_Element(browser,"InsuredPersonal.OccupationClassCd")).select_by_value("Other")
+            Select(find_Element(browser,"InsuredPersonal.OccupationClassCd")).select_by_value("Other")
+            find_Element(browser,"InsuredPersonal.OccupationOtherDesc").send_keys("No")
+    except:
+        pass
 
     if state_chosen == "NY" and line_of_business == "Homeowners":
         Select(find_Element(browser,"BasicPolicy.GeographicTerritory")).select_by_value("Upstate")
@@ -674,14 +655,17 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     #*click the save button
     find_Element(browser,"Save").click()
     waitPageLoad(browser)
-    core_coverages(browser)
+    if(line_of_business != "Businessowners"):
+        core_coverages(browser)
 
     if(create_type == "Application" or create_type == "Policy"):
         if user_chosen != 'admin':
             click_radio(browser)
         find_Element(browser,"Bind").click()
         
-        #core_coverages(browser)
+        if(line_of_business == "Businessowners"):
+            core_coverages(browser)
+      
         waitPageLoad(browser)
         if(state_chosen == "NJ" and line_of_business == "Homeowners"):
             find_Element(browser,"Wizard_Risks").click()
