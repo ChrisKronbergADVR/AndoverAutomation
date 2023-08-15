@@ -351,7 +351,7 @@ def login(browser,user = "admin",password = "Not9999!"):
     find_Element(browser,"j_username").send_keys(user)
     find_Element(browser,"j_password").send_keys(password + Keys.RETURN)    
 
-#*function for finding elements in the browser``
+#*function for finding elements in the browser
 def find_Element(browser,browser_Element, id = By.ID):
     elem = browser.find_element(id,browser_Element)
     return elem
@@ -365,6 +365,13 @@ def check_for_value(browser,element,value):
     try:
         if(find_Element(browser,element).is_displayed()):
             Select(find_Element(browser,element)).select_by_value(value)
+    except:
+        pass
+
+def click_radio_button(browser,element):
+    try:
+        if(find_Element(browser,element).is_displayed()):
+            Select(find_Element(browser,element)).click()
     except:
         pass
 
@@ -575,7 +582,8 @@ def click_radio(browser):
     table = browser.find_elements(By.NAME,e_name)
     radio_number = len(table)
     my_value = e_name+"_"+str(radio_number)
-    find_Element(browser,my_value).click()
+    click_radio_button(browser,my_value)
+    #find_Element(browser,my_value).click()
  
 def create_new_quote(browser,date,state,producer,first_name,last_name,address,city,test:bool):
     #New Quote
