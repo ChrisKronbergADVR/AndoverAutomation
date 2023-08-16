@@ -371,7 +371,7 @@ def check_for_value(browser,element,value):
 def click_radio_button(browser,element):
     try:
         if(find_Element(browser,element).is_displayed()):
-            Select(find_Element(browser,element)).click()
+            find_Element(browser,element).click()
     except:
         pass
 
@@ -591,7 +591,6 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     find_Element(browser,"QuickAction_NewQuote_Holder").click()
     find_Element(browser,"QuickAction_EffectiveDt").send_keys(date)
 
-    #sleep needed to enter value 
     waitPageLoad(browser)
     #State Select
     Select(find_Element(browser,"QuickAction_StateCd")).select_by_value(state)
@@ -670,8 +669,8 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
         core_coverages(browser)
 
     if(create_type == "Application" or create_type == "Policy"):
-        if user_chosen != 'admin':
-            click_radio(browser)
+        waitPageLoad(browser)
+        click_radio(browser)
         find_Element(browser,"Bind").click()
         
         if(line_of_business == "Businessowners"):
