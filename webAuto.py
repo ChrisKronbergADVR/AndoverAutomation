@@ -427,7 +427,7 @@ def underwriting_questions(browser):
     find_Element(browser,"Wizard_Underwriting").click()
     waitPageLoad(browser)
 
-    questions_home = ["Question_IslandProperty","Question_IsolatedProperty","Question_IslandHome","Question_InspectorName","Question_PrevKnown",
+    questions_home = ["Question_IslandProperty","Question_IsolatedProperty","Question_IslandHome","Question_PrevKnown",
                  "Question_PrevDiscussed","Question_OtherInsurance","Question_VacantOrOccupied", "Question_OnlineHome", "Question_OnlineHome",
                  "Question_SeasonalHome", "Question_FrameDwellings", "Question_DayCareOnPremises", "Question_UndergraduateStudents","Question_SolarPanels","Question_UndergraduateStudents",
                  "Question_DogsCare", "Question_ElectricalService", "Question_WiringInUse", "Question_StoveOnPremises", "Question_OilHeated", "Question_PoolOnPremises",
@@ -441,6 +441,8 @@ def underwriting_questions(browser):
                        "Question_MAFireRiskNumber1ShareholderTrusteeCrime","Question_MAFireRiskNumber1MortgagePaymentsDelinquent","Question_MAFireRiskNumber1RealEstateTaxesDelinquent","Question_MAFireRiskNumber1CodeViolations"]
     
     if(line_of_business == "Homeowners"):
+        send_value(browser,"Question_InspectorName","Gadget")
+
         for question in questions_home:
             try:   
                 if(find_Element(browser,question).is_displayed() == True):
@@ -583,7 +585,6 @@ def click_radio(browser):
     radio_number = len(table)
     my_value = e_name+"_"+str(radio_number)
     click_radio_button(browser,my_value)
-    #find_Element(browser,my_value).click()
  
 def create_new_quote(browser,date,state,producer,first_name,last_name,address,city,test:bool):
     #New Quote
