@@ -14,6 +14,7 @@ import os
 from time import sleep
 from datetime import datetime,timedelta
 import requests
+from threading import Thread
 
 #*Constants
 TEST = False
@@ -361,10 +362,13 @@ def delete_quote(browser):
     find_Element(browser,"Delete").click()
     find_Element(browser,"dialogOK").click()
 
-def check_for_value(browser,element,value):
+def check_for_value(browser,element,value,value_text:bool):
     try:
         if(find_Element(browser,element).is_displayed()):
-            Select(find_Element(browser,element)).select_by_value(value)
+            if(value_text):
+                Select(find_Element(browser,element)).select_by_value(value)
+            else:
+                Select(find_Element(browser,element)).select_by_visible_text(value)
     except:
         pass
 
@@ -444,23 +448,17 @@ def underwriting_questions(browser):
         send_value(browser,"Question_InspectorName","Gadget")
 
         for question in questions_home:
-            try:   
-                if(find_Element(browser,question).is_displayed() == True):
-                    Select(find_Element(browser,question)).select_by_visible_text("No")
-            except:
-                pass
-    
+            #check_for_value(browser,question,"No",False)
+            ques_thread = Thread(target=check_for_value,args=(browser,question,"No",False))
+            ques_thread.start()
+
         Select(find_Element(browser,"Question_AnyLapsePast")).select_by_value("No-New Purchase")
         find_Element(browser,"Question_PurchasePrice").send_keys(500000)
         find_Element(browser,"Question_ClaimsRecently").send_keys(0)
 
     if(line_of_business == "Dwelling Property"):
         for question in questions_dwell:
-            try:   
-                if(find_Element(browser,question).is_displayed() == True):
-                    Select(find_Element(browser,question)).select_by_visible_text("No")
-            except:
-                pass
+            check_for_value(browser,question,"No",False)
  
         Select(find_Element(browser,"Question_RiskNumber1Lapse")).select_by_value("No-New purchase")
         find_Element(browser,"Question_RiskNumber1NumClaims").send_keys(0)
