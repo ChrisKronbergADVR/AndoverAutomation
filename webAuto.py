@@ -447,14 +447,24 @@ def underwriting_questions(browser):
     if(line_of_business == "Homeowners"):
         send_value(browser,"Question_InspectorName","Gadget")
 
+        threads= []
+
         for question in questions_home:
-            #check_for_value(browser,question,"No",False)
             ques_thread = Thread(target=check_for_value,args=(browser,question,"No",False))
             ques_thread.start()
+            threads.append(ques_thread)
 
-        Select(find_Element(browser,"Question_AnyLapsePast")).select_by_value("No-New Purchase")
-        find_Element(browser,"Question_PurchasePrice").send_keys(500000)
-        find_Element(browser,"Question_ClaimsRecently").send_keys(0)
+        ques1 = Thread(target=check_for_value,args=(browser,"Question_AnyLapsePast","No-New Purchase",True))
+        ques3 = Thread(target=send_value,args=(browser,"Question_ClaimsRecently",0))
+        ques1.start()
+        ques3.start()
+        threads.append(ques1)
+        threads.append(ques3)
+
+        for thread_1 in threads:
+            thread_1.join()
+
+        send_value(browser,"Question_PurchasePrice",500000)
 
     if(line_of_business == "Dwelling Property"):
         for question in questions_dwell:
@@ -537,10 +547,10 @@ def core_coverages(browser):
         find_Element(browser,"Risk.SqFtArea").send_keys(2000)
 
         for value in core_values:
-            check_for_value(browser,value,"No")
+            check_for_value(browser,value,"No",False)
 
-        check_for_value(browser,"Risk.PremisesAlarm","None")
-        check_for_value(browser,"Risk.YrsInBusinessInd","1")
+        check_for_value(browser,"Risk.PremisesAlarm","None",True)
+        check_for_value(browser,"Risk.YrsInBusinessInd","1",True)
         
         if(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NH" or state_chosen=="CT"):
             find_Element(browser,"Building.NumOfApartmentCondoBuilding").send_keys(5)
@@ -554,7 +564,7 @@ def core_coverages(browser):
         save(browser)
         waitPageLoad(browser)
         for value in core_values_after:
-            check_for_value(browser,value,"No")
+            check_for_value(browser,value,"No",False)
         
      #click the save button
     save(browser)
