@@ -14,6 +14,7 @@ import os
 from time import sleep
 from datetime import datetime,timedelta
 import requests
+from threading import Thread
 
 #*Constants
 TEST = False
@@ -174,7 +175,8 @@ def make_window():
                         [sg.Text("City (Required)",visible=False,justification="left", key = "-CityText-"),sg.Text("            "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CITY-")],
                         [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
                         [sg.Text()],
-                        [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-")],
+                        [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
+                        [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",key="-MULTI-")],
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
@@ -254,6 +256,8 @@ def make_window():
         browser = values["BROWSER"]
         cust_addr = values["ADD_CHECK"]
         state = values["-STATE-"]
+        lob = values["-LOB-"]
+        multi = values["-MULTI-"]
 
         if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
             env_used = selectedEnviron
@@ -305,6 +309,15 @@ def make_window():
             window["-VERIFY_BUTTON-"].update(visible = False)
             window.refresh()
 
+        if lob == "Dwelling Property":
+            window["-MULT-"].update(visible = True)
+            window["-MULTI-"].update(visible = True)
+            window.refresh()
+        else:
+            window["-MULT-"].update(visible = False)
+            window["-MULTI-"].update(visible = False)
+            window.refresh()
+
         if event == "-ADDP-" and selectedEnviron!= '':
             add_producer(add_prod)
             prodList = env_files_plus_users[env_used]["Producers"]["ProducerNames"]
@@ -334,15 +347,19 @@ def make_window():
             window.refresh()
 
         if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"] and (custom_address["Flag"] or cust_addr == False):
-            line_of_business = values["-LOB-"]
+            line_of_business = values["-LOB-"]         
             browser_chosen = browser
             state_chosen = STATES[values["-STATE-"]]
             date_chosen = values["-IN4-"]
             producer_selected = producer
             create_type = doc_type
             user_chosen = selectedUser
+            if(multi == "Yes" and lob == "Dwelling Property"):
+                multiAdd = True
+            else:
+                multiAdd = False
             window.close()
-            return first_name,last_name,selectedUser
+            return first_name,last_name,selectedUser,multiAdd
     window.close()
 
 #*function for login
@@ -361,10 +378,13 @@ def delete_quote(browser):
     find_Element(browser,"Delete").click()
     find_Element(browser,"dialogOK").click()
 
-def check_for_value(browser,element,value):
+def check_for_value(browser,element,value,value_text:bool):
     try:
         if(find_Element(browser,element).is_displayed()):
-            Select(find_Element(browser,element)).select_by_value(value)
+            if(value_text):
+                Select(find_Element(browser,element)).select_by_value(value)
+            else:
+                Select(find_Element(browser,element)).select_by_visible_text(value)
     except:
         pass
 
@@ -421,7 +441,7 @@ def copy_to_mailing(browser,addr,city,state):
     find_Element(browser,"InsuredMailingAddr.City").send_keys(city)
     Select(find_Element(browser,"InsuredMailingAddr.StateProvCd")).select_by_value(state)
 
-def underwriting_questions(browser):
+def underwriting_questions(browser,multi):
     y = datetime.today()+timedelta(days=60)
     producer_inspection_date = y.strftime("%m/%d/%Y")
     find_Element(browser,"Wizard_Underwriting").click()
@@ -440,28 +460,50 @@ def underwriting_questions(browser):
                        "Question_MAFireRiskNumber1OtherFireInsuranceActive","Question_MAFireRiskNumber1FireInPast","Question_MAFireRiskNumber1PropertyForSale","Question_MAFireRiskNumber1ApplicantMortgageeCrime",
                        "Question_MAFireRiskNumber1ShareholderTrusteeCrime","Question_MAFireRiskNumber1MortgagePaymentsDelinquent","Question_MAFireRiskNumber1RealEstateTaxesDelinquent","Question_MAFireRiskNumber1CodeViolations"]
     
+    questions_dwell2 = ["Question_RiskNumber2PrevDisc","Question_RiskNumber2Vacant","Question_RiskNumber2OnlineHome"
+                       ,"Question_RiskNumber2Isolated","Question_RiskNumber2Island","Question_RiskNumber2Seasonal","Question_RiskNumber2SolarPanels","Question_RiskNumber2Adjacent","Question_RiskNumber2ChildCare",
+                       "Question_RiskNumber2OtherBusiness","Question_RiskNumber2Undergrad","Question_RiskNumber2DogsAnimals","Question_RiskNumber2Electrical","Question_RiskNumber2EdisonFuses","Question_RiskNumber2Stove",
+                       "Question_RiskNumber2OilHeated","Question_RiskNumber2Pool","Question_RiskNumber2Trampoline","Question_RiskNumber2Outbuildings","Question_RiskNumber2InsDeclined","Question_MAFireRiskNumber2OtherFireInsuranceApp",
+                       "Question_MAFireRiskNumber2OtherFireInsuranceActive","Question_MAFireRiskNumber2FireInPast","Question_MAFireRiskNumber2PropertyForSale","Question_MAFireRiskNumber2ApplicantMortgageeCrime",
+                       "Question_MAFireRiskNumber2ShareholderTrusteeCrime","Question_MAFireRiskNumber2MortgagePaymentsDelinquent","Question_MAFireRiskNumber2RealEstateTaxesDelinquent","Question_MAFireRiskNumber2CodeViolations"]
+    
     if(line_of_business == "Homeowners"):
         send_value(browser,"Question_InspectorName","Gadget")
 
+        threads= []
+
         for question in questions_home:
-            try:   
-                if(find_Element(browser,question).is_displayed() == True):
-                    Select(find_Element(browser,question)).select_by_visible_text("No")
-            except:
-                pass
-    
-        Select(find_Element(browser,"Question_AnyLapsePast")).select_by_value("No-New Purchase")
-        find_Element(browser,"Question_PurchasePrice").send_keys(500000)
-        find_Element(browser,"Question_ClaimsRecently").send_keys(0)
+            ques_thread = Thread(target=check_for_value,args=(browser,question,"No",False))
+            ques_thread.start()
+            threads.append(ques_thread)
+
+        ques1 = Thread(target=check_for_value,args=(browser,"Question_AnyLapsePast","No-New Purchase",True))
+        ques3 = Thread(target=send_value,args=(browser,"Question_ClaimsRecently",0))
+        ques1.start()
+        ques3.start()
+        threads.append(ques1)
+        threads.append(ques3)
+
+        for thread_1 in threads:
+            thread_1.join()
+
+        send_value(browser,"Question_PurchasePrice",500000)
 
     if(line_of_business == "Dwelling Property"):
         for question in questions_dwell:
-            try:   
-                if(find_Element(browser,question).is_displayed() == True):
-                    Select(find_Element(browser,question)).select_by_visible_text("No")
-            except:
-                pass
- 
+            check_for_value(browser,question,"No",False)
+        if multi == True:
+            for question in questions_dwell2:
+                check_for_value(browser,question,"No",False)
+            Select(find_Element(browser,"Question_RiskNumber2Lapse")).select_by_value("No-New purchase")
+            find_Element(browser,"Question_RiskNumber2NumClaims").send_keys(0)
+            if(state_chosen == 'MA'):
+                find_Element(browser,"Question_MAFireRiskNumber2PurchaseDate").send_keys("01/01/2022")
+                find_Element(browser,"Question_MAFireRiskNumber2PurchasePrice").send_keys("100000")
+                find_Element(browser,"Question_MAFireRiskNumber2EstimatedValue").send_keys("150000")
+                Select(find_Element(browser,"Question_MAFireRiskNumber2ValuationMethod")).select_by_value("Replacement Cost")
+                Select(find_Element(browser,"Question_MAFireRiskNumber2AppraisalMethod")).select_by_value("Professional Appraisal")
+
         Select(find_Element(browser,"Question_RiskNumber1Lapse")).select_by_value("No-New purchase")
         find_Element(browser,"Question_RiskNumber1NumClaims").send_keys(0)
         if(state_chosen == 'MA'):
@@ -485,6 +527,8 @@ def underwriting_questions(browser):
 
     if line_of_business == "Dwelling Property" and state_chosen == "RI":
         find_Element(browser,"Question_RiskNumber1InspectorName").send_keys("No")
+        if multi == True:
+            find_Element(browser,"Question_RiskNumber2InspectorName").send_keys("No")
         save(browser)
 
 def core_coverages(browser):
@@ -539,10 +583,10 @@ def core_coverages(browser):
         find_Element(browser,"Risk.SqFtArea").send_keys(2000)
 
         for value in core_values:
-            check_for_value(browser,value,"No")
+            check_for_value(browser,value,"No",False)
 
-        check_for_value(browser,"Risk.PremisesAlarm","None")
-        check_for_value(browser,"Risk.YrsInBusinessInd","1")
+        check_for_value(browser,"Risk.PremisesAlarm","None",True)
+        check_for_value(browser,"Risk.YrsInBusinessInd","1",True)
         
         if(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NH" or state_chosen=="CT"):
             find_Element(browser,"Building.NumOfApartmentCondoBuilding").send_keys(5)
@@ -556,7 +600,7 @@ def core_coverages(browser):
         save(browser)
         waitPageLoad(browser)
         for value in core_values_after:
-            check_for_value(browser,value,"No")
+            check_for_value(browser,value,"No",False)
         
      #click the save button
     save(browser)
@@ -586,7 +630,7 @@ def click_radio(browser):
     my_value = e_name+"_"+str(radio_number)
     click_radio_button(browser,my_value)
  
-def create_new_quote(browser,date,state,producer,first_name,last_name,address,city,test:bool):
+def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool):
     #New Quote
     find_Element(browser,"QuickAction_NewQuote_Holder").click()
     find_Element(browser,"QuickAction_EffectiveDt").send_keys(date)
@@ -665,8 +709,14 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
     #*click the save button
     save(browser)
     waitPageLoad(browser)
+
+    #multiple locations here
+    
     if(line_of_business != "Businessowners"):
         core_coverages(browser)
+        if(multiLoc == True and line_of_business == "Dwelling Property"):
+            find_Element(browser,"CopyRisk").click()
+            save(browser)
 
     if(create_type == "Application" or create_type == "Policy"):
         waitPageLoad(browser)
@@ -684,7 +734,7 @@ def create_new_quote(browser,date,state,producer,first_name,last_name,address,ci
             #click the save button
             save(browser)
 
-        underwriting_questions(browser)
+        underwriting_questions(browser,multiLoc)
         billing(browser)
     print("Create Type: " + create_type)
 
@@ -728,7 +778,7 @@ def get_password(user):
 def main():
     create_files()
 
-    first_name, last_name, user_name = make_window()
+    first_name, last_name, user_name,multi = make_window()
 
     password = get_password(user_name)
     print("Username: "+user_name + "  Password: " + password)
@@ -746,9 +796,9 @@ def main():
     custom_city = custom_address["City"]
     custom_add = custom_address["Address"]
     if(custom_address["Flag"]):
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,TEST)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST)
     else:
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,TEST)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST)
 
     if(TEST == True):
         sleep(5)
