@@ -25,6 +25,7 @@ CARRIER = "ADVR"
 #*Global Variables
 gw_environment ={"Local":"http://localhost:9090","QA":"https://qa-advr.iscs.com/","UAT3":"https://uat3-advr.in.guidewire.net/innovation?saml=off","UAT4":"https://uat4-advr.in.guidewire.net/innovation","QA2":"https://qa2-acx-advr.in.guidewire.net/innovation"}
 browser_chosen = "Chrome"
+
 line_of_business = "Dwelling Property"
 state_chosen = "RI"
 number_of_addresses = 1
@@ -153,7 +154,7 @@ def verify_address(city,state,address1,address2=None):
 
 #Function for making the GUI
 def make_window():
-    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified
+    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses
     sg.theme(THEME)
     userList = []
     browsers = ["Chrome","Edge"]
@@ -176,7 +177,7 @@ def make_window():
                         [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
                         [sg.Text()],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
-                        [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",key="-MULTI-")],
+                        [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
@@ -318,6 +319,13 @@ def make_window():
             window["-MULTI-"].update(visible = False)
             window.refresh()
 
+        if multi == "Yes":
+            window["-NUMLOC-"].update(visible = True)
+            window["-NUMMULT-"].update(visible=True)
+        else:
+            window["-NUMLOC-"].update(visible = False)
+            window["-NUMMULT-"].update(visible = False)
+
         if event == "-ADDP-" and selectedEnviron!= '':
             add_producer(add_prod)
             prodList = env_files_plus_users[env_used]["Producers"]["ProducerNames"]
@@ -356,7 +364,9 @@ def make_window():
             user_chosen = selectedUser
             if(multi == "Yes" and lob == "Dwelling Property"):
                 multiAdd = True
+                number_of_addresses = values["-NUMLOC-"]
             else:
+                number_of_addresses = 1
                 multiAdd = False
             window.close()
             return first_name,last_name,selectedUser,multiAdd
@@ -378,6 +388,7 @@ def delete_quote(browser):
     find_Element(browser,"Delete").click()
     find_Element(browser,"dialogOK").click()
 
+#*Functiions for finding or sending values to input fields
 def check_for_value(browser,element,value,value_text:bool):
     try:
         if(find_Element(browser,element).is_displayed()):
@@ -402,6 +413,7 @@ def send_value(browser,element,value):
     except:
         pass
 
+#*Removes the errors on webpage
 def remove_javascript(browser):
     element_used = "js_error_list"
     script = """
@@ -414,7 +426,6 @@ def remove_javascript(browser):
     try:
         t = find_Element(browser,element_used).is_displayed()
         if(t == True):
-            print("executed javascript to remove errors")
             browser.execute_script(script)
     except:
         pass
@@ -441,6 +452,30 @@ def copy_to_mailing(browser,addr,city,state):
     find_Element(browser,"InsuredMailingAddr.City").send_keys(city)
     Select(find_Element(browser,"InsuredMailingAddr.StateProvCd")).select_by_value(state)
 
+#* Function to add underwriting questions for each location
+def gen_location_questions(num):
+
+    ques_dwell = ["Question_PolicyKnownPersonally","Question_PolicyOtherIns","Question_PolicyArson","Question_RiskNumber1PrevDisc","Question_RiskNumber1Vacant","Question_RiskNumber1OnlineHome"
+                       ,"Question_RiskNumber1Isolated","Question_RiskNumber1Island","Question_RiskNumber1Seasonal","Question_RiskNumber1SolarPanels","Question_RiskNumber1Adjacent","Question_RiskNumber1ChildCare",
+                       "Question_RiskNumber1OtherBusiness","Question_RiskNumber1Undergrad","Question_RiskNumber1DogsAnimals","Question_RiskNumber1Electrical","Question_RiskNumber1EdisonFuses","Question_RiskNumber1Stove",
+                       "Question_RiskNumber1OilHeated","Question_RiskNumber1Pool","Question_RiskNumber1Trampoline","Question_RiskNumber1Outbuildings","Question_RiskNumber1InsDeclined","Question_MAFireRiskNumber1OtherFireInsuranceApp",
+                       "Question_MAFireRiskNumber1OtherFireInsuranceActive","Question_MAFireRiskNumber1FireInPast","Question_MAFireRiskNumber1PropertyForSale","Question_MAFireRiskNumber1ApplicantMortgageeCrime",
+                       "Question_MAFireRiskNumber1ShareholderTrusteeCrime","Question_MAFireRiskNumber1MortgagePaymentsDelinquent","Question_MAFireRiskNumber1RealEstateTaxesDelinquent","Question_MAFireRiskNumber1CodeViolations"]
+    
+    newDict = {1:ques_dwell}
+    newArr = []
+
+    if(num > 1):
+        for loc in range(num-1):
+            num = loc+2
+            for question_name in ques_dwell:    
+                if(question_name.__contains__("1")):
+                    word = question_name.split("1")
+                    newArr.append(word[0]+str(num)+word[1])
+            newDict[num] = newArr
+            
+    return newDict
+
 def underwriting_questions(browser,multi):
     y = datetime.today()+timedelta(days=60)
     producer_inspection_date = y.strftime("%m/%d/%Y")
@@ -452,21 +487,14 @@ def underwriting_questions(browser,multi):
                  "Question_SeasonalHome", "Question_FrameDwellings", "Question_DayCareOnPremises", "Question_UndergraduateStudents","Question_SolarPanels","Question_UndergraduateStudents",
                  "Question_DogsCare", "Question_ElectricalService", "Question_WiringInUse", "Question_StoveOnPremises", "Question_OilHeated", "Question_PoolOnPremises",
                  "Question_TrampolineOnPremises","Question_AnyOutbuildings","Question_CancelledRecently","Question_ArsonConvicted","Question_PriorCarrier"]
-    
-    questions_dwell = ["Question_PolicyKnownPersonally","Question_PolicyOtherIns","Question_PolicyArson","Question_RiskNumber1PrevDisc","Question_RiskNumber1Vacant","Question_RiskNumber1OnlineHome"
-                       ,"Question_RiskNumber1Isolated","Question_RiskNumber1Island","Question_RiskNumber1Seasonal","Question_RiskNumber1SolarPanels","Question_RiskNumber1Adjacent","Question_RiskNumber1ChildCare",
-                       "Question_RiskNumber1OtherBusiness","Question_RiskNumber1Undergrad","Question_RiskNumber1DogsAnimals","Question_RiskNumber1Electrical","Question_RiskNumber1EdisonFuses","Question_RiskNumber1Stove",
-                       "Question_RiskNumber1OilHeated","Question_RiskNumber1Pool","Question_RiskNumber1Trampoline","Question_RiskNumber1Outbuildings","Question_RiskNumber1InsDeclined","Question_MAFireRiskNumber1OtherFireInsuranceApp",
-                       "Question_MAFireRiskNumber1OtherFireInsuranceActive","Question_MAFireRiskNumber1FireInPast","Question_MAFireRiskNumber1PropertyForSale","Question_MAFireRiskNumber1ApplicantMortgageeCrime",
-                       "Question_MAFireRiskNumber1ShareholderTrusteeCrime","Question_MAFireRiskNumber1MortgagePaymentsDelinquent","Question_MAFireRiskNumber1RealEstateTaxesDelinquent","Question_MAFireRiskNumber1CodeViolations"]
-    
-    questions_dwell2 = ["Question_RiskNumber2PrevDisc","Question_RiskNumber2Vacant","Question_RiskNumber2OnlineHome"
-                       ,"Question_RiskNumber2Isolated","Question_RiskNumber2Island","Question_RiskNumber2Seasonal","Question_RiskNumber2SolarPanels","Question_RiskNumber2Adjacent","Question_RiskNumber2ChildCare",
-                       "Question_RiskNumber2OtherBusiness","Question_RiskNumber2Undergrad","Question_RiskNumber2DogsAnimals","Question_RiskNumber2Electrical","Question_RiskNumber2EdisonFuses","Question_RiskNumber2Stove",
-                       "Question_RiskNumber2OilHeated","Question_RiskNumber2Pool","Question_RiskNumber2Trampoline","Question_RiskNumber2Outbuildings","Question_RiskNumber2InsDeclined","Question_MAFireRiskNumber2OtherFireInsuranceApp",
-                       "Question_MAFireRiskNumber2OtherFireInsuranceActive","Question_MAFireRiskNumber2FireInPast","Question_MAFireRiskNumber2PropertyForSale","Question_MAFireRiskNumber2ApplicantMortgageeCrime",
-                       "Question_MAFireRiskNumber2ShareholderTrusteeCrime","Question_MAFireRiskNumber2MortgagePaymentsDelinquent","Question_MAFireRiskNumber2RealEstateTaxesDelinquent","Question_MAFireRiskNumber2CodeViolations"]
-    
+
+    ma_questions = {"Question_RiskNumber1Lapse":["select_value","No-New purchase"],"Question_MAFireRiskNumber1PurchasePrice"}
+
+    if multi == True:
+        dwell_questions = gen_location_questions(number_of_addresses)
+    else
+        dwell_questions = gen_location_questions(1)
+
     if(line_of_business == "Homeowners"):
         send_value(browser,"Question_InspectorName","Gadget")
 
@@ -490,11 +518,16 @@ def underwriting_questions(browser,multi):
         send_value(browser,"Question_PurchasePrice",500000)
 
     if(line_of_business == "Dwelling Property"):
-        for question in questions_dwell:
-            check_for_value(browser,question,"No",False)
-        if multi == True:
-            for question in questions_dwell2:
+
+        for key in range(len(dwell_questions.keys())):
+            for question in dwell_questions[key+1]:
                 check_for_value(browser,question,"No",False)
+        #for question in dwell_questions: 
+        #    check_for_value(browser,question,"No",False)
+
+        if multi == True:
+            #for question in questions_dwell2:
+            #    check_for_value(browser,question,"No",False)
             Select(find_Element(browser,"Question_RiskNumber2Lapse")).select_by_value("No-New purchase")
             find_Element(browser,"Question_RiskNumber2NumClaims").send_keys(0)
             if(state_chosen == 'MA'):
