@@ -460,17 +460,21 @@ def question_update(question,size):
     return new_word
 
 #* Function to add underwriting questions for each location
-def gen_dwell_location_questions(num):
+def gen_dwell_location_questions(browser,num):
 
     ques_dwell = ["Question_PolicyKnownPersonally","Question_PolicyOtherIns","Question_PolicyArson","Question_RiskNumber1PrevDisc","Question_RiskNumber1Vacant","Question_RiskNumber1OnlineHome"
                        ,"Question_RiskNumber1Isolated","Question_RiskNumber1Island","Question_RiskNumber1Seasonal","Question_RiskNumber1SolarPanels","Question_RiskNumber1Adjacent","Question_RiskNumber1ChildCare",
                        "Question_RiskNumber1OtherBusiness","Question_RiskNumber1Undergrad","Question_RiskNumber1DogsAnimals","Question_RiskNumber1Electrical","Question_RiskNumber1EdisonFuses","Question_RiskNumber1Stove",
                        "Question_RiskNumber1OilHeated","Question_RiskNumber1Pool","Question_RiskNumber1Trampoline","Question_RiskNumber1Outbuildings","Question_RiskNumber1InsDeclined","Question_MAFireRiskNumber1OtherFireInsuranceApp",
                        "Question_MAFireRiskNumber1OtherFireInsuranceActive","Question_MAFireRiskNumber1FireInPast","Question_MAFireRiskNumber1PropertyForSale","Question_MAFireRiskNumber1ApplicantMortgageeCrime",
-                       "Question_MAFireRiskNumber1ShareholderTrusteeCrime","Question_MAFireRiskNumber1MortgagePaymentsDelinquent","Question_MAFireRiskNumber1RealEstateTaxesDelinquent","Question_MAFireRiskNumber1CodeViolations","Question_RiskNumber1InspectorName"]
+                       "Question_MAFireRiskNumber1ShareholderTrusteeCrime","Question_MAFireRiskNumber1MortgagePaymentsDelinquent","Question_MAFireRiskNumber1RealEstateTaxesDelinquent","Question_MAFireRiskNumber1CodeViolations"]
     
     newDict = {1:ques_dwell}
     newArr = []
+
+    gen_dewll_location_extra_questions(browser,1)
+    if state_chosen == "RI":
+        find_Element(browser,"Question_RiskNumber"+str(1)+"InspectorName").send_keys("No")
 
     if(num > 1):
         for loc in range(num-1):
@@ -479,29 +483,32 @@ def gen_dwell_location_questions(num):
                 if(question_name.__contains__("1")):
                     word = question_name.split("1")
                     newArr.append(word[0]+str(number)+word[1])
-            newDict[num] = newArr
+            newDict[number] = newArr
+            if(state_chosen == "RI"):
+                find_Element(browser,"Question_RiskNumber"+str(number)+"InspectorName").send_keys("No")
+            gen_dewll_location_extra_questions(browser,number)
+  
             
     return newDict
 
-def gen_dewll_location_extra_questions(num):
+def gen_dewll_location_extra_questions(browser,num):
     extra_dwell_questions = ["Question_RiskNumber1Lapse","Question_RiskNumber1NumClaims","Question_MAFireRiskNumber1PurchaseDate","Question_MAFireRiskNumber1PurchasePrice","Question_MAFireRiskNumber1EstimatedValue","Question_MAFireRiskNumber1ValuationMethod","Question_MAFireRiskNumber1AppraisalMethod"]
-    browser = load_page()
-    num_update = 1
+    updatedArr = []
 
-    while(num_update<=num):
-        arrSize = list(itertools.repeat(num_update, len(extra_dwell_questions)))
-        updatedArr = map(question_update,extra_dwell_questions,arrSize)
-
-        Select(find_Element(browser,updatedArr[0])).select_by_value("No-New purchase")
-        find_Element(browser,updatedArr[1]).send_keys(0)
-        if(state_chosen == 'MA'):
-            find_Element(browser,updatedArr[2]).send_keys("01/01/2022")
-            find_Element(browser,updatedArr[3]).send_keys("100000")
-            find_Element(browser,updatedArr[4]).send_keys("150000")
-            Select(find_Element(browser,updatedArr[5])).select_by_value("Replacement Cost")
-            Select(find_Element(browser,updatedArr[6])).select_by_value("Professional Appraisal")
+    if(num >1):
+        for question in extra_dwell_questions:
+            updatedArr.append(question_update(question,num))
+    else:
+        updatedArr = extra_dwell_questions
+    Select(find_Element(browser,updatedArr[0])).select_by_value("No-New purchase")
+    find_Element(browser,updatedArr[1]).send_keys(0)
+    if(state_chosen == 'MA'):
+        find_Element(browser,updatedArr[2]).send_keys("01/01/2022")
+        find_Element(browser,updatedArr[3]).send_keys("100000")
+        find_Element(browser,updatedArr[4]).send_keys("150000")
+        Select(find_Element(browser,updatedArr[5])).select_by_value("Replacement Cost")
+        Select(find_Element(browser,updatedArr[6])).select_by_value("Professional Appraisal")
         
-        num_update+=1
             
 def underwriting_questions(browser,multi):
     y = datetime.today()+timedelta(days=60)
@@ -516,9 +523,9 @@ def underwriting_questions(browser,multi):
                  "Question_TrampolineOnPremises","Question_AnyOutbuildings","Question_CancelledRecently","Question_ArsonConvicted","Question_PriorCarrier"]
 
     if multi == True:
-        dwell_questions = gen_dwell_location_questions(number_of_addresses)
+        dwell_questions = gen_dwell_location_questions(browser,number_of_addresses)
     else:
-        dwell_questions = gen_dwell_location_questions(1)
+        dwell_questions = gen_dwell_location_questions(browser,1)
 
     if(line_of_business == "Homeowners"):
         send_value(browser,"Question_InspectorName","Gadget")
@@ -543,37 +550,10 @@ def underwriting_questions(browser,multi):
         send_value(browser,"Question_PurchasePrice",500000)
 
     if(line_of_business == "Dwelling Property"):
-
         for key in range(len(dwell_questions.keys())):
-            for question in dwell_questions[key]:
+            for question in dwell_questions[key+1]:
                 check_for_value(browser,question,"No",False)
-        #for question in dwell_questions: 
-        #    check_for_value(browser,question,"No",False)
 
-        gen_dewll_location_extra_questions(number_of_addresses)
-
-        """
-        if multi == True:
-            #for question in questions_dwell2:
-            #    check_for_value(browser,question,"No",False)
-            Select(find_Element(browser,"Question_RiskNumber2Lapse")).select_by_value("No-New purchase")
-            find_Element(browser,"Question_RiskNumber2NumClaims").send_keys(0)
-            if(state_chosen == 'MA'):
-                find_Element(browser,"Question_MAFireRiskNumber2PurchaseDate").send_keys("01/01/2022")
-                find_Element(browser,"Question_MAFireRiskNumber2PurchasePrice").send_keys("100000")
-                find_Element(browser,"Question_MAFireRiskNumber2EstimatedValue").send_keys("150000")
-                Select(find_Element(browser,"Question_MAFireRiskNumber2ValuationMethod")).select_by_value("Replacement Cost")
-                Select(find_Element(browser,"Question_MAFireRiskNumber2AppraisalMethod")).select_by_value("Professional Appraisal")
-
-        Select(find_Element(browser,"Question_RiskNumber1Lapse")).select_by_value("No-New purchase")
-        find_Element(browser,"Question_RiskNumber1NumClaims").send_keys(0)
-        if(state_chosen == 'MA'):
-            find_Element(browser,"Question_MAFireRiskNumber1PurchaseDate").send_keys("01/01/2022")
-            find_Element(browser,"Question_MAFireRiskNumber1PurchasePrice").send_keys("100000")
-            find_Element(browser,"Question_MAFireRiskNumber1EstimatedValue").send_keys("150000")
-            Select(find_Element(browser,"Question_MAFireRiskNumber1ValuationMethod")).select_by_value("Replacement Cost")
-            Select(find_Element(browser,"Question_MAFireRiskNumber1AppraisalMethod")).select_by_value("Professional Appraisal")
-        """
     if(line_of_business == "Businessowners"):
         Select(find_Element(browser,"Question_01CoverageCancellation")).select_by_visible_text("No")
         find_Element(browser,"Question_03PreviousCarrierPropertyLimitsPremium").send_keys("No")
@@ -585,12 +565,6 @@ def underwriting_questions(browser,multi):
      #click the save button
     save(browser)
     waitPageLoad(browser)
-
-    #if line_of_business == "Dwelling Property" and state_chosen == "RI":
-    #    find_Element(browser,"Question_RiskNumber1InspectorName").send_keys("No")
-    #    if multi == True:
-    #        find_Element(browser,"Question_RiskNumber2InspectorName").send_keys("No")
-    #save(browser)
 
 def core_coverages(browser):
     
@@ -776,8 +750,9 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     if(line_of_business != "Businessowners"):
         core_coverages(browser)
         if(multiLoc == True and line_of_business == "Dwelling Property"):
-            find_Element(browser,"CopyRisk").click()
-            save(browser)
+            for i in range(number_of_addresses-1):
+                find_Element(browser,"CopyRisk").click()
+                save(browser)
 
     if(create_type == "Application" or create_type == "Policy"):
         waitPageLoad(browser)
