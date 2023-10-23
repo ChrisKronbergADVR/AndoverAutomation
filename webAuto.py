@@ -520,12 +520,13 @@ def underwriting_questions(browser,multi):
                  "Question_PrevDiscussed","Question_OtherInsurance","Question_VacantOrOccupied", "Question_OnlineHome", "Question_OnlineHome",
                  "Question_SeasonalHome", "Question_FrameDwellings", "Question_DayCareOnPremises", "Question_UndergraduateStudents","Question_SolarPanels","Question_UndergraduateStudents",
                  "Question_DogsCare", "Question_ElectricalService", "Question_WiringInUse", "Question_StoveOnPremises", "Question_OilHeated", "Question_PoolOnPremises",
-                 "Question_TrampolineOnPremises","Question_AnyOutbuildings","Question_CancelledRecently","Question_ArsonConvicted","Question_PriorCarrier"]
+                 "Question_TrampolineOnPremises","Question_AnyOutbuildings","Question_CancelledRecently","Question_ArsonConvicted"]
 
-    if multi == True:
-        dwell_questions = gen_dwell_location_questions(browser,number_of_addresses)
-    else:
-        dwell_questions = gen_dwell_location_questions(browser,1)
+    if line_of_business =="Dwelling Property":
+        if multi == True:
+            dwell_questions = gen_dwell_location_questions(browser,number_of_addresses)
+        else:
+            dwell_questions = gen_dwell_location_questions(browser,1)
 
     if(line_of_business == "Homeowners"):
         send_value(browser,"Question_InspectorName","Gadget")
@@ -565,6 +566,7 @@ def underwriting_questions(browser,multi):
      #click the save button
     save(browser)
     waitPageLoad(browser)
+
 
 def core_coverages(browser):
     
