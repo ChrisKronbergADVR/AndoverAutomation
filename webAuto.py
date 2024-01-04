@@ -16,6 +16,7 @@ from datetime import datetime,timedelta
 import requests
 from threading import Thread
 import itertools
+import time
 
 #*Constants
 TEST = False
@@ -214,7 +215,13 @@ def make_window():
                         [sg.Text('Add Producer')],
                         [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="-PROD-")],
                         [sg.Button("Add Producer",key="-ADDP-")],
+                        [sg.Text()],
                         ]
+    
+    create_producer_layout = [ 
+                        [sg.Text('Create a Producer')],
+                        [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
+                        [sg.Button("Create Producer",key="-ADD_PROD-")]]
                         
     exist_app_layout = [[sg.Text('Enter Information for An Existing Application')],
                         [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
@@ -227,6 +234,7 @@ def make_window():
                [sg.HorizontalSeparator()]]
     layout+=[[sg.TabGroup([[  sg.Tab('Creating New Applications', new_app_layout),
                                sg.Tab('Add Users and Producers', new_user_layout),
+                               sg.Tab('Create Producers', create_producer_layout),
                                #sg.Tab('Create Producer for All States', create_producer_layout),
                                #sg.Tab('Add Custom Address', add_address_layout),
                                ]],key = "-TABGROUP-",expand_x=True, expand_y=True)]]
@@ -509,7 +517,6 @@ def gen_dewll_location_extra_questions(browser,num):
         Select(find_Element(browser,updatedArr[5])).select_by_value("Replacement Cost")
         Select(find_Element(browser,updatedArr[6])).select_by_value("Professional Appraisal")
         
-            
 def underwriting_questions(browser,multi):
     y = datetime.today()+timedelta(days=60)
     producer_inspection_date = y.strftime("%m/%d/%Y")
@@ -522,10 +529,11 @@ def underwriting_questions(browser,multi):
                  "Question_DogsCare", "Question_ElectricalService", "Question_WiringInUse", "Question_StoveOnPremises", "Question_OilHeated", "Question_PoolOnPremises",
                  "Question_TrampolineOnPremises","Question_AnyOutbuildings","Question_CancelledRecently","Question_ArsonConvicted","Question_PriorCarrier"]
 
-    if multi == True:
-        dwell_questions = gen_dwell_location_questions(browser,number_of_addresses)
-    else:
-        dwell_questions = gen_dwell_location_questions(browser,1)
+    if(line_of_business == "Dwelling Property"):
+        if multi == True:
+            dwell_questions = gen_dwell_location_questions(browser,number_of_addresses)
+        else:
+            dwell_questions = gen_dwell_location_questions(browser,1)
 
     if(line_of_business == "Homeowners"):
         send_value(browser,"Question_InspectorName","Gadget")
@@ -630,7 +638,6 @@ def core_coverages(browser):
         send_value(browser,"Risk.NumOfStories",3)
         send_value(browser,"Risk.ListOfTenantsAndOccupancy","None")
 
-
         save(browser)
         save(browser)
         waitPageLoad(browser)
@@ -664,6 +671,10 @@ def click_radio(browser):
     radio_number = len(table)
     my_value = e_name+"_"+str(radio_number)
     click_radio_button(browser,my_value)
+
+def create_producer(browser):
+    find_Element(browser,"Menu_Policy").click()
+
  
 def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool):
     #New Quote
@@ -770,7 +781,11 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
             #click the save button
             save(browser)
 
+        start = time.perf_counter()
         underwriting_questions(browser,multiLoc)
+        end = time.perf_counter()
+        print("\n\n\n\n Time to complete: " + str(end-start) + " seconds \n\n\n\n\n")
+
         billing(browser)
     print("Create Type: " + create_type)
 
@@ -784,7 +799,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         find_Element(browser,"Process").click()
         waitPageLoad(browser)
 
-    sleep(10)
+    sleep(5)
 
     if(test == True and create_type != "Policy"):
         delete_quote(browser)
