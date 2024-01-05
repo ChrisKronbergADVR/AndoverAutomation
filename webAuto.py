@@ -160,6 +160,7 @@ def make_window():
     sg.theme(THEME)
     userList = []
     browsers = ["Chrome","Edge"]
+    payment_plan = ["Mortgagee Direct Bill Pay In Full","Automated Monthly","Bill to Other Autmated Monthly","Direct Bill 2 Payments","Direct Bill 4 Payments","Direct Bill 6 Payments","Direct Bill 9 Payments","Bill to Other 4 Payments","Direct Bill Pay In Full","Bill To Other Pay In Full"]
     y = datetime.today()+timedelta(days=65)
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
@@ -183,6 +184,7 @@ def make_window():
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
+                        [sg.Text("Payment Plan: ", visible=True,key="-MULT-"),sg.DropDown(payment_plan,visible=True,default_value=payment_plan[0],enable_events=True,key="-MULTI-")],
                         [sg.Text("Insured Name")],
                         [sg.Text('First Name'), sg.InputText(size=(TEXTLEN,1), key = "-FIRST-")],
                         [sg.Text('Last Name'), sg.InputText(size=(TEXTLEN,1), key="-LAST-")],
