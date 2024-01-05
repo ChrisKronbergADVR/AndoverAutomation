@@ -7,7 +7,7 @@ Python Automation with GUI for Andover Local and QA Environments
 ---
 
 ## 1. Installing Python
-- click  [here](https://www.python.org/ftp/python/3.11.4/python-3.11.4-amd64.exe) to download python version 3.11.4
+- click  [here](https://www.python.org/ftp/python/3.12.1/python-3.12.1-amd64.exe) to download python version 3.12.1
 
 
 &emsp; <a href="https://www.python.org/downloads/"><img src = "https://www.python.org/static/img/python-logo.png" height="50rem"></a>
