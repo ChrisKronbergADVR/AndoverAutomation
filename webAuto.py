@@ -40,6 +40,7 @@ folder = "csvFiles/"
 custom_address = {"Address":"","Address2":"","City":"","Flag":False}
 user_chosen = "admin"
 verified = False
+pay_plan = ""
 
 addresses = {
             "CT1":["CT","Waterbury","1250 W Main St"],
@@ -156,7 +157,7 @@ def verify_address(city,state,address1,address2=None):
 
 #Function for making the GUI
 def make_window():
-    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses
+    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses,pay_plan
     sg.theme(THEME)
     userList = []
     browsers = ["Chrome","Edge"]
@@ -184,7 +185,7 @@ def make_window():
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
-                        [sg.Text("Payment Plan: ", visible=True,key="-MULT-"),sg.DropDown(payment_plan,visible=True,default_value=payment_plan[0],enable_events=True,key="-MULTI-")],
+                        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(payment_plan,visible=True,default_value=payment_plan[0],enable_events=True,key="-PAYPLAN-")],
                         [sg.Text("Insured Name")],
                         [sg.Text('First Name'), sg.InputText(size=(TEXTLEN,1), key = "-FIRST-")],
                         [sg.Text('Last Name'), sg.InputText(size=(TEXTLEN,1), key="-LAST-")],
@@ -270,6 +271,7 @@ def make_window():
         state = values["-STATE-"]
         lob = values["-LOB-"]
         multi = values["-MULTI-"]
+        payment_plan = values["-PAYPLAN-"]
 
         if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
             env_used = selectedEnviron
@@ -373,6 +375,8 @@ def make_window():
             producer_selected = producer
             create_type = doc_type
             user_chosen = selectedUser
+            pay_plan = payment_plan + " "+state_chosen
+            print(pay_plan)
             if(multi == "Yes" and lob == "Dwelling Property"):
                 multiAdd = True
                 number_of_addresses = values["-NUMLOC-"]
@@ -653,8 +657,15 @@ def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
     if(line_of_business != "Businessowners"):
-        script1 = "document.getElementById('BasicPolicy.PayPlanCd_9').checked = true;"
+        #val = browser.find_element(By.ID, 'BasicPolicy.PayPlanCd_9')
+        #val = "//input[@value='" +pay_plan+"']"
+        #print(val)
+        #browser.find_element(By.XPATH, val).click()
+        script1 = """
+        document.getElementById('BasicPolicy.PayPlanCd_9').checked = true;
+        """
     else:
+        #click_radio_button(browser,pay_plan)
         script1 = "document.getElementById('BasicPolicy.PayPlanCd_10').checked = true;"
     browser.execute_script(script1)
 
