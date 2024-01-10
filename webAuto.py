@@ -163,6 +163,7 @@ def make_window():
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
     LOB = ["Dwelling Property","Homeowners","Businessowners"]
+    SUBTYPE = ["HO3", "HO4", "HO5", "HO5T4", "HO6"]
     STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
 
     new_app_layout = [  [sg.Text('Enter Information for Creating An Application')],
@@ -178,6 +179,7 @@ def make_window():
                         [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
                         [sg.Text()],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
+                        [sg.Text("Select SubType"),sg.DropDown(SUBTYPE,key="-SUBTYPE-",enable_events=True)],
                         [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
@@ -259,6 +261,7 @@ def make_window():
         cust_addr = values["ADD_CHECK"]
         state = values["-STATE-"]
         lob = values["-LOB-"]
+        subType = values["-SUBTYPE-"]
         multi = values["-MULTI-"]
 
         if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
@@ -370,7 +373,7 @@ def make_window():
                 number_of_addresses = 1
                 multiAdd = False
             window.close()
-            return first_name,last_name,selectedUser,multiAdd
+            return first_name,last_name,selectedUser,multiAdd, subType
     window.close()
 
 #*function for login
@@ -667,7 +670,7 @@ def click_radio(browser):
     my_value = e_name+"_"+str(radio_number)
     click_radio_button(browser,my_value)
  
-def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool):
+def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str):
     #New Quote
     find_Element(browser,"QuickAction_NewQuote_Holder").click()
     find_Element(browser,"QuickAction_EffectiveDt").send_keys(date)
@@ -704,6 +707,9 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     find_Element(browser,"InsuredName.GivenName").click()
     find_Element(browser,"InsuredName.GivenName").send_keys(first_name)
     find_Element(browser,"InsuredName.Surname").send_keys(last_name)
+
+    if subType:
+        Select(find_Element(browser,"BasicPolicy.DisplaySubTypeCd")).select_by_value(subType)
 
     if(line_of_business != "Businessowners"):
         find_Element(browser,"InsuredPersonal.BirthDt").send_keys("01/01/1980")
@@ -816,7 +822,7 @@ def get_password(user):
 def main():
     create_files()
 
-    first_name, last_name, user_name,multi = make_window()
+    first_name, last_name, user_name, multi, subType = make_window()
 
     password = get_password(user_name)
     print("Username: "+user_name + "  Password: " + password)
@@ -834,9 +840,9 @@ def main():
     custom_city = custom_address["City"]
     custom_add = custom_address["Address"]
     if(custom_address["Flag"]):
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST, subType)
     else:
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST, subType)
 
     if(TEST == True):
         sleep(5)
