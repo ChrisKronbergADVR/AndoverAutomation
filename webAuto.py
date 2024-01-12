@@ -181,7 +181,7 @@ def make_window():
                         [sg.Text()],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
                         [sg.Text("Select Carrier"),sg.DropDown(CARRIERCD,key="-CARRIERCD-",enable_events=True)],
-                        [sg.Text("Select SubType"),sg.DropDown(SUBTYPE,key="-SUBTYPE-",enable_events=True)],
+                        [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(SUBTYPE,key="-SUBTYPE-",enable_events=True, visible=False)],
                         [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
@@ -320,6 +320,10 @@ def make_window():
         if lob == "Dwelling Property":
             window["-MULT-"].update(visible = True)
             window["-MULTI-"].update(visible = True)
+            window.refresh()
+        elif lob == "Homeowners":
+            window["-SUBTYPELABEL-"].update(visible=True)
+            window["-SUBTYPE-"].update(visible=True)
             window.refresh()
         else:
             window["-MULT-"].update(visible = False)
@@ -711,7 +715,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     find_Element(browser,"InsuredName.GivenName").send_keys(first_name)
     find_Element(browser,"InsuredName.Surname").send_keys(last_name)
 
-    if subType:
+    if line_of_business == "Homeowners" and subType:
         Select(find_Element(browser,"BasicPolicy.DisplaySubTypeCd")).select_by_value(subType)
 
     if carrierCd:
