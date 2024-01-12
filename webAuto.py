@@ -654,20 +654,21 @@ def core_coverages(browser):
     save(browser)
 
 def billing(browser):
+    global pay_plan
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
     if(line_of_business != "Businessowners"):
         #val = browser.find_element(By.ID, 'BasicPolicy.PayPlanCd_9')
-        #val = "//input[@value='" +pay_plan+"']"
-        #print(val)
-        #browser.find_element(By.XPATH, val).click()
+        val = "//input[@value='"+pay_plan+"']"
+        print(pay_plan)
+        browser.find_element(By.XPATH, val).click()
         script1 = """
         document.getElementById('BasicPolicy.PayPlanCd_9').checked = true;
         """
     else:
         #click_radio_button(browser,pay_plan)
         script1 = "document.getElementById('BasicPolicy.PayPlanCd_10').checked = true;"
-    browser.execute_script(script1)
+    #browser.execute_script(script1)
 
     waitPageLoad(browser)
 
