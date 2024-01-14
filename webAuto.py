@@ -16,6 +16,7 @@ from datetime import datetime,timedelta
 import requests
 from threading import Thread
 import itertools
+import time
 
 #*Constants
 TEST = False
@@ -39,6 +40,7 @@ folder = "csvFiles/"
 custom_address = {"Address":"","Address2":"","City":"","Flag":False}
 user_chosen = "admin"
 verified = False
+pay_plan = ""
 
 addresses = {
             "CT1":["CT","Waterbury","1250 W Main St"],
@@ -155,10 +157,12 @@ def verify_address(city,state,address1,address2=None):
 
 #Function for making the GUI
 def make_window():
-    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses
+    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses,pay_plan
     sg.theme(THEME)
     userList = []
     browsers = ["Chrome","Edge"]
+    payment_plan = ["Mortgagee Direct Bill Full Pay","Automated Monthly","Bill To Other Automated Monthly","Direct Bill 2 Pay","Direct Bill 4 Pay","Direct Bill 6 Pay","Bill To Other 4 Pay","Bill To Other 6 Pay","Direct Bill Full Pay","Bill To Other Full Pay"]
+    payment_plan_bop = ["Mortgagee Direct Bill Full Pay","Automated Monthly","Bill To Other Automated Monthly","Direct Bill 2 Pay","Direct Bill 4 Pay","Direct Bill 6 Pay","Direct Bill 9 Pay","Bill To Other 4 Pay","Bill To Other 6 Pay","Direct Bill Full Pay","Bill To Other Full Pay"]
     y = datetime.today()+timedelta(days=65)
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
@@ -184,10 +188,11 @@ def make_window():
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
+                        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(payment_plan,visible=True,default_value=payment_plan[0],enable_events=True,key="-PAYPLAN-"),sg.DropDown(payment_plan_bop,visible=False,default_value=payment_plan_bop[0],enable_events=True,key="-PAYPLANBOP-")],
                         [sg.Text("Insured Name")],
                         [sg.Text('First Name'), sg.InputText(size=(TEXTLEN,1), key = "-FIRST-")],
                         [sg.Text('Last Name'), sg.InputText(size=(TEXTLEN,1), key="-LAST-")],
-                        [sg.Text("Create Quote,Applicaiton or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
+                        [sg.Text("Create Quote,Application or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
                         [sg.Text()],
                         [sg.Button('Submit'), sg.Button('Cancel')],
                         ]
@@ -216,7 +221,13 @@ def make_window():
                         [sg.Text('Add Producer')],
                         [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="-PROD-")],
                         [sg.Button("Add Producer",key="-ADDP-")],
+                        [sg.Text()],
                         ]
+    
+    create_producer_layout = [ 
+                        [sg.Text('Create a Producer')],
+                        [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
+                        [sg.Button("Create Producer",key="-ADD_PROD-")]]
                         
     exist_app_layout = [[sg.Text('Enter Information for An Existing Application')],
                         [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
@@ -229,6 +240,7 @@ def make_window():
                [sg.HorizontalSeparator()]]
     layout+=[[sg.TabGroup([[  sg.Tab('Creating New Applications', new_app_layout),
                                sg.Tab('Add Users and Producers', new_user_layout),
+                               sg.Tab('Create Producers', create_producer_layout),
                                #sg.Tab('Create Producer for All States', create_producer_layout),
                                #sg.Tab('Add Custom Address', add_address_layout),
                                ]],key = "-TABGROUP-",expand_x=True, expand_y=True)]]
@@ -263,6 +275,8 @@ def make_window():
         lob = values["-LOB-"]
         subType = values["-SUBTYPE-"]
         multi = values["-MULTI-"]
+        payment_plan = values["-PAYPLAN-"]
+        payment_plan_bop = values["-PAYPLANBOP-"]
 
         if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
             env_used = selectedEnviron
@@ -313,6 +327,16 @@ def make_window():
             window["BTN_VERIFY"].update(visible = False)
             window["-VERIFY_BUTTON-"].update(visible = False)
             window.refresh()
+
+        if event == "-LOB-":
+            if lob == "Businessowners":
+                window["-PAYPLANBOP-"].update(visible = True)
+                window["-PAYPLAN-"].update(visible = False)
+                window.refresh()
+            else:
+                window["-PAYPLANBOP-"].update(visible = False)
+                window["-PAYPLAN-"].update(visible = True)
+                window.refresh()
 
         if lob == "Dwelling Property":
             window["-MULT-"].update(visible = True)
@@ -370,6 +394,13 @@ def make_window():
             producer_selected = producer
             create_type = doc_type
             user_chosen = selectedUser
+            if(line_of_business != "Businessowners"):
+
+                pay_plan = payment_plan + " "+state_chosen
+            else:
+                pay_plan = payment_plan_bop + " "+state_chosen + " BOP"
+
+            print(pay_plan)
             if(multi == "Yes" and lob == "Dwelling Property"):
                 multiAdd = True
                 number_of_addresses = values["-NUMLOC-"]
@@ -491,7 +522,7 @@ def gen_dwell_location_questions(browser,num):
                     word = question_name.split("1")
                     newArr.append(word[0]+str(number)+word[1])
             newDict[number] = newArr
-            if(state_chosen == "RI"):
+            if(state_chosen == "RI"):                                                                  
                 find_Element(browser,"Question_RiskNumber"+str(number)+"InspectorName").send_keys("No")
             gen_dewll_location_extra_questions(browser,number)
   
@@ -516,7 +547,6 @@ def gen_dewll_location_extra_questions(browser,num):
         Select(find_Element(browser,updatedArr[5])).select_by_value("Replacement Cost")
         Select(find_Element(browser,updatedArr[6])).select_by_value("Professional Appraisal")
         
-            
 def underwriting_questions(browser,multi):
     y = datetime.today()+timedelta(days=60)
     producer_inspection_date = y.strftime("%m/%d/%Y")
@@ -623,7 +653,7 @@ def core_coverages(browser):
         else:
             Select(find_Element(browser,"Building.BuildingClassDescription")).select_by_value("67% or more Apartments")
         Select(find_Element(browser,"Building.ContentClassDescription")).select_by_value("None - Building Owner only")
-        find_Element(browser,"Building.BuildingLimit").send_keys(500000)
+        find_Element(browser,"Building.BuildingLimit").send_keys(900000)
         find_Element(browser,"Risk.SqFtArea").send_keys(2000)
 
         for value in core_values:
@@ -639,7 +669,6 @@ def core_coverages(browser):
         send_value(browser,"Risk.NumOfStories",3)
         send_value(browser,"Risk.ListOfTenantsAndOccupancy","None")
 
-
         save(browser)
         save(browser)
         waitPageLoad(browser)
@@ -652,11 +681,35 @@ def core_coverages(browser):
 def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
-    if(line_of_business != "Businessowners"):
-        script1 = "document.getElementById('BasicPolicy.PayPlanCd_9').checked = true;"
-    else:
-        script1 = "document.getElementById('BasicPolicy.PayPlanCd_10').checked = true;"
-    browser.execute_script(script1)
+    val = "//input[@value='"+pay_plan+"']"
+    print(val)
+    find_Element(browser,val,By.XPATH).click()
+    if pay_plan.__contains__("Automated Monthly"):
+        Select(find_Element(browser,"InstallmentSource.MethodCd")).select_by_value("ACH")
+        Select(find_Element(browser,"InstallmentSource.ACHStandardEntryClassCd")).select_by_value("PPD")
+        Select(find_Element(browser,"InstallmentSource.ACHBankAccountTypeCd")).select_by_value("Checking")
+        find_Element(browser,"InstallmentSource.ACHBankName").send_keys("Bank")
+        find_Element(browser,"InstallmentSource.ACHBankAccountNumber").send_keys(123456789)
+        find_Element(browser,"InstallmentSource.ACHRoutingNumber").send_keys("011000015")
+        find_Element(browser,"BasicPolicy.CheckedEFTForm").click()
+    if pay_plan.__contains__("Bill To Other") or pay_plan.__contains__("Mortgagee"):
+        find_Element(browser,"UWAINew").click()
+        waitPageLoad(browser)
+        if pay_plan.__contains__("Bill To Other"):
+            Select(find_Element(browser,"AI.InterestTypeCd")).select_by_value("Bill To Other")
+        else:
+            Select(find_Element(browser,"AI.InterestTypeCd")).select_by_value("First Mortgagee")
+            Select(find_Element(browser,"AI.EscrowInd")).select_by_value("Yes")
+            Select(find_Element(browser,"AI.BillMortgRnwlInd")).select_by_value("No")
+        find_Element(browser,"AI.AccountNumber").send_keys(12345)
+        find_Element(browser,"AI.InterestName").send_keys("First Last")
+        find_Element(browser,"AIMailingAddr.Addr1").send_keys("1595 N Peach Ave")
+        find_Element(browser,"AIMailingAddr.City").send_keys("Fresno")
+        Select(find_Element(browser,"AIMailingAddr.StateProvCd")).select_by_value("CA")
+        find_Element(browser,"AIMailingAddr.PostalCode").send_keys(93727)
+        Select(find_Element(browser,"AIMailingAddr.RegionCd")).select_by_value("United States")
+        find_Element(browser,"LinkReferenceInclude_0").click()
+        save(browser)
 
     waitPageLoad(browser)
 
@@ -673,6 +726,10 @@ def click_radio(browser):
     radio_number = len(table)
     my_value = e_name+"_"+str(radio_number)
     click_radio_button(browser,my_value)
+
+def create_producer(browser):
+    find_Element(browser,"Menu_Policy").click()
+
  
 def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str):
     #New Quote
@@ -681,9 +738,11 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
 
     waitPageLoad(browser)
     #State Select
-    Select(find_Element(browser,"QuickAction_StateCd")).select_by_value(state)
+    browser.execute_script("document.getElementById('QuickAction_StateCd').value = '"+state+"';")
+    #Select(find_Element(browser,"QuickAction_StateCd")).select_by_value(state)
     Select(find_Element(browser,"QuickAction_CarrierGroupCd")).select_by_value(CARRIER)
-    find_Element(browser,"QuickAction_NewQuote").click()
+    browser.execute_script("document.getElementById('QuickAction_NewQuote').click()")
+    #find_Element(browser,"QuickAction_NewQuote").click()
 
     find_Element(browser,line_of_business,By.LINK_TEXT).click()
 
@@ -782,7 +841,11 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
             #click the save button
             save(browser)
 
+        start = time.perf_counter()
         underwriting_questions(browser,multiLoc)
+        end = time.perf_counter()
+        print("\n\n\n\n Time to complete: " + str(end-start) + " seconds \n\n\n\n\n")
+
         billing(browser)
     print("Create Type: " + create_type)
 
@@ -796,7 +859,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         find_Element(browser,"Process").click()
         waitPageLoad(browser)
 
-    sleep(10)
+    sleep(5)
 
     if(test == True and create_type != "Policy"):
         delete_quote(browser)
@@ -838,7 +901,7 @@ def main():
     except:
         raise Exception("Incorrect username and/or password")
 
-    #*Tab to click  for recent quotes, applicaitons, and policies
+    #*Tab to click  for recent quotes, applications, and policies
     find_Element(browser,"Tab_Recent").click()
     state1,CITY,ADDRESS = addresses[str(state_chosen+"1")]
     custom_city = custom_address["City"]
