@@ -163,7 +163,6 @@ def make_window():
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
     LOB = ["Dwelling Property","Homeowners","Businessowners"]
-    CARRIERCD = ["CMFI", "MMFI", "BSIC"]
     SUBTYPE = ["HO3", "HO4", "HO5", "HO5T4", "HO6"]
     STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
 
@@ -180,7 +179,6 @@ def make_window():
                         [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
                         [sg.Text()],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
-                        [sg.Text("Select Carrier"),sg.DropDown(CARRIERCD,key="-CARRIERCD-",enable_events=True)],
                         [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(SUBTYPE,key="-SUBTYPE-",enable_events=True, visible=False)],
                         [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
                         [sg.Text("Enter Date or Select Date Below")],
@@ -263,7 +261,6 @@ def make_window():
         cust_addr = values["ADD_CHECK"]
         state = values["-STATE-"]
         lob = values["-LOB-"]
-        carrierCd = values["-CARRIERCD-"]
         subType = values["-SUBTYPE-"]
         multi = values["-MULTI-"]
 
@@ -321,13 +318,18 @@ def make_window():
             window["-MULT-"].update(visible = True)
             window["-MULTI-"].update(visible = True)
             window.refresh()
-        elif lob == "Homeowners":
+        else:
+            window["-MULT-"].update(visible = False)
+            window["-MULTI-"].update(visible = False)
+            window.refresh()
+
+        if lob == "Homeowners":
             window["-SUBTYPELABEL-"].update(visible=True)
             window["-SUBTYPE-"].update(visible=True)
             window.refresh()
         else:
-            window["-MULT-"].update(visible = False)
-            window["-MULTI-"].update(visible = False)
+            window["-SUBTYPELABEL-"].update(visible=False)
+            window["-SUBTYPE-"].update(visible=False)
             window.refresh()
 
         if multi == "Yes":
@@ -380,7 +382,7 @@ def make_window():
                 number_of_addresses = 1
                 multiAdd = False
             window.close()
-            return first_name,last_name,selectedUser,multiAdd, subType, carrierCd
+            return first_name,last_name,selectedUser,multiAdd, subType
     window.close()
 
 #*function for login
@@ -677,7 +679,7 @@ def click_radio(browser):
     my_value = e_name+"_"+str(radio_number)
     click_radio_button(browser,my_value)
  
-def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str, carrierCd:str):
+def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str):
     #New Quote
     find_Element(browser,"QuickAction_NewQuote_Holder").click()
     find_Element(browser,"QuickAction_EffectiveDt").send_keys(date)
@@ -717,10 +719,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
 
     if line_of_business == "Homeowners" and subType:
         Select(find_Element(browser,"BasicPolicy.DisplaySubTypeCd")).select_by_value(subType)
-
-    if carrierCd:
-        Select(find_Element(browser,"BasicPolicy.PolicyCarrierCd")).select_by_value(carrierCd)
-
+    
     if(line_of_business != "Businessowners"):
         find_Element(browser,"InsuredPersonal.BirthDt").send_keys("01/01/1980")
         find_Element(browser,"InsuredCurrentAddr.Addr1").send_keys(address)
@@ -832,7 +831,7 @@ def get_password(user):
 def main():
     create_files()
 
-    first_name, last_name, user_name, multi, subType, carrierCd = make_window()
+    first_name, last_name, user_name, multi, subType = make_window()
 
     password = get_password(user_name)
     print("Username: "+user_name + "  Password: " + password)
@@ -850,9 +849,9 @@ def main():
     custom_city = custom_address["City"]
     custom_add = custom_address["Address"]
     if(custom_address["Flag"]):
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST, subType, carrierCd)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST, subType)
     else:
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST, subType, carrierCd)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST, subType)
 
     if(TEST == True):
         sleep(5)
