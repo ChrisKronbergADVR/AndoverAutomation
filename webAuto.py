@@ -342,13 +342,18 @@ def make_window():
             window["-MULT-"].update(visible = True)
             window["-MULTI-"].update(visible = True)
             window.refresh()
-        elif lob == "Homeowners":
+        else:
+            window["-MULT-"].update(visible = False)
+            window["-MULTI-"].update(visible = False)
+            window.refresh()
+
+        if lob == "Homeowners":
             window["-SUBTYPELABEL-"].update(visible=True)
             window["-SUBTYPE-"].update(visible=True)
             window.refresh()
         else:
-            window["-MULT-"].update(visible = False)
-            window["-MULTI-"].update(visible = False)
+            window["-SUBTYPELABEL-"].update(visible=False)
+            window["-SUBTYPE-"].update(visible=False)
             window.refresh()
 
         if multi == "Yes":
@@ -773,7 +778,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
 
     if line_of_business == "Homeowners" and subType:
         Select(find_Element(browser,"BasicPolicy.DisplaySubTypeCd")).select_by_value(subType)
-
+    
     if(line_of_business != "Businessowners"):
         find_Element(browser,"InsuredPersonal.BirthDt").send_keys("01/01/1980")
         find_Element(browser,"InsuredCurrentAddr.Addr1").send_keys(address)
