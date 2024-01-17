@@ -163,10 +163,11 @@ def make_window():
     browsers = ["Chrome","Edge"]
     payment_plan = ["Mortgagee Direct Bill Full Pay","Automated Monthly","Bill To Other Automated Monthly","Direct Bill 2 Pay","Direct Bill 4 Pay","Direct Bill 6 Pay","Bill To Other 4 Pay","Bill To Other 6 Pay","Direct Bill Full Pay","Bill To Other Full Pay"]
     payment_plan_bop = ["Mortgagee Direct Bill Full Pay","Automated Monthly","Bill To Other Automated Monthly","Direct Bill 2 Pay","Direct Bill 4 Pay","Direct Bill 6 Pay","Direct Bill 9 Pay","Bill To Other 4 Pay","Bill To Other 6 Pay","Direct Bill Full Pay","Bill To Other Full Pay"]
+    payment_plan_pumb = ["Automated Monthly","Bill To Other Automated Monthly","Direct Bill 2 Pay","Direct Bill 4 Pay","Direct Bill 6 Pay","Bill To Other 4 Pay","Bill To Other 6 Pay","Direct Bill Full Pay","Bill To Other Full Pay"]
     y = datetime.today()+timedelta(days=65)
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
-    LOB = ["Dwelling Property","Homeowners","Businessowners"]
+    LOB = ["Dwelling Property","Homeowners","Businessowners","Personal Umbrella","Commercial Umbrella"]
     SUBTYPE = ["HO3", "HO4", "HO5", "HO5T4", "HO6"]
     STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
 
@@ -188,7 +189,7 @@ def make_window():
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
-                        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(payment_plan,visible=True,default_value=payment_plan[0],enable_events=True,key="-PAYPLAN-"),sg.DropDown(payment_plan_bop,visible=False,default_value=payment_plan_bop[0],enable_events=True,key="-PAYPLANBOP-")],
+                        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(payment_plan,visible=True,default_value=payment_plan[0],enable_events=True,key="-PAYPLAN-"),sg.DropDown(payment_plan_bop,visible=False,default_value=payment_plan_bop[0],enable_events=True,key="-PAYPLANBOP-"),sg.DropDown(payment_plan_pumb,visible=False,default_value=payment_plan_pumb[0],enable_events=True,key="-PAYPLANPUMB-")],
                         [sg.Text("Insured Name")],
                         [sg.Text('First Name'), sg.InputText(size=(TEXTLEN,1), key = "-FIRST-")],
                         [sg.Text('Last Name'), sg.InputText(size=(TEXTLEN,1), key="-LAST-")],
@@ -277,6 +278,7 @@ def make_window():
         multi = values["-MULTI-"]
         payment_plan = values["-PAYPLAN-"]
         payment_plan_bop = values["-PAYPLANBOP-"]
+        payment_plan_pumb = values["-PAYPLANPUMB-"]
 
         if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
             env_used = selectedEnviron
@@ -332,10 +334,17 @@ def make_window():
             if lob == "Businessowners":
                 window["-PAYPLANBOP-"].update(visible = True)
                 window["-PAYPLAN-"].update(visible = False)
+                window["-PAYPLANPUMB-"].update(visible = False)
+                window.refresh()
+            elif lob == "Personal Umbrella" or lob == "Commercial Umbrella":
+                window["-PAYPLANPUMB-"].update(visible = True)
+                window["-PAYPLANBOP-"].update(visible = False)
+                window["-PAYPLAN-"].update(visible = False)
                 window.refresh()
             else:
                 window["-PAYPLANBOP-"].update(visible = False)
                 window["-PAYPLAN-"].update(visible = True)
+                window["-PAYPLANPUMB-"].update(visible = False)
                 window.refresh()
 
         if lob == "Dwelling Property":
@@ -347,7 +356,7 @@ def make_window():
             window["-MULTI-"].update(visible = False)
             window.refresh()
 
-        if lob == "Homeowners":
+        if lob == "Homeowners" or lob =="Personal Umbrella":
             window["-SUBTYPELABEL-"].update(visible=True)
             window["-SUBTYPE-"].update(visible=True)
             window.refresh()
@@ -400,10 +409,12 @@ def make_window():
             create_type = doc_type
             user_chosen = selectedUser
             if(line_of_business != "Businessowners"):
-
-                pay_plan = payment_plan + " "+state_chosen
+                if line_of_business == "Homeowners":
+                    pay_plan = payment_plan + " "+state_chosen
+                if line_of_business == "Personal Umbrella" or line_of_business == "Commercial Umbrella":
+                    pay_plan = payment_plan_pumb + " "+state_chosen
             else:
-                pay_plan = payment_plan_bop + " "+state_chosen + " BOP"
+                pay_plan = payment_plan_bop + " "+state_chosen
 
             print(pay_plan)
             if(multi == "Yes" and lob == "Dwelling Property"):
@@ -570,7 +581,7 @@ def underwriting_questions(browser,multi):
         else:
             dwell_questions = gen_dwell_location_questions(browser,1)
 
-    if(line_of_business == "Homeowners"):
+    if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
         send_value(browser,"Question_InspectorName","Gadget")
 
         threads= []
@@ -597,7 +608,7 @@ def underwriting_questions(browser,multi):
             for question in dwell_questions[key+1]:
                 check_for_value(browser,question,"No",False)
 
-    if(line_of_business == "Businessowners"):
+    if(line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella"):
         Select(find_Element(browser,"Question_01CoverageCancellation")).select_by_visible_text("No")
         find_Element(browser,"Question_03PreviousCarrierPropertyLimitsPremium").send_keys("No")
         Select(find_Element(browser,"Question_08NumLosses")).select_by_value("0")
@@ -608,7 +619,6 @@ def underwriting_questions(browser,multi):
      #click the save button
     save(browser)
     waitPageLoad(browser)
-
 
 def core_coverages(browser):
     
@@ -634,7 +644,7 @@ def core_coverages(browser):
         if(state_chosen == "NJ"):
             Select(find_Element(browser,"Building.DistanceToHydrant")).select_by_value("1000")
 
-    if(line_of_business == "Homeowners"):
+    if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
         Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Primary Residence")
         find_Element(browser,"Building.CovALimit").send_keys(300000)
         if(state_chosen != "NY"):
@@ -650,7 +660,7 @@ def core_coverages(browser):
             Select(find_Element(browser,"Risk.WorkersCompEmployees")).select_by_value("none")
             
             
-    if(line_of_business == "Businessowners"):
+    if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
         if(state_chosen == "NJ" or state_chosen == "NY"):
             Select(find_Element(browser,"Building.BuildingClassDescription")).select_by_value("75% or more Apartments")
             if state_chosen == "NJ":
@@ -686,11 +696,15 @@ def core_coverages(browser):
 def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
-    val = "//input[@value='"+pay_plan+"']"
-    print(val)
+    if find_Element(browser,"QuoteAppSummary_Product").text == "Businessowners":
+        val = "//input[@value='"+pay_plan+" BOP"+"' and @type='radio']"
+    else:
+        val = "//input[@value='"+pay_plan+"' and @type='radio']"
+    waitPageLoad(browser)
     find_Element(browser,val,By.XPATH).click()
     if pay_plan.__contains__("Automated Monthly"):
         Select(find_Element(browser,"InstallmentSource.MethodCd")).select_by_value("ACH")
+        waitPageLoad(browser)
         Select(find_Element(browser,"InstallmentSource.ACHStandardEntryClassCd")).select_by_value("PPD")
         Select(find_Element(browser,"InstallmentSource.ACHBankAccountTypeCd")).select_by_value("Checking")
         find_Element(browser,"InstallmentSource.ACHBankName").send_keys("Bank")
@@ -735,7 +749,16 @@ def click_radio(browser):
 def create_producer(browser):
     find_Element(browser,"Menu_Policy").click()
 
- 
+def submit_policy(browser):
+    find_Element(browser,"Closeout").click()
+    waitPageLoad(browser)
+    Select(find_Element(browser,"TransactionInfo.PaymentTypeCd")).select_by_value("None")
+    find_Element(browser,"TransactionInfo.SignatureDocument").click()
+    find_Element(browser,"PrintApplication").click()
+    sleep(30)
+    find_Element(browser,"Process").click()
+    waitPageLoad(browser)
+
 def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str):
     #New Quote
     find_Element(browser,"QuickAction_NewQuote_Holder").click()
@@ -749,14 +772,19 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     browser.execute_script("document.getElementById('QuickAction_NewQuote').click()")
     #find_Element(browser,"QuickAction_NewQuote").click()
 
-    find_Element(browser,line_of_business,By.LINK_TEXT).click()
+    if line_of_business == "Personal Umbrella":
+        find_Element(browser,"Homeowners",By.LINK_TEXT).click()
+    elif line_of_business == "Commercial Umbrella":
+        find_Element(browser,"Businessowners",By.LINK_TEXT).click()
+    else:
+        find_Element(browser,line_of_business,By.LINK_TEXT).click()
 
     selectedAgent = user_chosen.lower()
     if(not(selectedAgent.__contains__("agent"))):
         find_Element(browser,"ProviderNumber").send_keys(producer)
 
     #select entity type
-    if(line_of_business == "Dwelling Property" or line_of_business == "Businessowners"):
+    if(line_of_business == "Dwelling Property" or line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella"):
         Select(find_Element(browser,"Insured.EntityTypeCd")).select_by_value("Individual")
     
     waitPageLoad(browser)
@@ -769,38 +797,38 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     except:
         pass
 
-    if state_chosen == "NY" and line_of_business == "Homeowners":
+    if state_chosen == "NY" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella"):
         Select(find_Element(browser,"BasicPolicy.GeographicTerritory")).select_by_value("Upstate")
 
     find_Element(browser,"InsuredName.GivenName").click()
     find_Element(browser,"InsuredName.GivenName").send_keys(first_name)
     find_Element(browser,"InsuredName.Surname").send_keys(last_name)
 
-    if line_of_business == "Homeowners" and subType:
+    if (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella") and subType:
         Select(find_Element(browser,"BasicPolicy.DisplaySubTypeCd")).select_by_value(subType)
     
-    if(line_of_business != "Businessowners"):
+    if line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella":
         find_Element(browser,"InsuredPersonal.BirthDt").send_keys("01/01/1980")
         find_Element(browser,"InsuredCurrentAddr.Addr1").send_keys(address)
         find_Element(browser,"InsuredCurrentAddr.City").send_keys(city)
         Select(find_Element(browser,"InsuredCurrentAddr.StateProvCd")).select_by_value(state)
 
     #*Select state here
-    if(line_of_business == "Businessowners"): 
+    if(line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella"): 
         find_Element(browser,"InsuredMailingAddr.Addr1").send_keys(address)
         find_Element(browser,"InsuredMailingAddr.City").send_keys(city)
         Select(find_Element(browser,"InsuredMailingAddr.StateProvCd")).select_by_value(state)
 
     #*Adding geographic territory and policy carrier here
-    if(state_chosen == "NY" and line_of_business == "Homeowners"):
+    if(state_chosen == "NY" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella")):
         Select(find_Element(browser,"BasicPolicy.GeographicTerritory")).select_by_value("Metro")
         Select(find_Element(browser,"BasicPolicy.PolicyCarrierCd")).select_by_value("MMFI")
 
     waitPageLoad(browser)
-    if(line_of_business == "Businessowners"):
+    if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
         find_Element(browser,"DefaultAddress").click()
 
-    if(line_of_business != "Businessowners"):
+    if line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella":
         copy_to_property(browser,address,city,state)
         copy_to_mailing(browser,address,city,state)
         waitPageLoad(browser)
@@ -814,7 +842,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     find_Element(browser,"InsuredPhonePrimary.PhoneNumber").send_keys(5555555555)
     find_Element(browser,"InsuredEmail.EmailAddr").send_keys("test@mail.com")
     waitPageLoad(browser)
-    if(user_chosen == "admin" and line_of_business != "Businessowners"):
+    if(user_chosen == "admin" and (line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella")):
         find_Element(browser,"InsuredInsuranceScore.OverriddenInsuranceScore").send_keys("950")
 
     #*click the save button
@@ -823,7 +851,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
 
     #multiple locations here
     
-    if(line_of_business != "Businessowners"):
+    if line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella":
         core_coverages(browser)
         if(multiLoc == True and line_of_business == "Dwelling Property"):
             for i in range(number_of_addresses-1):
@@ -835,11 +863,11 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         click_radio(browser)
         find_Element(browser,"Bind").click()
         
-        if(line_of_business == "Businessowners"):
+        if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
             core_coverages(browser)
       
         waitPageLoad(browser)
-        if(state_chosen == "NJ" and line_of_business == "Homeowners"):
+        if(state_chosen == "NJ" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella")):
             find_Element(browser,"Wizard_Risks").click()
             waitPageLoad(browser)
             Select(find_Element(browser,"Building.InspectionSurveyReqInd")).select_by_value("No")
@@ -850,19 +878,73 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         underwriting_questions(browser,multiLoc)
         end = time.perf_counter()
         print("\n\n\n\n Time to complete: " + str(end-start) + " seconds \n\n\n\n\n")
-
+        
         billing(browser)
-    print("Create Type: " + create_type)
+        
 
+        if line_of_business == "Personal Umbrella":
+            find_Element(browser,"GetUmbrellaQuote").click()
+            waitPageLoad(browser)
+            find_Element(browser,"Wizard_UmbrellaLiability").click()
+            Select(find_Element(browser,"Line.PersonalLiabilityLimit")).select_by_value("1000000")
+            find_Element(browser,"Line.TotMotOwnLeasBus").send_keys(0)
+            find_Element(browser,"Line.NumMotExcUmb").send_keys(0)
+            find_Element(browser,"Line.NumHouseAutoRec").send_keys(0)
+            find_Element(browser,"Line.NumOfYouthInexp").send_keys(0)
+            Select(find_Element(browser,"Line.UnderAutLiabPerOcc")).select_by_value("No")
+            find_Element(browser,"Bind").click()
+            find_Element(browser,"Wizard_Underwriting").click()
+            Select(find_Element(browser,"Question_DiscussedWithUnderwriter")).select_by_value("NO")
+            Select(find_Element(browser,"Question_DUIConvicted")).select_by_value("NO")
+            Select(find_Element(browser,"Question_ConvictedTraffic")).select_by_value("NO")
+            Select(find_Element(browser,"Question_WatercraftBusiness")).select_by_value("NO")
+            Select(find_Element(browser,"Question_DayCarePremises")).select_by_value("NO")
+            Select(find_Element(browser,"Question_UndergraduateStudents")).select_by_value("NO")
+            Select(find_Element(browser,"Question_AnimalsCustody")).select_by_value("NO")
+            Select(find_Element(browser,"Question_PoolPremises")).select_by_value("NO")
+            Select(find_Element(browser,"Question_TrampolinePremises")).select_by_value("NO")
+            Select(find_Element(browser,"Question_CancelledRecently")).select_by_value("NO")
+            Select(find_Element(browser,"Question_BusinessPolicies")).select_by_value("NO")
+            Select(find_Element(browser,"Question_OnlineHome")).select_by_value("NO")
+            save(browser)
+            find_Element(browser,"Wizard_Review").click()
+            billing(browser)
+            waitPageLoad(browser)
+            if create_type == "Policy":
+                find_Element(browser,"Return").click()
+                find_Element(browser,"policyLink0").click()
+                submit_policy(browser)
+                find_Element(browser,"Return").click()
+                find_Element(browser,"policyLink0").click()
+                #find_Element(browser,"Closeout").click()
+            
+
+        if line_of_business == "Commercial Umbrella":
+            find_Element(browser,"GetUmbrellaQuote").click()
+            waitPageLoad(browser)
+            find_Element(browser,"Wizard_UmbrellaLiability").click()
+            Select(find_Element(browser,"Line.CommercialLiabilityLimit")).select_by_value("1000000")
+            Select(find_Element(browser,"Line.OwnedAutosInd")).select_by_value("No")
+            Select(find_Element(browser,"Line.EmplLiabCovrInsured")).select_by_value("No")
+            find_Element(browser,"Wizard_Policy").click()
+            find_Element(browser,"Bind").click()
+            find_Element(browser,"Wizard_Underwriting").click()
+            Select(find_Element(browser,"Question_OtherLiab")).select_by_value("NO")
+            Select(find_Element(browser,"Question_PriorCovCancelled")).select_by_value("NO")
+            find_Element(browser,"Question_PreviousUmbrella").send_keys("ACME")
+            save(browser)
+            find_Element(browser,"Wizard_Review").click()
+            billing(browser)
+            if create_type == "Policy":
+                find_Element(browser,"Return").click()
+                find_Element(browser,"policyLink0").click()
+                submit_policy(browser)
+                find_Element(browser,"Return").click()
+                find_Element(browser,"policyLink0").click()
+                #find_Element(browser,"Closeout").click()
+            
     if(create_type == "Policy"):
-        find_Element(browser,"Closeout").click()
-        waitPageLoad(browser)
-        Select(find_Element(browser,"TransactionInfo.PaymentTypeCd")).select_by_value("None")
-        find_Element(browser,"TransactionInfo.SignatureDocument").click()
-        find_Element(browser,"PrintApplication").click()
-        sleep(30)
-        find_Element(browser,"Process").click()
-        waitPageLoad(browser)
+        submit_policy(browser)
 
     sleep(5)
 
