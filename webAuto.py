@@ -906,7 +906,11 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
             find_Element(browser,"Line.NumMotExcUmb").send_keys(0)
             find_Element(browser,"Line.NumHouseAutoRec").send_keys(0)
             find_Element(browser,"Line.NumOfYouthInexp").send_keys(0)
-            Select(find_Element(browser,"Line.UnderAutLiabPerOcc")).select_by_value("No")
+            if state_chosen == "NH":
+                Select(find_Element(browser,"Line.RejectExcessUninsuredMotorists")).select_by_value("No")
+                Select(find_Element(browser,"Line.UnderAutLiabPerOcc")).select_by_value("No")
+            if state_chosen == "NJ" or state_chosen == "NY" or state_chosen == "RI" or state_chosen == "CT" or state_chosen == "IL" or state_chosen == "ME" or state_chosen == "MA":
+                Select(find_Element(browser,"Line.UnderAutLiabPerOcc")).select_by_value("No")
             find_Element(browser,"Bind").click()
             find_Element(browser,"Wizard_Underwriting").click()
             Select(find_Element(browser,"Question_DiscussedWithUnderwriter")).select_by_value("NO")
