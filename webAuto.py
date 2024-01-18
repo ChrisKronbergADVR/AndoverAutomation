@@ -40,6 +40,9 @@ folder = "csvFiles/"
 custom_address = {"Address":"","Address2":"","City":"","Flag":False}
 user_chosen = "admin"
 verified = False
+payment_plan_most = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_8","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_9","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_10"}
+payment_plan_bop = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Direct Bill 9 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_8","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_9","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_10","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_11"}
+payment_plan_pumb = {"Automated Monthly":"BasicPolicy.PayPlanCd_1","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_2","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_3","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_5","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_7","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_8","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_9"}
 pay_plan = ""
 
 addresses = {
@@ -161,9 +164,6 @@ def make_window():
     sg.theme(THEME)
     userList = []
     browsers = ["Chrome","Edge"]
-    payment_plan = ["Mortgagee Direct Bill Full Pay","Automated Monthly","Bill To Other Automated Monthly","Direct Bill 2 Pay","Direct Bill 4 Pay","Direct Bill 6 Pay","Bill To Other 4 Pay","Bill To Other 6 Pay","Direct Bill Full Pay","Bill To Other Full Pay"]
-    payment_plan_bop = ["Mortgagee Direct Bill Full Pay","Automated Monthly","Bill To Other Automated Monthly","Direct Bill 2 Pay","Direct Bill 4 Pay","Direct Bill 6 Pay","Direct Bill 9 Pay","Bill To Other 4 Pay","Bill To Other 6 Pay","Direct Bill Full Pay","Bill To Other Full Pay"]
-    payment_plan_pumb = ["Automated Monthly","Bill To Other Automated Monthly","Direct Bill 2 Pay","Direct Bill 4 Pay","Direct Bill 6 Pay","Bill To Other 4 Pay","Bill To Other 6 Pay","Direct Bill Full Pay","Bill To Other Full Pay"]
     y = datetime.today()+timedelta(days=65)
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
@@ -189,7 +189,7 @@ def make_window():
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
-                        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(payment_plan,visible=True,default_value=payment_plan[0],enable_events=True,key="-PAYPLAN-"),sg.DropDown(payment_plan_bop,visible=False,default_value=payment_plan_bop[0],enable_events=True,key="-PAYPLANBOP-"),sg.DropDown(payment_plan_pumb,visible=False,default_value=payment_plan_pumb[0],enable_events=True,key="-PAYPLANPUMB-")],
+                        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(list(payment_plan_most.keys()),visible=True,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLAN-"),sg.DropDown(list(payment_plan_bop.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANBOP-"),sg.DropDown(list(payment_plan_pumb.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANPUMB-")],
                         [sg.Text("Insured Name")],
                         [sg.Text('First Name'), sg.InputText(size=(TEXTLEN,1), key = "-FIRST-")],
                         [sg.Text('Last Name'), sg.InputText(size=(TEXTLEN,1), key="-LAST-")],
@@ -276,9 +276,9 @@ def make_window():
         lob = values["-LOB-"]
         subType = values["-SUBTYPE-"]
         multi = values["-MULTI-"]
-        payment_plan = values["-PAYPLAN-"]
-        payment_plan_bop = values["-PAYPLANBOP-"]
-        payment_plan_pumb = values["-PAYPLANPUMB-"]
+        payment_p = values["-PAYPLAN-"]
+        payment_p_bop = values["-PAYPLANBOP-"]
+        payment_p_pumb = values["-PAYPLANPUMB-"]
 
         if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
             env_used = selectedEnviron
@@ -409,12 +409,16 @@ def make_window():
             create_type = doc_type
             user_chosen = selectedUser
             if(line_of_business != "Businessowners"):
-                if line_of_business == "Homeowners":
-                    pay_plan = payment_plan + " "+state_chosen
+                #if line_of_business == "Homeowners":
+                    #pay_plan = payment_plan + " "+state_chosen
                 if line_of_business == "Personal Umbrella" or line_of_business == "Commercial Umbrella":
-                    pay_plan = payment_plan_pumb + " "+state_chosen
+                    #pay_plan = payment_plan_pumb + " "+state_chosen
+                    pay_plan = payment_p_pumb
+                else:
+                    pay_plan = payment_p
             else:
-                pay_plan = payment_plan_bop + " "+state_chosen
+                #pay_plan = payment_plan_bop + " "+state_chosen
+                pay_plan = payment_p_bop
 
             print(pay_plan)
             if(multi == "Yes" and lob == "Dwelling Property"):
@@ -696,12 +700,24 @@ def core_coverages(browser):
 def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
-    if find_Element(browser,"QuoteAppSummary_Product").text == "Businessowners":
-        val = "//input[@value='"+pay_plan+" BOP"+"' and @type='radio']"
-    else:
-        val = "//input[@value='"+pay_plan+"' and @type='radio']"
+    #    val = "//input[@value='"+pay_plan+" BOP"+"' and @type='radio']"
+    #else:
+    #    val = "//input[@value='"+pay_plan+"' and @type='radio']"
     waitPageLoad(browser)
-    find_Element(browser,val,By.XPATH).click()
+    print(pay_plan)
+    if line_of_business == "Personal Umbrella" or line_of_business == "Commercial Umbrella":
+        if find_Element(browser,"QuoteAppSummary_Product").text == "Businessowners":
+            find_Element(browser,payment_plan_bop[pay_plan]).click()
+        elif find_Element(browser,"QuoteAppSummary_Product").text == "Homeowners":
+            find_Element(browser,payment_plan_most[pay_plan]).click()
+        else:
+            find_Element(browser,payment_plan_pumb[pay_plan]).click()
+    elif line_of_business == "Businessowners":
+        find_Element(browser,payment_plan_bop[pay_plan]).click()
+    else:
+        find_Element(browser,payment_plan_most[pay_plan]).click()
+    #find_Element(browser,val,By.XPATH).click()
+        
     if pay_plan.__contains__("Automated Monthly"):
         Select(find_Element(browser,"InstallmentSource.MethodCd")).select_by_value("ACH")
         waitPageLoad(browser)
@@ -880,7 +896,6 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         print("\n\n\n\n Time to complete: " + str(end-start) + " seconds \n\n\n\n\n")
         
         billing(browser)
-        
 
         if line_of_business == "Personal Umbrella":
             find_Element(browser,"GetUmbrellaQuote").click()
