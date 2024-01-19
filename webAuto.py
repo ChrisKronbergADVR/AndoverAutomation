@@ -42,6 +42,7 @@ user_chosen = "admin"
 verified = False
 payment_plan_most = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_8","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_9","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_10"}
 payment_plan_bop = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Direct Bill 9 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_8","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_9","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_10","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_11"}
+payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_8","Direct Bill 9 Pay":"BasicPolicy.PayPlanCd_9","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_10","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_11"}
 payment_plan_pumb = {"Automated Monthly":"BasicPolicy.PayPlanCd_1","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_2","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_3","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_5","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_7","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_8","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_9"}
 pay_plan = ""
 
@@ -651,6 +652,8 @@ def core_coverages(browser):
     if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
         Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Primary Residence")
         find_Element(browser,"Building.CovALimit").send_keys(300000)
+        Select(find_Element(browser,"Building.FuelLiability")).select_by_value("300000")
+        Select(find_Element(browser,"Building.OilTankLocation")).select_by_value("aboveground")
         if(state_chosen != "NY"):
             find_Element(browser,"Building.CovCLimit").send_keys(250000)
         Select(find_Element(browser,"Building.CovELimit")).select_by_value("300000")
@@ -700,11 +703,42 @@ def core_coverages(browser):
 def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
-    #    val = "//input[@value='"+pay_plan+" BOP"+"' and @type='radio']"
+    #val = "//input[@type='radio']"
     #else:
     #    val = "//input[@value='"+pay_plan+"' and @type='radio']"
     waitPageLoad(browser)
     print(pay_plan)
+
+    # Get all the elements available with tag name 'p'
+    elements = browser.find_elements(By.NAME,"BasicPolicy.PayPlanCd")
+    print(f"The number of payment plans is: {len(elements)}")
+    for e in elements:
+        val1 = e.get_attribute("value")
+        try: 
+            if val1.index(" "+state_chosen):
+                value = val1.index(" "+state_chosen)
+                val2 = val1[:value]
+                if(val2 == pay_plan):
+                    val = "//input[@value='"+val1+"' and @type='radio']"
+                    find_Element(browser,val,By.XPATH).click()
+                    break
+        except:
+            if(val1 == pay_plan):
+                    val = "//input[@value='"+pay_plan+"' and @type='radio']"
+                    find_Element(browser,val,By.XPATH).click()
+                    break
+        #if val1.index(" "+state_chosen):
+        #    value = val1.index(" CT")
+        #    val1 = val1[:value]
+            
+        #val = find_Element(browser,"BasicPolicy.PayPlanCd_" + str(i)).get_attribute("value")
+    
+        #break
+        #if val.__contains__(pay_plan)
+
+    #find_Element(browser,"BasicPolicy.PayPlanCd_" + str(i)).click()
+
+    """
     if line_of_business == "Personal Umbrella" or line_of_business == "Commercial Umbrella":
         if find_Element(browser,"QuoteAppSummary_Product").text == "Businessowners":
             find_Element(browser,payment_plan_bop[pay_plan]).click()
@@ -717,7 +751,7 @@ def billing(browser):
     else:
         find_Element(browser,payment_plan_most[pay_plan]).click()
     #find_Element(browser,val,By.XPATH).click()
-        
+        """
     if pay_plan.__contains__("Automated Monthly"):
         Select(find_Element(browser,"InstallmentSource.MethodCd")).select_by_value("ACH")
         waitPageLoad(browser)
@@ -743,7 +777,13 @@ def billing(browser):
         Select(find_Element(browser,"AIMailingAddr.StateProvCd")).select_by_value("CA")
         find_Element(browser,"AIMailingAddr.PostalCode").send_keys(93727)
         Select(find_Element(browser,"AIMailingAddr.RegionCd")).select_by_value("United States")
-        find_Element(browser,"LinkReferenceInclude_0").click()
+
+        try:
+            find_Element(browser,"LinkReferenceInclude_0").click()
+        except:
+            find_Element(browser,"LinkReferenceInclude_1").click()
+
+        waitPageLoad(browser)
         save(browser)
 
     waitPageLoad(browser)
@@ -942,6 +982,8 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
             find_Element(browser,"GetUmbrellaQuote").click()
             waitPageLoad(browser)
             find_Element(browser,"Wizard_UmbrellaLiability").click()
+            if state_chosen == "CT" or state_chosen == "NH" or state_chosen=="NY" or state_chosen == "RI":
+                Select(find_Element(browser,"Line.CoverageTypeCd")).select_by_value("Businessowners Umbrella Liability")
             Select(find_Element(browser,"Line.CommercialLiabilityLimit")).select_by_value("1000000")
             Select(find_Element(browser,"Line.OwnedAutosInd")).select_by_value("No")
             Select(find_Element(browser,"Line.EmplLiabCovrInsured")).select_by_value("No")
@@ -954,6 +996,10 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
             save(browser)
             find_Element(browser,"Wizard_Review").click()
             billing(browser)
+            find_Element(browser,"Navigate_Location_2").click()
+            Select(find_Element(browser,"Location.UnderlyingEmplLimitConf")).select_by_value("Yes")
+            find_Element(browser,"NextPage").click()
+           
             if create_type == "Policy":
                 find_Element(browser,"Return").click()
                 find_Element(browser,"policyLink0").click()
