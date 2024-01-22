@@ -652,8 +652,9 @@ def core_coverages(browser):
     if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
         Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Primary Residence")
         find_Element(browser,"Building.CovALimit").send_keys(300000)
-        Select(find_Element(browser,"Building.FuelLiability")).select_by_value("300000")
-        Select(find_Element(browser,"Building.OilTankLocation")).select_by_value("none")
+        if(state_chosen == "CT"):
+            Select(find_Element(browser,"Building.FuelLiability")).select_by_value("300000")
+            Select(find_Element(browser,"Building.OilTankLocation")).select_by_value("none")
         if(state_chosen != "NY"):
             find_Element(browser,"Building.CovCLimit").send_keys(250000)
         Select(find_Element(browser,"Building.CovELimit")).select_by_value("300000")
