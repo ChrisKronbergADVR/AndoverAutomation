@@ -653,7 +653,7 @@ def core_coverages(browser):
         Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Primary Residence")
         find_Element(browser,"Building.CovALimit").send_keys(300000)
         Select(find_Element(browser,"Building.FuelLiability")).select_by_value("300000")
-        Select(find_Element(browser,"Building.OilTankLocation")).select_by_value("aboveground")
+        Select(find_Element(browser,"Building.OilTankLocation")).select_by_value("none")
         if(state_chosen != "NY"):
             find_Element(browser,"Building.CovCLimit").send_keys(250000)
         Select(find_Element(browser,"Building.CovELimit")).select_by_value("300000")
@@ -703,13 +703,9 @@ def core_coverages(browser):
 def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
-    #val = "//input[@type='radio']"
-    #else:
-    #    val = "//input[@value='"+pay_plan+"' and @type='radio']"
     waitPageLoad(browser)
     print(pay_plan)
 
-    # Get all the elements available with tag name 'p'
     elements = browser.find_elements(By.NAME,"BasicPolicy.PayPlanCd")
     print(f"The number of payment plans is: {len(elements)}")
     for e in elements:
@@ -727,31 +723,7 @@ def billing(browser):
                     val = "//input[@value='"+pay_plan+"' and @type='radio']"
                     find_Element(browser,val,By.XPATH).click()
                     break
-        #if val1.index(" "+state_chosen):
-        #    value = val1.index(" CT")
-        #    val1 = val1[:value]
-            
-        #val = find_Element(browser,"BasicPolicy.PayPlanCd_" + str(i)).get_attribute("value")
-    
-        #break
-        #if val.__contains__(pay_plan)
-
-    #find_Element(browser,"BasicPolicy.PayPlanCd_" + str(i)).click()
-
-    """
-    if line_of_business == "Personal Umbrella" or line_of_business == "Commercial Umbrella":
-        if find_Element(browser,"QuoteAppSummary_Product").text == "Businessowners":
-            find_Element(browser,payment_plan_bop[pay_plan]).click()
-        elif find_Element(browser,"QuoteAppSummary_Product").text == "Homeowners":
-            find_Element(browser,payment_plan_most[pay_plan]).click()
-        else:
-            find_Element(browser,payment_plan_pumb[pay_plan]).click()
-    elif line_of_business == "Businessowners":
-        find_Element(browser,payment_plan_bop[pay_plan]).click()
-    else:
-        find_Element(browser,payment_plan_most[pay_plan]).click()
-    #find_Element(browser,val,By.XPATH).click()
-        """
+    waitPageLoad(browser)
     if pay_plan.__contains__("Automated Monthly"):
         Select(find_Element(browser,"InstallmentSource.MethodCd")).select_by_value("ACH")
         waitPageLoad(browser)
@@ -760,12 +732,14 @@ def billing(browser):
         find_Element(browser,"InstallmentSource.ACHBankName").send_keys("Bank")
         find_Element(browser,"InstallmentSource.ACHBankAccountNumber").send_keys(123456789)
         find_Element(browser,"InstallmentSource.ACHRoutingNumber").send_keys("011000015")
+        find_Element(browser,"BasicPolicy.PaymentDay").send_keys(15)
         find_Element(browser,"BasicPolicy.CheckedEFTForm").click()
     if pay_plan.__contains__("Bill To Other") or pay_plan.__contains__("Mortgagee"):
         find_Element(browser,"UWAINew").click()
         waitPageLoad(browser)
         if pay_plan.__contains__("Bill To Other"):
             Select(find_Element(browser,"AI.InterestTypeCd")).select_by_value("Bill To Other")
+            waitPageLoad(browser)
         else:
             Select(find_Element(browser,"AI.InterestTypeCd")).select_by_value("First Mortgagee")
             Select(find_Element(browser,"AI.EscrowInd")).select_by_value("Yes")
@@ -781,7 +755,10 @@ def billing(browser):
         try:
             find_Element(browser,"LinkReferenceInclude_0").click()
         except:
-            find_Element(browser,"LinkReferenceInclude_1").click()
+            try: 
+                find_Element(browser,"LinkReferenceInclude_1").click()
+            except:
+                pass
 
         waitPageLoad(browser)
         save(browser)
