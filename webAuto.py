@@ -947,14 +947,17 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
             find_Element(browser,"Wizard_Review").click()
             billing(browser)
             waitPageLoad(browser)
+            save(browser)
+
             if create_type == "Policy":
                 find_Element(browser,"Return").click()
                 find_Element(browser,"policyLink0").click()
                 submit_policy(browser)
                 find_Element(browser,"Return").click()
                 find_Element(browser,"policyLink0").click()
+                if pay_plan.__contains__("Bill To Other"):
+                    billing(browser)
                 #find_Element(browser,"Closeout").click()
-            
 
         if line_of_business == "Commercial Umbrella":
             find_Element(browser,"GetUmbrellaQuote").click()
@@ -984,6 +987,8 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
                 submit_policy(browser)
                 find_Element(browser,"Return").click()
                 find_Element(browser,"policyLink0").click()
+                if pay_plan.__contains__("Bill To Other"):
+                    billing(browser)
                 #find_Element(browser,"Closeout").click()
             
     if(create_type == "Policy"):
