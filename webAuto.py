@@ -448,14 +448,19 @@ def delete_quote(browser):
     find_Element(browser,"Delete").click()
     find_Element(browser,"dialogOK").click()
 
-#*Functiions for finding or sending values to input fields
-def check_for_value(browser,element,value,value_text:bool):
+#*Functions for finding or sending values to input fields
+def check_for_value(browser,element,value = None,visible_text:bool=False,keys=None):
     try:
         if(find_Element(browser,element).is_displayed()):
-            if(value_text):
-                Select(find_Element(browser,element)).select_by_value(value)
-            else:
+            if(keys != None):
+                if(keys == "click"):
+                    find_Element(browser,element).click()
+                else:
+                    find_Element(browser,element).send_keys(keys)
+            if(visible_text):
                 Select(find_Element(browser,element)).select_by_visible_text(value)
+            else:
+                Select(find_Element(browser,element)).select_by_value(value)
     except:
         pass
 
@@ -589,24 +594,11 @@ def underwriting_questions(browser,multi):
     if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
         send_value(browser,"Question_InspectorName","Gadget")
 
-        threads= []
-
         for question in questions_home:
-            ques_thread = Thread(target=check_for_value,args=(browser,question,"No",False))
-            ques_thread.start()
-            threads.append(ques_thread)
-
-        ques1 = Thread(target=check_for_value,args=(browser,"Question_AnyLapsePast","No-New Purchase",True))
-        ques3 = Thread(target=send_value,args=(browser,"Question_ClaimsRecently",0))
-        ques1.start()
-        ques3.start()
-        threads.append(ques1)
-        threads.append(ques3)
-
-        for thread_1 in threads:
-            thread_1.join()
-
-        send_value(browser,"Question_PurchasePrice",500000)
+            check_for_value(browser,question,"No",True)
+        check_for_value(browser,"Question_AnyLapsePast","No-New Purchase",True)
+        check_for_value(browser,"Question_ClaimsRecently",None,False,0)
+        check_for_value(browser,"Question_PurchasePrice",None,False,500000)
 
     if(line_of_business == "Dwelling Property"):
         for key in range(len(dwell_questions.keys())):
@@ -650,13 +642,17 @@ def core_coverages(browser):
             Select(find_Element(browser,"Building.DistanceToHydrant")).select_by_value("1000")
 
     if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
-        Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Primary Residence")
-        find_Element(browser,"Building.CovALimit").send_keys(300000)
+        check_for_value(browser,"Building.OccupancyCd","Primary Residence")
+        check_for_value(browser,"Building.CovALimit",None,False,300000)
+        check_for_value(browser,"Building.CovCLimit",None,False,300000)
+        check_for_value(browser,"Building.NumOfFamiliesSameFire","Less Than 5",False,None)
+        #Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Primary Residence")
+        #find_Element(browser,"Building.CovALimit").send_keys(300000)
         if(state_chosen == "CT"):
             Select(find_Element(browser,"Building.FuelLiability")).select_by_value("300000")
             Select(find_Element(browser,"Building.OilTankLocation")).select_by_value("none")
-        if(state_chosen != "NY"):
-            find_Element(browser,"Building.CovCLimit").send_keys(250000)
+        #if(state_chosen != "NY"):
+        #     find_Element(browser,"Building.CovCLimit").send_keys(250000)
         Select(find_Element(browser,"Building.CovELimit")).select_by_value("300000")
         Select(find_Element(browser,"Building.CovFLimit")).select_by_value("2000")
         Select(find_Element(browser,"Building.StandardDed")).select_by_value("1000")
@@ -955,8 +951,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
                 submit_policy(browser)
                 find_Element(browser,"Return").click()
                 find_Element(browser,"policyLink0").click()
-                if pay_plan.__contains__("Bill To Other"):
-                    billing(browser)
+                billing(browser)
                 #find_Element(browser,"Closeout").click()
 
         if line_of_business == "Commercial Umbrella":
