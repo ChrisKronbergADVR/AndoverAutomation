@@ -603,7 +603,7 @@ def underwriting_questions(browser,multi):
     if(line_of_business == "Dwelling Property"):
         for key in range(len(dwell_questions.keys())):
             for question in dwell_questions[key+1]:
-                check_for_value(browser,question,"No",False)
+                check_for_value(browser,question,"No",True)
 
     if(line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella"):
         Select(find_Element(browser,"Question_01CoverageCancellation")).select_by_visible_text("No")
@@ -646,6 +646,7 @@ def core_coverages(browser):
         check_for_value(browser,"Building.CovALimit",None,False,300000)
         check_for_value(browser,"Building.CovCLimit",None,False,300000)
         check_for_value(browser,"Building.NumOfFamiliesSameFire","Less Than 5",False,None)
+        check_for_value(browser,"Building.DistanceToHydrant","1000")
         #Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Primary Residence")
         #find_Element(browser,"Building.CovALimit").send_keys(300000)
         if(state_chosen == "CT"):

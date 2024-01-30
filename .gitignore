@@ -44,3 +44,4 @@ csvFiles/users.csv
 dist/webAuto.exe
 .vscode/launch.json
 fib.py
+output.xml
