@@ -287,7 +287,7 @@ def make_window():
         payment_p_bop = values["-PAYPLANBOP-"]
         payment_p_pumb = values["-PAYPLANPUMB-"]
 
-        if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2'):
+        if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2' or selectedEnviron =='Model'or selectedEnviron =='Model 2' or selectedEnviron =='Model 3'):
             env_used = selectedEnviron
             read_username_password()
             read_producers()
