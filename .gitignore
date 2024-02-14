@@ -45,3 +45,9 @@ dist/webAuto.exe
 .vscode/launch.json
 fib.py
 output.xml
+csvFiles/model_prod.csv
+csvFiles/model_user.csv
+csvFiles/model2_prod.csv
+csvFiles/model2_user.csv
+csvFiles/model3_prod.csv
+csvFiles/model3_user.csv

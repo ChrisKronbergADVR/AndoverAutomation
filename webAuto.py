@@ -71,11 +71,17 @@ env_files_plus_users= {
             "Local":{"Users":{"file":"local_users.csv","Usernames":{}},
                    "Producers":{"file":"local_prod.csv","ProducerNames":["DEF"]}},
             "QA2":{"Users":{"file":"qa2_user.csv","Usernames":{}},
-                   "Producers":{"file":"qa2_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}},
+                   "Producers":{"file":"qa2_prod.csv","ProducerNames":[""]}},
             "UAT3":{"Users":{"file":"uat3_user.csv","Usernames":{}},
-                   "Producers":{"file":"uat3_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}},
+                   "Producers":{"file":"uat3_prod.csv","ProducerNames":[""]}},
             "UAT4":{"Users":{"file":"uat4_user.csv","Usernames":{}},
-                   "Producers":{"file":"uat4_prod.csv","ProducerNames":["ALLSTATES HO and DW"]}}
+                   "Producers":{"file":"uat4_prod.csv","ProducerNames":[""]}},
+            "Model":{"Users":{"file":"model_user.csv","Usernames":{}},
+                   "Producers":{"file":"model_prod.csv","ProducerNames":[""]}},
+            "Model 2":{"Users":{"file":"model2_user.csv","Usernames":{}},
+                   "Producers":{"file":"model2_prod.csv","ProducerNames":[""]}},
+            "Model 3":{"Users":{"file":"model3_user.csv","Usernames":{}},
+                   "Producers":{"file":"model3_prod.csv","ProducerNames":[""]}}       
                    }
 
 #Functions for creating, reading and writing to files 
