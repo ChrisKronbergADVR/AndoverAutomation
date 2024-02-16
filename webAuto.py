@@ -176,7 +176,7 @@ def make_window():
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
     LOB = ["Dwelling Property","Homeowners","Businessowners","Personal Umbrella","Commercial Umbrella"]
-    SUBTYPE = ["HO3", "HO4", "HO5", "HO5T4", "HO6"]
+    SUBTYPE = {"HO3":"HO3", "HO4":"HO4", "HO5":"HO5T4", "HO5 Superior": "HO5", "HO6":"HO6"}
     STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
 
     new_app_layout = [  [sg.Text('Enter Information for Creating An Application')],
@@ -192,7 +192,7 @@ def make_window():
                         [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
                         [sg.Text()],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
-                        [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(SUBTYPE,key="-SUBTYPE-",enable_events=True, visible=False)],
+                        [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(list(SUBTYPE.keys()),key="-SUBTYPE-",default_value="HO5",enable_events=True, visible=False)],
                         [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
@@ -282,7 +282,7 @@ def make_window():
         cust_addr = values["ADD_CHECK"]
         state = values["-STATE-"]
         lob = values["-LOB-"]
-        subType = values["-SUBTYPE-"]
+        subType = SUBTYPE[values["-SUBTYPE-"]]
         multi = values["-MULTI-"]
         payment_p = values["-PAYPLAN-"]
         payment_p_bop = values["-PAYPLANBOP-"]
