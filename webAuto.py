@@ -1017,6 +1017,11 @@ def load_page():
         edge_options.add_experimental_option("detach", True)
         browser = webdriver.Edge(options = edge_options)
     browser.get(gw_environment[env_used])
+
+    check_for_value(browser,"details-button",keys="click")    
+    check_for_value(browser,"proceed-link",keys="click")    
+    waitPageLoad(browser)
+
     assert "Guidewire InsuranceNow™ Login" in browser.title
     return browser
 
@@ -1033,7 +1038,7 @@ def main():
     print("Username: "+user_name + "  Password: " + password)
 
     browser = load_page()
-   
+    
     try:
         login(browser,user_name,password)
     except:
