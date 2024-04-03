@@ -558,7 +558,6 @@ def gen_dwell_location_questions(browser,num):
             if(state_chosen == "RI"):                                                                  
                 find_Element(browser,"Question_RiskNumber"+str(number)+"InspectorName").send_keys("No")
             gen_dewll_location_extra_questions(browser,number)
-  
             
     return newDict
 
@@ -586,7 +585,7 @@ def underwriting_questions(browser,multi):
     find_Element(browser,"Wizard_Underwriting").click()
     waitPageLoad(browser)
 
-    questions_home = ["Question_IslandProperty","Question_IsolatedProperty","Question_IslandHome","Question_PrevKnown",
+    questions_home = ["Question_PermanentFoundation","Question_IslandProperty","Question_IsolatedProperty","Question_IslandHome","Question_PrevKnown",
                  "Question_PrevDiscussed","Question_OtherInsurance","Question_VacantOrOccupied", "Question_OnlineHome", "Question_OnlineHome",
                  "Question_SeasonalHome", "Question_FrameDwellings", "Question_DayCareOnPremises", "Question_UndergraduateStudents","Question_SolarPanels","Question_UndergraduateStudents",
                  "Question_DogsCare", "Question_ElectricalService", "Question_WiringInUse", "Question_StoveOnPremises", "Question_OilHeated", "Question_PoolOnPremises",
@@ -1017,7 +1016,7 @@ def load_page():
         edge_options.add_experimental_option("detach", True)
         browser = webdriver.Edge(options = edge_options)
     browser.get(gw_environment[env_used])
-
+   
     check_for_value(browser,"details-button",keys="click")    
     check_for_value(browser,"proceed-link",keys="click")    
     waitPageLoad(browser)
