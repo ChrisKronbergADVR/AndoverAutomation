@@ -214,12 +214,6 @@ def make_window():
                         [sg.Text("City: "),sg.Text(key = "CITY_DISP")],
                         ]
     
-    create_producer_layout = [
-                        [sg.Text()],
-                        [sg.Text("Add Producer Name")],
-                        [sg.InputText(size = (TEXTLEN,1))],
-                        ]
-    
     new_user_layout = [
                         [sg.Text()],
                         [sg.Text('Add User')],
@@ -235,8 +229,10 @@ def make_window():
     
     create_producer_layout = [ 
                         [sg.Text('Create a Producer')],
+                        [sg.Text('Select Login Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1))],
                         [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
-                        [sg.Button("Create Producer",key="-ADD_PROD-")]]
+                        [sg.Button("Create Producer",key="-ADD_PROD-")]
+                        ]
                         
     exist_app_layout = [[sg.Text('Enter Information for An Existing Application')],
                         [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
@@ -250,7 +246,6 @@ def make_window():
     layout+=[[sg.TabGroup([[  sg.Tab('Creating New Applications', new_app_layout),
                                sg.Tab('Add Users and Producers', new_user_layout),
                                sg.Tab('Create Producers', create_producer_layout),
-                               #sg.Tab('Create Producer for All States', create_producer_layout),
                                #sg.Tab('Add Custom Address', add_address_layout),
                                ]],key = "-TABGROUP-",expand_x=True, expand_y=True)]]
 
@@ -633,8 +628,10 @@ def core_coverages(browser):
     find_Element(browser,"Wizard_Risks").click()
     waitPageLoad(browser)
 
-    Select(find_Element(browser,"Building.ConstructionCd")).select_by_value("Frame")
+    #Select(find_Element(browser,"Building.ConstructionCd")).select_by_value("Frame")
+    check_for_value(browser,"Building.ConstructionCd","Frame")
     find_Element(browser,"Building.YearBuilt").send_keys(2020)
+    check_for_value(browser,"Building.HurricaneMitigation","No Action")
 
     #select entity type
     if(line_of_business == "Dwelling Property"):
@@ -784,6 +781,17 @@ def click_radio(browser):
     click_radio_button(browser,my_value)
 
 def create_producer(browser):
+
+    password = get_password(user_name)
+    print("Username: "+user_name + "  Password: " + password)
+
+    browser = load_page()
+    
+    try:
+        login(browser,user_name,password)
+    except:
+        raise Exception("Incorrect username and/or password")
+
     find_Element(browser,"Menu_Policy").click()
 
 def submit_policy(browser):
