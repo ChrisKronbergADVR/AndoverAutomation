@@ -669,6 +669,7 @@ def core_coverages(browser):
             find_Element(browser,"Building.TerritoryCd").send_keys("1")
             Select(find_Element(browser,"Risk.WorkersCompInd")).select_by_value("100000")
             Select(find_Element(browser,"Risk.WorkersCompEmployees")).select_by_value("none")
+        check_for_value(browser,"Building.HurricaneMitigation","No Action")
             
             
     if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
