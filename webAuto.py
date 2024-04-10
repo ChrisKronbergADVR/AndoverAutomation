@@ -790,7 +790,8 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     waitPageLoad(browser)
     #State Select
     browser.execute_script("document.getElementById('QuickAction_StateCd').value = '"+state+"';")
-    Select(find_Element(browser,"QuickAction_CarrierGroupCd")).select_by_value(CARRIER)
+    check_for_value(browser,"QuickAction_CarrierGroupCd",CARRIER)
+    #Select(find_Element(browser,"QuickAction_CarrierGroupCd")).select_by_value(CARRIER)
     browser.execute_script("document.getElementById('QuickAction_NewQuote').click()")
 
     if line_of_business == "Personal Umbrella":
@@ -801,8 +802,9 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         find_Element(browser,line_of_business,By.LINK_TEXT).click()
 
     #clear out the producer value and add a value back
-    browser.execute_script('document.getElementById("ProviderNumber").value = ""')
-    find_Element(browser,"ProviderNumber").send_keys(producer)
+    #browser.execute_script('document.getElementById("ProviderNumber").value = ""')
+    #find_Element(browser,"ProviderNumber").send_keys(producer)
+    check_for_value(browser,"ProviderNumber",keys=producer)
 
     #select entity type
     if(line_of_business == "Dwelling Property" or line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella"):
@@ -889,7 +891,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
             find_Element(browser,"Wizard_Risks").click()
             waitPageLoad(browser)
             check_for_value(browser,"Building.InspectionSurveyReqInd","No")
-            
+
             #click the save button
             save(browser)
 
