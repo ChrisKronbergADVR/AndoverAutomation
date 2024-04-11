@@ -478,13 +478,6 @@ def click_radio_button(browser,element):
     except:
         pass
 
-def send_value(browser,element,value):
-    try:
-        if(find_Element(browser,element).is_displayed()):
-            find_Element(browser,element).send_keys(value)
-    except:
-        pass
-
 #*Removes the errors on webpage
 def remove_javascript(browser):
     element_used = "js_error_list"
@@ -599,7 +592,6 @@ def underwriting_questions(browser,multi):
 
     if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
         check_for_value(browser,"Question_InspectorName",keys="Gadget")
-        #send_value(browser,"Question_InspectorName","Gadget")
 
         for question in questions_home:
             check_for_value(browser,question,"No",True)
@@ -658,7 +650,6 @@ def core_coverages(browser):
     check_for_value(browser,"Risk.WorkersCompInd","100000")
     check_for_value(browser,"Risk.WorkersCompEmployees","none")
     check_for_value(browser,"Building.HurricaneMitigation","No Action")
-            
             
     check_for_value(browser,"Building.BuildingClassDescription","75% or more Apartments")
     check_for_value(browser,"Building.BuildingClassDescription","67% or more Apartments")
@@ -759,7 +750,6 @@ def billing(browser):
     waitPageLoad(browser)
 
 def save(browser):
-    #find_Element(browser,"Save").click()
     browser.execute_script('document.getElementById("Save").click();')
 
 def click_radio(browser):
@@ -791,7 +781,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     #State Select
     browser.execute_script("document.getElementById('QuickAction_StateCd').value = '"+state+"';")
     check_for_value(browser,"QuickAction_CarrierGroupCd",CARRIER)
-    #Select(find_Element(browser,"QuickAction_CarrierGroupCd")).select_by_value(CARRIER)
+
     browser.execute_script("document.getElementById('QuickAction_NewQuote').click()")
 
     if line_of_business == "Personal Umbrella":
@@ -801,9 +791,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     else:
         find_Element(browser,line_of_business,By.LINK_TEXT).click()
 
-    #clear out the producer value and add a value back
-    #browser.execute_script('document.getElementById("ProviderNumber").value = ""')
-    #find_Element(browser,"ProviderNumber").send_keys(producer)
+    #enter producer here
     check_for_value(browser,"ProviderNumber",keys=producer)
 
     #select entity type
@@ -818,14 +806,21 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     if state_chosen == "NY" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella"):
         Select(find_Element(browser,"BasicPolicy.GeographicTerritory")).select_by_value("Upstate")
 
-    find_Element(browser,"InsuredName.GivenName").click()
-    find_Element(browser,"InsuredName.GivenName").send_keys(first_name)
-    find_Element(browser,"InsuredName.Surname").send_keys(last_name)
+    browser.execute_script('document.getElementById("InsuredName.GivenName").value = "' + first_name + '"')
+    browser.execute_script('document.getElementById("InsuredName.Surname").value = "' + last_name + '"')
+
+    check_for_value(browser,"InsuredNameJoint.GivenName",keys="click")
+    check_for_value(browser,"InsuredNameJoint.GivenName",keys="Second")
+    check_for_value(browser,"InsuredNameJoint.Surname",keys="Person")
+    check_for_value(browser,"InsuredPersonalJoint.BirthDt",keys="01/01/1980")
+    check_for_value(browser,"InsuredPersonalJoint.OccupationClassCd","Other")
+    check_for_value(browser,"InsuredPersonalJoint.OccupationOtherJointDesc",keys="No")
 
     if (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella") and subType:
         check_for_value(browser,"BasicPolicy.DisplaySubTypeCd",subType)
         if state_chosen == "NY":
             Select(find_Element(browser,"BasicPolicy.DisplaySubTypeCd")).select_by_index(1)
+    
     
     if line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella":
         find_Element(browser,"InsuredPersonal.BirthDt").send_keys("01/01/1980")
@@ -859,15 +854,19 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
 
     #*Phone Type, Phone number, and email entered here
     Select(find_Element(browser,"InsuredPhonePrimary.PhoneName")).select_by_value("Mobile")
-    find_Element(browser,"InsuredPhonePrimary.PhoneNumber").send_keys(5555555555)
+    find_Element(browser,"InsuredPhonePrimary.PhoneNumber").send_keys(5558675309)
     find_Element(browser,"InsuredEmail.EmailAddr").send_keys("test@mail.com")
     waitPageLoad(browser)
-    if(user_chosen == "admin" and (line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella")):
-        find_Element(browser,"InsuredInsuranceScore.OverriddenInsuranceScore").send_keys("950")
+
+    #Set insurance score if available
+    check_for_value(browser,"InsuredInsuranceScore.OverriddenInsuranceScore",keys="999")
 
     #*click the save button
     save(browser)
     waitPageLoad(browser)
+
+    #Select the second policy carrier
+    check_for_value(browser,"BasicPolicy.PolicyCarrierCd",2,keys="index")
 
     #multiple locations here
     
