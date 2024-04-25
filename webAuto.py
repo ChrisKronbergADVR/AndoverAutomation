@@ -178,20 +178,20 @@ def make_window():
     LOB = ["Dwelling Property","Homeowners","Businessowners","Personal Umbrella","Commercial Umbrella"]
     SUBTYPE = {"HO3":"HO3", "HO4":"HO4", "HO5":"HO5T4", "HO5 Superior": "HO5", "HO6":"HO6"}
     STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
+    CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
 
-    new_app_layout = [  [sg.Text('Enter Information for Creating An Application')],
-                        [sg.Text()],
+    new_app_layout = [  [sg.Text('Enter Information for Creating An Application',border_width=3)],
                         [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1)),sg.Text("                      "),sg.Button("Delete User",size=(10,1),key="-REMU-")],
                         [sg.Text()],
                         [sg.Text("Select Producer"),sg.DropDown(list(env_files_plus_users[env_used]["Producers"]["ProducerNames"]),size=(TEXTLEN,1),key="-PRODUCER-"),sg.Text("     "),sg.Button("Delete Producer",size=(10,2),key="-REMPROD-")],
                         [sg.Text()],
-                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-"),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
+                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-",enable_events=True),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
                         [sg.Text("Address 1 (Required)",visible=False,justification="left",key = "-AddText1-",),sg.Text("   "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD1-")],
                         [sg.Text("                      Address 2",visible=False,justification="left", key = "-AddText2-"),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD2-")],
                         [sg.Text("City (Required)",visible=False,justification="left", key = "-CityText-"),sg.Text("            "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CITY-")],
                         [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
-                        [sg.Text()],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
+                        [sg.Text("Select Carrier",key="-CARRIERTEXT-"),sg.DropDown(list(CARRIER.keys()),key="-CARRIER-",enable_events=True)],
                         [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(list(SUBTYPE.keys()),key="-SUBTYPE-",default_value="HO5",enable_events=True, visible=False)],
                         [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
                         [sg.Text("Enter Date or Select Date Below")],
@@ -283,7 +283,111 @@ def make_window():
         payment_p = values["-PAYPLAN-"]
         payment_p_bop = values["-PAYPLANBOP-"]
         payment_p_pumb = values["-PAYPLANPUMB-"]
+        carrier = values["-CARRIER-"]
 
+        if (event == "-LOB-" and state != "") or (event == "-STATE-" and lob != ""):
+            if STATES[state] == "NY": 
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "MA":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = all_items
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "CT":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "IL":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if (lob == "Homeowners" or lob == "Dwelling Property"):
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "NH":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+            
+            if STATES[state] == "NJ":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = all_items
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "ME":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "RI":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if (lob == "Homeowners" or lob == "Dwelling Property"):
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+        
         if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2' or selectedEnviron =='Model'or selectedEnviron =='Model 2' or selectedEnviron =='Model 3'):
             env_used = selectedEnviron
             read_username_password()
@@ -363,13 +467,27 @@ def make_window():
         if lob == "Homeowners" or lob =="Personal Umbrella":
             window["-SUBTYPELABEL-"].update(visible=True)
             window["-SUBTYPE-"].update(visible=True)
+            window["-CARRIERTEXT-"].update(visible = True)
+            window["-CARRIER-"].update(visible = True)
             window.refresh()
         else:
             window["-SUBTYPELABEL-"].update(visible=False)
             window["-SUBTYPE-"].update(visible=False)
+            window["-CARRIERTEXT-"].update(visible = False)
+            window["-CARRIER-"].update(visible = False)
             window.refresh()
 
-        if multi == "Yes":
+        if lob == "Homeowners" or lob =="Personal Umbrella" or lob == "Dwelling Property":
+            window["-CARRIERTEXT-"].update(visible = True)
+            window["-CARRIER-"].update(visible = True)
+            
+            window.refresh()
+        else:
+            window["-CARRIERTEXT-"].update(visible = False)
+            window["-CARRIER-"].update(visible = False)
+            window.refresh()    
+
+        if multi == "Yes" and lob == "Dwelling Property":
             window["-NUMLOC-"].update(visible = True)
             window["-NUMMULT-"].update(visible=True)
         else:
@@ -432,7 +550,7 @@ def make_window():
                 number_of_addresses = 1
                 multiAdd = False
             window.close()
-            return selectedUser,multiAdd, subType
+            return selectedUser,multiAdd, subType, CARRIER[carrier]
     window.close()
 
 #*function for login
@@ -482,12 +600,14 @@ def click_radio_button(browser,element):
 def remove_javascript(browser):
     element_used = "js_error_list"
     script = """
-        const parent = document.getElementById("js_error_list");
+        const parent = document.getElementById("js_error_list").parentNode;
         if(parent != null)
         {
-            parent.style.display = "none";
+         parent.delete();  
         }
     """
+
+     #parent.style.display = "none";
     try:
         t = find_Element(browser,element_used).is_displayed()
         if(t == True):
@@ -665,6 +785,7 @@ def core_coverages(browser):
     check_for_value(browser,"Building.NumOfStories",keys=5)
     check_for_value(browser,"Risk.ListOfTenantsAndOccupancy",keys="None")
     check_for_value(browser,"Risk.NumOfStories",keys=3)
+    check_for_value(browser,"Building.ProtectionClass",keys=3)
     
     #if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
     for value in core_values:
@@ -772,7 +893,7 @@ def submit_policy(browser):
     find_Element(browser,"Process").click()
     waitPageLoad(browser)
 
-def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str):
+def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str,carrier:str):
     #New Quote
     find_Element(browser,"QuickAction_NewQuote_Holder").click()
     find_Element(browser,"QuickAction_EffectiveDt").send_keys(date)
@@ -781,6 +902,8 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     #State Select
     browser.execute_script("document.getElementById('QuickAction_StateCd').value = '"+state+"';")
     check_for_value(browser,"QuickAction_CarrierGroupCd",CARRIER)
+
+    print(carrier)
 
     browser.execute_script("document.getElementById('QuickAction_NewQuote').click()")
 
@@ -837,7 +960,6 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     #*Adding geographic territory and policy carrier here
     if(state_chosen == "NY" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella")):
         Select(find_Element(browser,"BasicPolicy.GeographicTerritory")).select_by_value("Metro")
-        Select(find_Element(browser,"BasicPolicy.PolicyCarrierCd")).select_by_value("MMFI")
 
     waitPageLoad(browser)
     if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
@@ -866,7 +988,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     waitPageLoad(browser)
 
     #Select the second policy carrier
-    check_for_value(browser,"BasicPolicy.PolicyCarrierCd",2,keys="index")
+    check_for_value(browser,"BasicPolicy.PolicyCarrierCd",carrier)
 
     #multiple locations here
     
@@ -1014,7 +1136,7 @@ def get_password(user):
 def main():
     create_files()
     
-    user_name, multi, subType = make_window()
+    user_name, multi, subType,carrier = make_window()
 
     password = get_password(user_name)
     print("Username: "+user_name + "  Password: " + password)
@@ -1035,9 +1157,9 @@ def main():
     last_name = "Automation"
 
     if(custom_address["Flag"]):
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST, subType)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST, subType,carrier)
     else:
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST, subType)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST,subType,carrier)
 
     if(TEST == True):
         sleep(5)
