@@ -48,7 +48,7 @@ Python Automation with GUI for Andover Local and QA Environments
 
 &emsp;&emsp;&emsp;&emsp;&emsp;```pip3 --version```
 
-&emsp;&emsp;&emsp;&emsp;&emsp;```pip3.11 --version``` 
+&emsp;&emsp;&emsp;&emsp;&emsp;```pip3.12 --version``` 
 
 <br>
 <h4>&ensp; 3. Click the code button</h4>

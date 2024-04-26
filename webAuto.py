@@ -25,7 +25,7 @@ TEXTLEN = 25
 CARRIER = "ADVR"
 
 #*Global Variables
-gw_environment ={"Local":"http://localhost:9090","QA":"https://qa-advr.iscs.com/","UAT3":"https://uat3-advr.in.guidewire.net/innovation?saml=off","UAT4":"https://uat4-advr.in.guidewire.net/innovation","QA2":"https://qa2-acx-advr.in.guidewire.net/innovation"}
+gw_environment ={"Local":"https://localhost:9443","QA":"https://qa-advr.iscs.com/","UAT3":"https://uat3-advr.in.guidewire.net/innovation?saml=off","UAT4":"https://uat4-advr.in.guidewire.net/innovation","QA2":"https://qa2-acx-advr.in.guidewire.net/innovation"}
 #,"Model":"https://login.model.andovercompanies.com","Model 2":"https://login.test.andovercompanies.com","Model 3":"https://login.dev.andovercompanies.com"
 browser_chosen = "Chrome"
 
@@ -83,7 +83,7 @@ env_files_plus_users= {
                    "Producers":{"file":"model2_prod.csv","ProducerNames":[""]}},
             "Model 3":{"Users":{"file":"model3_user.csv","Usernames":{}},
                    "Producers":{"file":"model3_prod.csv","ProducerNames":[""]}}       
-                   }
+                   }                     
 
 #Functions for creating, reading and writing to files 
 def create_files():
@@ -178,29 +178,27 @@ def make_window():
     LOB = ["Dwelling Property","Homeowners","Businessowners","Personal Umbrella","Commercial Umbrella"]
     SUBTYPE = {"HO3":"HO3", "HO4":"HO4", "HO5":"HO5T4", "HO5 Superior": "HO5", "HO6":"HO6"}
     STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
+    CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
 
-    new_app_layout = [  [sg.Text('Enter Information for Creating An Application')],
-                        [sg.Text()],
+    new_app_layout = [  [sg.Text('Enter Information for Creating An Application',border_width=3)],
                         [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1)),sg.Text("                      "),sg.Button("Delete User",size=(10,1),key="-REMU-")],
                         [sg.Text()],
                         [sg.Text("Select Producer"),sg.DropDown(list(env_files_plus_users[env_used]["Producers"]["ProducerNames"]),size=(TEXTLEN,1),key="-PRODUCER-"),sg.Text("     "),sg.Button("Delete Producer",size=(10,2),key="-REMPROD-")],
                         [sg.Text()],
-                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-"),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
+                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-",enable_events=True),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
                         [sg.Text("Address 1 (Required)",visible=False,justification="left",key = "-AddText1-",),sg.Text("   "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD1-")],
                         [sg.Text("                      Address 2",visible=False,justification="left", key = "-AddText2-"),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD2-")],
                         [sg.Text("City (Required)",visible=False,justification="left", key = "-CityText-"),sg.Text("            "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CITY-")],
                         [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
-                        [sg.Text()],
                         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
+                        [sg.Text("Select Carrier",key="-CARRIERTEXT-"),sg.DropDown(list(CARRIER.keys()),key="-CARRIER-",enable_events=True)],
                         [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(list(SUBTYPE.keys()),key="-SUBTYPE-",default_value="HO5",enable_events=True, visible=False)],
                         [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
                         [sg.Text("Enter Date or Select Date Below")],
                         [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
                         [sg.Text()],
                         [sg.Text("Payment Plan: ", visible=True),sg.DropDown(list(payment_plan_most.keys()),visible=True,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLAN-"),sg.DropDown(list(payment_plan_bop.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANBOP-"),sg.DropDown(list(payment_plan_pumb.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANPUMB-")],
-                        [sg.Text("Insured Name")],
-                        [sg.Text('First Name'), sg.InputText(size=(TEXTLEN,1), key = "-FIRST-")],
-                        [sg.Text('Last Name'), sg.InputText(size=(TEXTLEN,1), key="-LAST-")],
+                        [sg.Text()],
                         [sg.Text("Create Quote,Application or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
                         [sg.Text()],
                         [sg.Button('Submit'), sg.Button('Cancel')],
@@ -261,8 +259,6 @@ def make_window():
         for value in values:
             print(values[value])
 
-        first_name= values["-FIRST-"]
-        last_name = values["-LAST-"]
         user_name = values["USER"]
         password = values["PASS"]
         selectedUser = values["-ULIST-"]
@@ -282,7 +278,111 @@ def make_window():
         payment_p = values["-PAYPLAN-"]
         payment_p_bop = values["-PAYPLANBOP-"]
         payment_p_pumb = values["-PAYPLANPUMB-"]
+        carrier = values["-CARRIER-"]
 
+        if (event == "-LOB-" and state != "") or (event == "-STATE-" and lob != ""):
+            if STATES[state] == "NY": 
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "MA":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = all_items
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "CT":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "IL":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if (lob == "Homeowners" or lob == "Dwelling Property"):
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "NH":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+            
+            if STATES[state] == "NJ":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = all_items
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "ME":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if lob == "Homeowners":
+                    current_list = [all_items[0],all_items[1]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+                if lob == "Dwelling Property":
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+
+            if STATES[state] == "RI":
+                all_items = list(CARRIER.keys())
+                current_list = []
+                if (lob == "Homeowners" or lob == "Dwelling Property"):
+                    current_list = [all_items[0]]
+                    window["-CARRIER-"].update(values = current_list)
+                    window["-CARRIER-"].update(value = current_list[0])
+                    window.refresh()
+        
         if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2' or selectedEnviron =='Model'or selectedEnviron =='Model 2' or selectedEnviron =='Model 3'):
             env_used = selectedEnviron
             read_username_password()
@@ -362,13 +462,27 @@ def make_window():
         if lob == "Homeowners" or lob =="Personal Umbrella":
             window["-SUBTYPELABEL-"].update(visible=True)
             window["-SUBTYPE-"].update(visible=True)
+            window["-CARRIERTEXT-"].update(visible = True)
+            window["-CARRIER-"].update(visible = True)
             window.refresh()
         else:
             window["-SUBTYPELABEL-"].update(visible=False)
             window["-SUBTYPE-"].update(visible=False)
+            window["-CARRIERTEXT-"].update(visible = False)
+            window["-CARRIER-"].update(visible = False)
             window.refresh()
 
-        if multi == "Yes":
+        if lob == "Homeowners" or lob =="Personal Umbrella" or lob == "Dwelling Property":
+            window["-CARRIERTEXT-"].update(visible = True)
+            window["-CARRIER-"].update(visible = True)
+            
+            window.refresh()
+        else:
+            window["-CARRIERTEXT-"].update(visible = False)
+            window["-CARRIER-"].update(visible = False)
+            window.refresh()    
+
+        if multi == "Yes" and lob == "Dwelling Property":
             window["-NUMLOC-"].update(visible = True)
             window["-NUMMULT-"].update(visible=True)
         else:
@@ -403,7 +517,7 @@ def make_window():
             window["CITY_DISP"].update(value = city)
             window.refresh()
 
-        if event == "Submit" and first_name and last_name and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"] and (custom_address["Flag"] or cust_addr == False):
+        if event == "Submit" and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"] and (custom_address["Flag"] or cust_addr == False):
             line_of_business = values["-LOB-"]         
             browser_chosen = browser
             state_chosen = STATES[values["-STATE-"]]
@@ -431,7 +545,7 @@ def make_window():
                 number_of_addresses = 1
                 multiAdd = False
             window.close()
-            return first_name,last_name,selectedUser,multiAdd, subType
+            return selectedUser,multiAdd, subType, CARRIER[carrier]
     window.close()
 
 #*function for login
@@ -453,30 +567,27 @@ def delete_quote(browser):
 #*Functions for finding or sending values to input fields
 def check_for_value(browser,element,value = None,visible_text:bool=False,keys=None):
     try:
-        if(find_Element(browser,element).is_displayed()):
+        element1 = find_Element(browser,element)
+        if(element1.is_displayed() == True):
             if(keys != None):
                 if(keys == "click"):
-                    find_Element(browser,element).click()
+                    browser.execute_script('document.getElementById("'+element+'").click();')
+                elif keys == "index":
+                    Select(element1).select_by_index(value)
                 else:
-                    find_Element(browser,element).send_keys(keys)
-            if(visible_text):
-                Select(find_Element(browser,element)).select_by_visible_text(value)
+                    browser.execute_script('document.getElementById("'+element+'").value = ""')
+                    element1.send_keys(keys)
+            elif(visible_text):
+                Select(element1).select_by_visible_text(value)
             else:
-                Select(find_Element(browser,element)).select_by_value(value)
+                Select(element1).select_by_value(value)
     except:
         pass
 
 def click_radio_button(browser,element):
     try:
-        if(find_Element(browser,element).is_displayed()):
+        if(find_Element(browser,element).is_displayed() == True):
             find_Element(browser,element).click()
-    except:
-        pass
-
-def send_value(browser,element,value):
-    try:
-        if(find_Element(browser,element).is_displayed()):
-            find_Element(browser,element).send_keys(value)
     except:
         pass
 
@@ -484,12 +595,14 @@ def send_value(browser,element,value):
 def remove_javascript(browser):
     element_used = "js_error_list"
     script = """
-        const parent = document.getElementById("js_error_list");
+        const parent = document.getElementById("js_error_list").parentNode;
         if(parent != null)
         {
-            parent.style.display = "none";
+         parent.delete();  
         }
     """
+
+     #parent.style.display = "none";
     try:
         t = find_Element(browser,element_used).is_displayed()
         if(t == True):
@@ -593,13 +706,13 @@ def underwriting_questions(browser,multi):
             dwell_questions = gen_dwell_location_questions(browser,1)
 
     if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
-        send_value(browser,"Question_InspectorName","Gadget")
+        check_for_value(browser,"Question_InspectorName",keys="Gadget")
 
         for question in questions_home:
             check_for_value(browser,question,"No",True)
         check_for_value(browser,"Question_AnyLapsePast","No-New Purchase",True)
-        check_for_value(browser,"Question_ClaimsRecently",None,False,0)
-        check_for_value(browser,"Question_PurchasePrice",None,False,500000)
+        check_for_value(browser,"Question_ClaimsRecently",keys=0)
+        check_for_value(browser,"Question_PurchasePrice",keys=500000)
 
     if(line_of_business == "Dwelling Property"):
         for key in range(len(dwell_questions.keys())):
@@ -625,79 +738,61 @@ def core_coverages(browser):
     
     core_values_after = ["Risk.RoofUpdatedIn15YrsInd","Risk.AdequateSmokeDetInd","Risk.BldgOccGt75PctInd","Risk.EgressFromAllUnitsInd","Risk.MaintProgramInd"]
 
-    find_Element(browser,"Wizard_Risks").click()
+    browser.execute_script("document.getElementById('Wizard_Risks').click();")
+
     waitPageLoad(browser)
-
-    #Select(find_Element(browser,"Building.ConstructionCd")).select_by_value("Frame")
     check_for_value(browser,"Building.ConstructionCd","Frame")
-    find_Element(browser,"Building.YearBuilt").send_keys(2020)
+    check_for_value(browser,"Building.YearBuilt",keys=2020)
+    check_for_value(browser,"Building.OccupancyCd","Owner occupied dwelling")
+    check_for_value(browser,"Building.Seasonal","No")
+    check_for_value(browser,"Risk.TypeCd","DP2")
+    check_for_value(browser,"Building.BuildingLimit",keys=300000)
+    check_for_value(browser,"Building.StandardDed","500")
+    check_for_value(browser,"Building.NumOfFamilies","1")
+    check_for_value(browser,"Building.DistanceToHydrant","1000")
+    check_for_value(browser,"Building.OccupancyCd","Primary Residence")
+    check_for_value(browser,"Building.CovALimit",keys=300000)
+    check_for_value(browser,"Building.NumOfFamiliesSameFire","Less Than 5",False,None)
+    check_for_value(browser,"Building.DistanceToHydrant","1000")
+    check_for_value(browser,"Building.FuelLiability","300000")
+    check_for_value(browser,"Building.OilTankLocation","none")
+    check_for_value(browser,"Building.CovELimit","300000")
+    check_for_value(browser,"Building.CovFLimit","2000")
+    check_for_value(browser,"Building.StandardDed","1000")
+    check_for_value(browser,"Building.NumOfFamilies","1")
+    check_for_value(browser,"Building.DistanceToHydrant","1000")
+    check_for_value(browser,"Building.TerritoryCd",keys="1")
+    check_for_value(browser,"Risk.WorkersCompInd","100000")
+    check_for_value(browser,"Risk.WorkersCompEmployees","none")
     check_for_value(browser,"Building.HurricaneMitigation","No Action")
-
-    #select entity type
-    if(line_of_business == "Dwelling Property"):
-        Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Owner occupied dwelling")
-        Select(find_Element(browser,"Building.Seasonal")).select_by_value("No")
-        Select(find_Element(browser,"Risk.TypeCd")).select_by_value("DP2")
-        find_Element(browser,"Building.BuildingLimit").send_keys(300000)
-        Select(find_Element(browser,"Building.StandardDed")).select_by_value("500")
-        Select(find_Element(browser,"Building.NumOfFamilies")).select_by_value("1")
-        if(state_chosen == "NJ"):
-            Select(find_Element(browser,"Building.DistanceToHydrant")).select_by_value("1000")
-
-    if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
-        check_for_value(browser,"Building.OccupancyCd","Primary Residence")
-        check_for_value(browser,"Building.CovALimit",None,False,300000)
-        check_for_value(browser,"Building.CovCLimit",None,False,300000)
-        check_for_value(browser,"Building.NumOfFamiliesSameFire","Less Than 5",False,None)
-        check_for_value(browser,"Building.DistanceToHydrant","1000")
-        #Select(find_Element(browser,"Building.OccupancyCd")).select_by_value("Primary Residence")
-        #find_Element(browser,"Building.CovALimit").send_keys(300000)
-        if(state_chosen == "CT"):
-            Select(find_Element(browser,"Building.FuelLiability")).select_by_value("300000")
-            Select(find_Element(browser,"Building.OilTankLocation")).select_by_value("none")
-        #if(state_chosen != "NY"):
-        #     find_Element(browser,"Building.CovCLimit").send_keys(250000)
-        Select(find_Element(browser,"Building.CovELimit")).select_by_value("300000")
-        Select(find_Element(browser,"Building.CovFLimit")).select_by_value("2000")
-        Select(find_Element(browser,"Building.StandardDed")).select_by_value("1000")
-        Select(find_Element(browser,"Building.NumOfFamilies")).select_by_value("1")
-        if(state_chosen == "NJ"):
-            Select(find_Element(browser,"Building.DistanceToHydrant")).select_by_value("1000")
-            find_Element(browser,"Building.TerritoryCd").send_keys("1")
-            Select(find_Element(browser,"Risk.WorkersCompInd")).select_by_value("100000")
-            Select(find_Element(browser,"Risk.WorkersCompEmployees")).select_by_value("none")
             
-            
-    if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
-        if(state_chosen == "NJ" or state_chosen == "NY"):
-            Select(find_Element(browser,"Building.BuildingClassDescription")).select_by_value("75% or more Apartments")
-            if state_chosen == "NJ":
-                Select(find_Element(browser,"Building.DistanceToHydrant")).select_by_value("1000")
-        else:
-            Select(find_Element(browser,"Building.BuildingClassDescription")).select_by_value("67% or more Apartments")
-        Select(find_Element(browser,"Building.ContentClassDescription")).select_by_value("None - Building Owner only")
-        find_Element(browser,"Building.BuildingLimit").send_keys(900000)
-        find_Element(browser,"Risk.SqFtArea").send_keys(2000)
+    check_for_value(browser,"Building.BuildingClassDescription","75% or more Apartments")
+    check_for_value(browser,"Building.BuildingClassDescription","67% or more Apartments")
+    check_for_value(browser,"Building.DistanceToHydrant","1000")
+    check_for_value(browser,"Building.ContentClassDescription","None - Building Owner only")
+    check_for_value(browser,"Building.BuildingLimit",keys=900000)
+    check_for_value(browser,"Building.DistanceToHydrant","1000")
+    check_for_value(browser,"Risk.SqFtArea",keys=2000)
+    check_for_value(browser,"Risk.PremisesAlarm","None",True)
+    check_for_value(browser,"Risk.YrsInBusinessInd","1",True)
+    check_for_value(browser,"Building.NumOfApartmentCondoBuilding",keys=5)
+    check_for_value(browser,"Building.MaxNumOfAptCondoBetweenBrickWalls",keys=5)
+    check_for_value(browser,"Building.NumOfStories",keys=5)
+    check_for_value(browser,"Risk.ListOfTenantsAndOccupancy",keys="None")
+    check_for_value(browser,"Risk.NumOfStories",keys=3)
+    check_for_value(browser,"Building.ProtectionClass",keys=3)
+    
+    #if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
+    for value in core_values:
+        check_for_value(browser,value,"No",False)
 
-        for value in core_values:
-            check_for_value(browser,value,"No",False)
+    #save(browser)
+    save(browser)
+    waitPageLoad(browser)
+    
+    for value in core_values_after:
+        check_for_value(browser,value,"No",False)
 
-        check_for_value(browser,"Risk.PremisesAlarm","None",True)
-        check_for_value(browser,"Risk.YrsInBusinessInd","1",True)
-        
-        if(state_chosen == "ME" or state_chosen == "MA" or state_chosen == "NH" or state_chosen=="CT"):
-            find_Element(browser,"Building.NumOfApartmentCondoBuilding").send_keys(5)
-            find_Element(browser,"Building.MaxNumOfAptCondoBetweenBrickWalls").send_keys(5)
-
-        send_value(browser,"Risk.NumOfStories",3)
-        send_value(browser,"Risk.ListOfTenantsAndOccupancy","None")
-
-        save(browser)
-        save(browser)
-        waitPageLoad(browser)
-        for value in core_values_after:
-            check_for_value(browser,value,"No",False)
-        
      #click the save button
     save(browser)
 
@@ -771,7 +866,7 @@ def billing(browser):
     waitPageLoad(browser)
 
 def save(browser):
-    find_Element(browser,"Save").click()
+    browser.execute_script('document.getElementById("Save").click();')
 
 def click_radio(browser):
     e_name = "QuoteCustomerClearingRef"
@@ -804,7 +899,7 @@ def submit_policy(browser):
     find_Element(browser,"Process").click()
     waitPageLoad(browser)
 
-def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str):
+def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str,carrier:str):
     #New Quote
     find_Element(browser,"QuickAction_NewQuote_Holder").click()
     find_Element(browser,"QuickAction_EffectiveDt").send_keys(date)
@@ -812,10 +907,11 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     waitPageLoad(browser)
     #State Select
     browser.execute_script("document.getElementById('QuickAction_StateCd').value = '"+state+"';")
-    #Select(find_Element(browser,"QuickAction_StateCd")).select_by_value(state)
-    Select(find_Element(browser,"QuickAction_CarrierGroupCd")).select_by_value(CARRIER)
+    check_for_value(browser,"QuickAction_CarrierGroupCd",CARRIER)
+
+    print(carrier)
+
     browser.execute_script("document.getElementById('QuickAction_NewQuote').click()")
-    #find_Element(browser,"QuickAction_NewQuote").click()
 
     if line_of_business == "Personal Umbrella":
         find_Element(browser,"Homeowners",By.LINK_TEXT).click()
@@ -824,9 +920,8 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     else:
         find_Element(browser,line_of_business,By.LINK_TEXT).click()
 
-    selectedAgent = user_chosen.lower()
-    if(not(selectedAgent.__contains__("agent"))):
-        find_Element(browser,"ProviderNumber").send_keys(producer)
+    #enter producer here
+    check_for_value(browser,"ProviderNumber",keys=producer)
 
     #select entity type
     if(line_of_business == "Dwelling Property" or line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella"):
@@ -834,23 +929,27 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     
     waitPageLoad(browser)
 
-    try:
-        if(find_Element(browser,"InsuredPersonal.OccupationClassCd").is_displayed() == True):
-            Select(find_Element(browser,"InsuredPersonal.OccupationClassCd")).select_by_value("Other")
-            Select(find_Element(browser,"InsuredPersonal.OccupationClassCd")).select_by_value("Other")
-            find_Element(browser,"InsuredPersonal.OccupationOtherDesc").send_keys("No")
-    except:
-        pass
+    check_for_value(browser,"InsuredPersonal.OccupationClassCd","Other")
+    check_for_value(browser,"InsuredPersonal.OccupationOtherDesc",keys="No")
 
     if state_chosen == "NY" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella"):
         Select(find_Element(browser,"BasicPolicy.GeographicTerritory")).select_by_value("Upstate")
 
-    find_Element(browser,"InsuredName.GivenName").click()
-    find_Element(browser,"InsuredName.GivenName").send_keys(first_name)
-    find_Element(browser,"InsuredName.Surname").send_keys(last_name)
+    browser.execute_script('document.getElementById("InsuredName.GivenName").value = "' + first_name + '"')
+    browser.execute_script('document.getElementById("InsuredName.Surname").value = "' + last_name + '"')
+
+    check_for_value(browser,"InsuredNameJoint.GivenName",keys="click")
+    check_for_value(browser,"InsuredNameJoint.GivenName",keys="Second")
+    check_for_value(browser,"InsuredNameJoint.Surname",keys="Person")
+    check_for_value(browser,"InsuredPersonalJoint.BirthDt",keys="01/01/1980")
+    check_for_value(browser,"InsuredPersonalJoint.OccupationClassCd","Other")
+    check_for_value(browser,"InsuredPersonalJoint.OccupationOtherJointDesc",keys="No")
 
     if (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella") and subType:
-        Select(find_Element(browser,"BasicPolicy.DisplaySubTypeCd")).select_by_value(subType)
+        check_for_value(browser,"BasicPolicy.DisplaySubTypeCd",subType)
+        if state_chosen == "NY":
+            Select(find_Element(browser,"BasicPolicy.DisplaySubTypeCd")).select_by_index(1)
+    
     
     if line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella":
         find_Element(browser,"InsuredPersonal.BirthDt").send_keys("01/01/1980")
@@ -867,7 +966,6 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     #*Adding geographic territory and policy carrier here
     if(state_chosen == "NY" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella")):
         Select(find_Element(browser,"BasicPolicy.GeographicTerritory")).select_by_value("Metro")
-        Select(find_Element(browser,"BasicPolicy.PolicyCarrierCd")).select_by_value("MMFI")
 
     waitPageLoad(browser)
     if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
@@ -884,15 +982,19 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
 
     #*Phone Type, Phone number, and email entered here
     Select(find_Element(browser,"InsuredPhonePrimary.PhoneName")).select_by_value("Mobile")
-    find_Element(browser,"InsuredPhonePrimary.PhoneNumber").send_keys(5555555555)
+    find_Element(browser,"InsuredPhonePrimary.PhoneNumber").send_keys(5558675309)
     find_Element(browser,"InsuredEmail.EmailAddr").send_keys("test@mail.com")
     waitPageLoad(browser)
-    if(user_chosen == "admin" and (line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella")):
-        find_Element(browser,"InsuredInsuranceScore.OverriddenInsuranceScore").send_keys("950")
+
+    #Set insurance score if available
+    check_for_value(browser,"InsuredInsuranceScore.OverriddenInsuranceScore",keys="999")
 
     #*click the save button
     save(browser)
     waitPageLoad(browser)
+
+    #Select the second policy carrier
+    check_for_value(browser,"BasicPolicy.PolicyCarrierCd",carrier)
 
     #multiple locations here
     
@@ -915,7 +1017,8 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         if(state_chosen == "NJ" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella")):
             find_Element(browser,"Wizard_Risks").click()
             waitPageLoad(browser)
-            Select(find_Element(browser,"Building.InspectionSurveyReqInd")).select_by_value("No")
+            check_for_value(browser,"Building.InspectionSurveyReqInd","No")
+
             #click the save button
             save(browser)
 
@@ -1038,8 +1141,8 @@ def get_password(user):
 
 def main():
     create_files()
-
-    first_name, last_name, user_name, multi, subType = make_window()
+    
+    user_name, multi, subType,carrier = make_window()
 
     password = get_password(user_name)
     print("Username: "+user_name + "  Password: " + password)
@@ -1056,10 +1159,13 @@ def main():
     state1,CITY,ADDRESS = addresses[str(state_chosen+"1")]
     custom_city = custom_address["City"]
     custom_add = custom_address["Address"]
+    first_name = state_chosen + " " + line_of_business
+    last_name = "Automation"
+
     if(custom_address["Flag"]):
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST, subType)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST, subType,carrier)
     else:
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST, subType)
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST,subType,carrier)
 
     if(TEST == True):
         sleep(5)
