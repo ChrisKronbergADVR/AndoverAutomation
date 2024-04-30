@@ -325,6 +325,7 @@ def create_user(createdName,user_type,user_name,password):
     y = datetime.today()
     default_date = y.strftime("%m/%d/%Y").split("/")
     password = get_password(user_name)
+    user_xpath = "//div[@id='System User List']/div[2]/*/*/tr[2]/td[1]/a"
 
     browser = load_page()
 
