@@ -166,6 +166,179 @@ def verify_address(city,state,address1,address2=None):
 
     return verified
 
+#Create a producer
+def create_producer(producerName,user_name):
+    agency_name = "All_States_All_LOB"
+    agent_name = None
+    prod_name = None
+    y = datetime.today()
+    default_date = y.strftime("%m/%d/%Y").split("/")
+    password = get_password(user_name)
+    states = ["CT","IL","MA","ME","NH","NJ","NY","RI"]
+    LOB = ["PUL","HO","DP","BOP-UMB","BOP"]
+    prod_values = env_files_plus_users[env_used]['Producers']['ProducerNames']
+
+    browser = load_page()
+
+    try:
+        login(browser,user_name,password)
+    except:
+        sleep(5)
+        browser.quit()
+        raise Exception("Incorrect username and/or password")
+    waitPageLoad(browser)    
+
+    #################### Searching for a Producer #########################
+    browser.execute_script('document.getElementById("Menu_Policy").click();')
+    browser.execute_script('document.getElementById("Menu_Policy_UnderwritingMaintenance").click();')
+
+    find_Element(browser,"Producer",id=By.LINK_TEXT).click()
+    check_for_value(browser,"SearchText",keys=producerName)
+    check_for_value(browser,"SearchBy","ProviderNumber")
+    check_for_value(browser,"SearchFor","Producer")
+    check_for_value(browser,"SearchOperator","=")
+    check_for_value(browser,"Search",keys = "click")
+    waitPageLoad(browser)
+
+    try:
+        prod_name = find_Element(browser,"//div[@id='Agency/Producer List']/*/*/tr[2]/td[2]",By.XPATH)
+    except:
+        pass
+
+    #################### Searching for an Agency #########################
+    check_for_value(browser,"SearchText",keys=agency_name)
+    check_for_value(browser,"SearchBy","ProviderNumber")
+    check_for_value(browser,"SearchFor","Agency")
+    check_for_value(browser,"SearchOperator","=")
+    check_for_value(browser,"Search",keys = "click")
+    waitPageLoad(browser)
+
+    try:
+        agent_name = find_Element(browser,"//div[@id='Agency/Producer List']/*/*/tr[2]/td[2]",By.XPATH)
+
+    except:
+        pass
+
+    try: 
+        if prod_name is not None:
+            if producerName not in prod_values:
+                add_producer(producerName)
+            script = "alert('Producer Already Exists')"
+            browser.execute_script(script)
+            sleep(5)
+            browser.quit()
+            return False
+    except:
+        pass
+    
+    if agent_name is None:
+        ################ Create Agency #################################
+        check_for_value(browser,"NewProducer",keys="click")
+        check_for_value(browser,"Provider.ProviderNumber",keys=agency_name)
+        check_for_value(browser,"ProducerTypeCd",value="Agency")
+        check_for_value(browser,"Provider.StatusDt",keys=default_date)
+        check_for_value(browser,"AppointedDt",keys="01/01/1900")
+        check_for_value(browser,"CombinedGroup",value="No")
+        check_for_value(browser,"ProviderName.CommercialName",keys="The White House")
+        check_for_value(browser,"ProviderStreetAddr.Addr1",keys="1600 Pennsylvania Ave NW")
+        check_for_value(browser,"ProviderStreetAddr.City",keys="Washington")
+        check_for_value(browser,"ProviderStreetAddr.StateProvCd",value="DC")
+        waitPageLoad(browser)
+        check_for_value(browser,"CopyAddress",keys="click")
+        waitPageLoad(browser)
+        check_for_value(browser,"ProviderEmail.EmailAddr",keys="test@mail.com")
+        check_for_value(browser,"AcctName.CommercialName",keys="White House")
+        check_for_value(browser,"PayToCd",value="Agency")
+        check_for_value(browser,"Provider.CombinePaymentInd",value="No")
+        check_for_value(browser,"Provider.PaymentPreferenceCd",value="Check")
+        check_for_value(browser,"CopyBillingAddress",keys="click")
+        waitPageLoad(browser)
+        save(browser)
+        check_for_value(browser,"Return",keys="click")
+        waitPageLoad(browser)
+
+    check_for_value(browser,"NewProducer",keys="click")
+    check_for_value(browser,"Provider.ProviderNumber",keys=producerName)
+    check_for_value(browser,"ProducerTypeCd",value="Producer")
+    check_for_value(browser,"ProducerAgency",keys=agency_name)
+    check_for_value(browser,"Provider.StatusDt",keys=default_date)
+    check_for_value(browser,"AppointedDt",keys="01/01/1900")
+    check_for_value(browser,"CombinedGroup",value="No")
+    check_for_value(browser,"ProviderName.CommercialName",keys="Starbucks")
+    check_for_value(browser,"ProviderStreetAddr.Addr1",keys="43 Crossing Way")
+    check_for_value(browser,"ProviderStreetAddr.City",keys="Augusta")
+    check_for_value(browser,"ProviderStreetAddr.StateProvCd",value="ME")
+    waitPageLoad(browser)
+    check_for_value(browser,"CopyAddress",keys="click")
+    waitPageLoad(browser)
+    check_for_value(browser,"ProviderEmail.EmailAddr",keys="test@mail.com")
+    check_for_value(browser,"AcctName.CommercialName",keys="White House")
+    check_for_value(browser,"PayToCd",value="Agency")
+    check_for_value(browser,"Provider.CombinePaymentInd",value="No")
+    check_for_value(browser,"Provider.PaymentPreferenceCd",value="Check")
+    check_for_value(browser,"CopyBillingAddress",keys="click")
+    waitPageLoad(browser)
+    save(browser)
+    waitPageLoad(browser)
+    check_for_value(browser,"IvansCommissionInd",value="No")
+
+    #########################  Add States ############################
+
+    for state in states:
+        check_for_value(browser,"AddState",keys="click")
+        check_for_value(browser,"StateInfo.StateCd",value=state)
+        check_for_value(browser,"StateInfo.AppointedDt",keys="01/01/1900")
+        check_for_value(browser,"StateInfo.MerrimackAppointedDt",keys="01/01/1900")
+        check_for_value(browser,"StateInfo.CambridgeAppointedDt",keys="01/01/1900")
+        check_for_value(browser,"StateInfo.BayStateAppointedDt",keys="01/01/1900")
+        check_for_value(browser,"StateInfo.MerrimackLicensedDt",keys="01/01/2999")
+        check_for_value(browser,"StateInfo.CambridgeLicensedDt",keys="01/01/2999")
+        check_for_value(browser,"StateInfo.BayStateLicensedDt",keys="01/01/2999")
+        save(browser)
+        waitPageLoad(browser)
+
+    ############################ Add Products ################################
+
+    for state in states:
+        for bus in LOB:
+            check_for_value(browser,"AddProduct",keys="click")
+            check_for_value(browser,"LicensedProduct.LicenseClassCd",value=bus)
+            check_for_value(browser,"LicensedProduct.StateProvCd",value=state)
+            check_for_value(browser,"LicensedProduct.EffectiveDt",keys="01/01/1900")
+            check_for_value(browser,"LicensedProduct.CommissionNewPct",keys="5")
+            check_for_value(browser,"LicensedProduct.CommissionRenewalPct",keys="5")
+            save(browser)
+            waitPageLoad(browser)
+    check_for_value(browser,"IvansCommissionInd",value="No")
+    check_for_value(browser,"FCRAEmail.EmailAddr",keys="test2@mail.com")
+    save(browser)
+
+    browser.quit()
+
+    if producerName not in prod_values:
+        add_producer(producerName)
+    
+
+#Create a user
+def create_user(createdName,user_type,user_name,password):
+    agency_name = "All_States_All_LOB"
+    y = datetime.today()
+    default_date = y.strftime("%m/%d/%Y").split("/")
+    password = get_password(user_name)
+
+    browser = load_page()
+
+    try:
+        login(browser,user_name,password)
+    except:
+        sleep(5)
+        browser.quit()
+        raise Exception("Incorrect username and/or password")
+    waitPageLoad(browser)    
+
+    check_for_value(browser,"Menu_Admin_UserManagement",keys="click")
+    
+
 #Function for making the GUI
 def make_window():
     global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses,pay_plan
@@ -202,43 +375,43 @@ def make_window():
                         [sg.Text("Create Quote,Application or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
                         [sg.Text()],
                         [sg.Button('Submit'), sg.Button('Cancel')],
-                        ]
+                    ]
 
     add_address_layout= [
-                        [sg.Text("")],
-                        [sg.Button("Add Address",key="-ADDRESS-")],
-                        [sg.Text()],
-                        [sg.Text("Address: "),sg.Text(key = "ADD_DISP")],
-                        [sg.Text("City: "),sg.Text(key = "CITY_DISP")],
-                        ]
-    
-    create_producer_layout = [
-                        [sg.Text()],
-                        [sg.Text("Add Producer Name")],
-                        [sg.InputText(size = (TEXTLEN,1))],
+                            [sg.Text("")],
+                            [sg.Button("Add Address",key="-ADDRESS-")],
+                            [sg.Text()],
+                            [sg.Text("Address: "),sg.Text(key = "ADD_DISP")],
+                            [sg.Text("City: "),sg.Text(key = "CITY_DISP")],
                         ]
     
     new_user_layout = [
+                        [sg.Text()],
+                        [sg.Text('Select Login Username'), sg.DropDown(userList,key="-CREATE_USERLIST-",size =(20,1),enable_events=True)],
+                        [sg.Text()],
+                        [sg.Text('Add Producer')],
+                        [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
+                        [sg.Button("Add Producer",key="-ADD_PROD-")],
                         [sg.Text()],
                         [sg.Text('Add User')],
                         [sg.Text("Username"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="USER")],
                         [sg.Text("Password"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="PASS")],
                         [sg.Button("Add User",key="-ADDU-")],
-                        [sg.Text()],
-                        [sg.Text('Add Producer')],
-                        [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="-PROD-")],
-                        [sg.Button("Add Producer",key="-ADDP-")],
-                        [sg.Text()],
-                        ]
+                        [sg.Text()]
+                    ]
     
     create_producer_layout = [ 
-                        [sg.Text('Create a Producer')],
-                        [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
-                        [sg.Button("Create Producer",key="-ADD_PROD-")]]
-                        
-    exist_app_layout = [[sg.Text('Enter Information for An Existing Application')],
-                        [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
+                            [sg.Text('Select Login Username'), sg.DropDown(userList,key="-CREATE_USERLIST-",size =(20,1),enable_events=True)],
+                            [sg.Text()],
+                            [sg.Text('Add Producer')],
+                            [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
+                            [sg.Button("Create Producer",key="-ADD_PROD-")]
                         ]
+                        
+    exist_app_layout = [
+                        [sg.Text('Enter Information for An Existing Application')],
+                        [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
+                    ]
 
 
     layout = [[sg.Text('Andover Automation', size=(38, 1), justification='center', font=("Helvetica", 16), relief=sg.RELIEF_RIDGE, key='-TEXTHEADING-', enable_events=True)]]
@@ -247,12 +420,10 @@ def make_window():
                [sg.HorizontalSeparator()]]
     layout+=[[sg.TabGroup([[  sg.Tab('Creating New Applications', new_app_layout),
                                sg.Tab('Add Users and Producers', new_user_layout),
-                               sg.Tab('Create Producers', create_producer_layout),
-                               #sg.Tab('Create Producer for All States', create_producer_layout),
+                               #sg.Tab('Create Producers', create_producer_layout),
                                #sg.Tab('Add Custom Address', add_address_layout),
                                ]],key = "-TABGROUP-",expand_x=True, expand_y=True)]]
 
-    # sg.Button("Update", key = "UPDATE")
     # Create the Window
     window = sg.Window('Automation for Andover', layout)
     # Event Loop to process "events" and get the "values" of the inputs
@@ -268,13 +439,13 @@ def make_window():
         password = values["PASS"]
         selectedUser = values["-ULIST-"]
         selectedEnviron = values["-ENVLIST-"]
-        add_prod = values['-PROD-']
+        #add_prod = values['-PROD-']
         producer = values["-PRODUCER-"]
         doc_type = values["-CREATE-"]
         city = values["-CITY-"]
         addr = values["-CADD1-"]
         addr2 = values["-CADD2-"]
-        browser = values["BROWSER"]
+        browser_chose = values["BROWSER"]
         cust_addr = values["ADD_CHECK"]
         state = values["-STATE-"]
         lob = values["-LOB-"]
@@ -284,6 +455,12 @@ def make_window():
         payment_p_bop = values["-PAYPLANBOP-"]
         payment_p_pumb = values["-PAYPLANPUMB-"]
         carrier = values["-CARRIER-"]
+        producer_name = values["-PROD_IN-"]
+        producer_user_name = values["-CREATE_USERLIST-"]
+
+        if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name:
+            browser_chosen = browser_chose
+            create_producer(producer_name,producer_user_name)
 
         if (event == "-LOB-" and state != "") or (event == "-STATE-" and lob != ""):
             if STATES[state] == "NY": 
@@ -392,7 +569,12 @@ def make_window():
             env_used = selectedEnviron
             read_username_password()
             read_producers()
+            prod_user_list = []
             userList = list(env_files_plus_users[env_used]["Users"]["Usernames"].keys())
+            for user in userList:
+                if user.lower().__contains__("admin") and (not user.lower().__contains__("agent")):
+                    prod_user_list.append(user)
+            window["-CREATE_USERLIST-"].update(values = prod_user_list)
             window["-ULIST-"].update(values = userList)
             window["-PRODUCER-"].update(values = env_files_plus_users[env_used]["Producers"]["ProducerNames"])
             window.refresh()
@@ -494,11 +676,13 @@ def make_window():
             window["-NUMLOC-"].update(visible = False)
             window["-NUMMULT-"].update(visible = False)
 
+        """
         if event == "-ADDP-" and selectedEnviron!= '':
             add_producer(add_prod)
             prodList = env_files_plus_users[env_used]["Producers"]["ProducerNames"]
             window["-PRODUCER-"].update(values = prodList)
             window.refresh()
+        """
                     
         if event == "-REMU-" and len(env_files_plus_users[env_used]["Users"]["Usernames"].keys()) > 0 and selectedUser != "" :
             del env_files_plus_users[env_used]["Users"]["Usernames"][selectedUser]
@@ -522,9 +706,9 @@ def make_window():
             window["CITY_DISP"].update(value = city)
             window.refresh()
 
-        if event == "Submit" and selectedUser and selectedEnviron and producer and browser and date_chosen and values["-IN4-"] and (custom_address["Flag"] or cust_addr == False):
+        if event == "Submit" and selectedUser and selectedEnviron and producer and browser_chose and date_chosen and values["-IN4-"] and (custom_address["Flag"] or cust_addr == False):
             line_of_business = values["-LOB-"]         
-            browser_chosen = browser
+            browser_chosen = browser_chose
             state_chosen = STATES[values["-STATE-"]]
             date_chosen = values["-IN4-"]
             producer_selected = producer
@@ -563,7 +747,7 @@ def login(browser,user = "admin",password = "Not9999!"):
 def find_Element(browser,browser_Element, id = By.ID):
     elem = browser.find_element(id,browser_Element)
     return elem
-  
+
 def delete_quote(browser):
     #delete created Quote
     find_Element(browser,"Delete").click()
@@ -576,7 +760,10 @@ def check_for_value(browser,element,value = None,visible_text:bool=False,keys=No
         if(element1.is_displayed() == True):
             if(keys != None):
                 if(keys == "click"):
-                    browser.execute_script('document.getElementById("'+element+'").click();')
+                    if visible_text == True:
+                        find_Element(browser,"Producer",id=By.LINK_TEXT).click()
+                    else:
+                        browser.execute_script('document.getElementById("'+element+'").click();')
                 elif keys == "index":
                     Select(element1).select_by_index(value)
                 else:
@@ -622,7 +809,7 @@ def waitPageLoad(browser):
     remove_javascript(browser)
     script = "return window.seleniumPageLoadOutstanding == 0;"
     WebDriverWait(browser, 60).until(lambda browser:browser.execute_script(script)) 
-    
+
 def run_verify_address(browser):
     script = "InsuredMailingAddr.verify();"
     lambda browser:browser.execute_script(script)
@@ -879,9 +1066,6 @@ def click_radio(browser):
     radio_number = len(table)
     my_value = e_name+"_"+str(radio_number)
     click_radio_button(browser,my_value)
-
-def create_producer(browser):
-    find_Element(browser,"Menu_Policy").click()
 
 def submit_policy(browser):
     find_Element(browser,"Closeout").click()
