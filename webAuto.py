@@ -14,7 +14,7 @@ import os
 from time import sleep
 from datetime import datetime,timedelta
 import requests
-from threading import Thread
+import threading
 import itertools
 import time
 
@@ -461,7 +461,8 @@ def make_window():
 
         if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name:
             browser_chosen = browser_chose
-            create_producer(producer_name,producer_user_name)
+            prod_thread = threading.Thread(target=create_producer,args=(producer_name,producer_user_name))
+            prod_thread.start()
 
         if (event == "-LOB-" and state != "") or (event == "-STATE-" and lob != ""):
             if STATES[state] == "NY": 
