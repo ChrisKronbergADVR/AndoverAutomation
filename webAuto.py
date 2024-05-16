@@ -22,7 +22,7 @@ import time
 TEST = False
 THEME = "TanBlue"
 TEXTLEN = 25
-CARRIER = "ADVR"
+COMPANY = "ADVR"
 
 #*Global Variables
 gw_environment ={"Local":"https://localhost:9443","QA":"https://qa-advr.iscs.com/","UAT3":"https://uat3-advr.in.guidewire.net/innovation?saml=off","UAT4":"https://uat4-advr.in.guidewire.net/innovation","QA2":"https://qa2-acx-advr.in.guidewire.net/innovation"}
@@ -318,7 +318,6 @@ def create_producer(producerName,user_name):
     if producerName not in prod_values:
         add_producer(producerName)
     
-
 #Create a user
 def create_user(createdName,user_type,user_name,password):
     agency_name = "All_States_All_LOB"
@@ -338,7 +337,38 @@ def create_user(createdName,user_type,user_name,password):
     waitPageLoad(browser)    
 
     check_for_value(browser,"Menu_Admin_UserManagement",keys="click")
+
+#Start application creation    
+def startApplication(multiAdd,subType,carrier):
+    CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
     
+    password = get_password(user_chosen)
+    print("Username: "+user_chosen + "  Password: " + password)
+
+    browser = load_page()
+    
+    try:
+        login(browser,user_chosen,password)
+    except:
+        raise Exception("Incorrect username and/or password")
+
+    #*Tab to click  for recent quotes, applications, and policies
+    find_Element(browser,"Tab_Recent").click()
+    state1,CITY,ADDRESS = addresses[str(state_chosen+"1")]
+    custom_city = custom_address["City"]
+    custom_add = custom_address["Address"]
+    first_name = state_chosen + " " + line_of_business
+    last_name = "Automation"
+
+    if(custom_address["Flag"]):
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multiAdd,TEST, subType,CARRIER[carrier])
+    else:
+        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multiAdd,TEST,subType,CARRIER[carrier])
+
+    if(TEST == True):
+        sleep(5)
+        browser.quit()
+
 
 #Function for making the GUI
 def make_window():
@@ -735,8 +765,10 @@ def make_window():
             else:
                 number_of_addresses = 1
                 multiAdd = False
-            window.close()
-            return selectedUser,multiAdd, subType, CARRIER[carrier]
+
+            app_thread = threading.Thread(target=startApplication,args=(multiAdd,subType,carrier))
+            app_thread.start()
+
     window.close()
 
 #*function for login
@@ -1087,9 +1119,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     waitPageLoad(browser)
     #State Select
     browser.execute_script("document.getElementById('QuickAction_StateCd').value = '"+state+"';")
-    check_for_value(browser,"QuickAction_CarrierGroupCd",CARRIER)
-
-    print(carrier)
+    check_for_value(browser,"QuickAction_CarrierGroupCd",COMPANY)
 
     browser.execute_script("document.getElementById('QuickAction_NewQuote').click()")
 
@@ -1322,34 +1352,8 @@ def get_password(user):
 def main():
     create_files()
     
-    user_name, multi, subType,carrier = make_window()
-
-    password = get_password(user_name)
-    print("Username: "+user_name + "  Password: " + password)
-
-    browser = load_page()
-    
-    try:
-        login(browser,user_name,password)
-    except:
-        raise Exception("Incorrect username and/or password")
-
-    #*Tab to click  for recent quotes, applications, and policies
-    find_Element(browser,"Tab_Recent").click()
-    state1,CITY,ADDRESS = addresses[str(state_chosen+"1")]
-    custom_city = custom_address["City"]
-    custom_add = custom_address["Address"]
-    first_name = state_chosen + " " + line_of_business
-    last_name = "Automation"
-
-    if(custom_address["Flag"]):
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,custom_add,custom_city,multi,TEST, subType,carrier)
-    else:
-        create_new_quote(browser,date_chosen,state1,producer_selected,first_name,last_name,ADDRESS,CITY,multi,TEST,subType,carrier)
-
-    if(TEST == True):
-        sleep(5)
-        browser.quit()
+    #user_name, multi, subType,carrier = 
+    make_window()
 
 if __name__ == '__main__':
     main()
