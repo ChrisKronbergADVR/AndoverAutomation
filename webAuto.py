@@ -46,6 +46,7 @@ payment_plan_bop = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","
 payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_8","Direct Bill 9 Pay":"BasicPolicy.PayPlanCd_9","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_10","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_11"}
 payment_plan_pumb = {"Automated Monthly":"BasicPolicy.PayPlanCd_1","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_2","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_3","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_5","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_7","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_8","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_9"}
 pay_plan = ""
+user_dict = {"AgentAdmin":"AgentAdmin","Admin":"Everything","Underwriter":"PolicyUnderwriter","Agent":"PolicyAgent"}
 
 addresses = {
             "CT1":["CT","Waterbury","1250 W Main St"],
@@ -182,7 +183,7 @@ def create_producer(producerName,user_name):
 
     try:
         login(browser,user_name,password)
-    except:
+    except ValueError:
         sleep(5)
         browser.quit()
         raise Exception("Incorrect username and/or password")
@@ -313,30 +314,107 @@ def create_producer(producerName,user_name):
     check_for_value(browser,"FCRAEmail.EmailAddr",keys="test2@mail.com")
     save(browser)
 
+    script = "alert(\"Producer Created Successfully!\")"
+    browser.execute_script(script)
+    sleep(5)
     browser.quit()
 
     if producerName not in prod_values:
         add_producer(producerName)
     
 #Create a user
-def create_user(createdName,user_type,user_name,password):
-    agency_name = "All_States_All_LOB"
+def create_user(user_type,user_name):
+    global user_dict
     y = datetime.today()
     default_date = y.strftime("%m/%d/%Y").split("/")
     password = get_password(user_name)
     user_xpath = "//div[@id='System User List']/div[2]/*/*/tr[2]/td[1]/a"
-
+    new_user_password = "pass"
+    user_values = env_files_plus_users[env_used]['Users']['Usernames'].keys()
+    user_searched_name = None
     browser = load_page()
 
     try:
         login(browser,user_name,password)
-    except:
+    except ValueError:
         sleep(5)
         browser.quit()
         raise Exception("Incorrect username and/or password")
     waitPageLoad(browser)    
 
-    check_for_value(browser,"Menu_Admin_UserManagement",keys="click")
+    browser.execute_script('document.getElementById("Menu_Admin").click();')
+    browser.execute_script('document.getElementById("Menu_Admin_UserManagement").click();')
+
+     #################### Searching for a User #########################
+    check_for_value(browser,"SearchText",keys=user_type)
+    check_for_value(browser,"MatchType","=")
+    check_for_value(browser,"Search",keys="click")
+
+    try:
+        user_searched_name = find_Element(browser,user_xpath,By.XPATH)
+    except:
+        pass
+
+    try: 
+        if user_searched_name is not None:
+            if user_dict not in list(user_values):
+                add_user(user_type,new_user_password)
+            script = "alert(\"User Already Exists\")"
+            browser.execute_script(script)
+            sleep(5)
+            browser.quit()
+            return False
+    except:
+        pass
+
+    check_for_value(browser,"AddUser",keys="click") 
+    check_for_value(browser,"UserInfo.LoginId",keys=user_type)
+    if(user_type == "Agent" or user_type == "Agent Admin"):
+        check_for_value(browser,"UserInfo.TypeCd","Producer")
+    else:
+        check_for_value(browser,"UserInfo.TypeCd","Company")
+
+    check_for_value(browser,"UserInfo.DefaultLanguageCd","en_US")
+    check_for_value(browser,"UserInfo.FirstName",keys=user_type)
+    check_for_value(browser,"UserInfo.LastName",keys="User")
+    check_for_value(browser,"UserInfo.ConcurrentSessions",keys=100)
+    check_for_value(browser,"PasswordInfo.PasswordRequirementTemplateId","Exempt")
+    check_for_value(browser,"ChangePassword",keys=new_user_password)
+    check_for_value(browser,"ConfirmPassword",keys=new_user_password)
+    script = "document.getElementById(\"UserInfo.PasswordMustChangeInd\").checked = false"
+    browser.execute_script(script)
+    check_for_value(browser,"ProviderNumber",keys=producer_selected)
+    check_for_value(browser,"UserInfo.BranchCd","Home Office")
+    save(browser)
+
+    check_for_value(browser,"AddProviderSecurity",keys="click")
+    check_for_value(browser,"ProviderSecurity.ProviderSecurityCd",keys=producer_selected)
+    save(browser)
+    waitPageLoad(browser)
+
+    check_for_value(browser,"AddRole",keys="click")
+    check_for_value(browser,"UserRole.AuthorityRoleIdRef",user_dict[user_type])
+    save(browser)
+    waitPageLoad(browser)
+
+    if user_type == "Underwriter":
+        values_used = ["UWServicesPersonal","UnderwritingPersonalLines","UnderwritingCommercialLines","UWServicesCommercial","UWServicesPersonal-CLM","UWServicesCommercial-CLM","UnderwritingPersonalLines-CLM"]
+        for value in values_used:
+            check_for_value(browser,"AddTaskGroup",keys="click")
+            check_for_value(browser,"UserTaskGroup.TaskGroupCd",value)
+            save(browser)
+
+    waitPageLoad(browser)
+    save(browser)
+
+    script = "alert(\"User Created Successfully!\")"
+    browser.execute_script(script)
+    sleep(5)
+    browser.quit()
+
+    if user_type not in list(user_values):
+        add_user(user_type,new_user_password)
+
 
 #Start application creation    
 def startApplication(multiAdd,subType,carrier):
@@ -369,91 +447,91 @@ def startApplication(multiAdd,subType,carrier):
         sleep(5)
         browser.quit()
 
-
 #Function for making the GUI
 def make_window():
-    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses,pay_plan
+    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses,pay_plan,user_dict
     sg.theme(THEME)
+    LOB = ["Dwelling Property","Homeowners","Businessowners","Personal Umbrella","Commercial Umbrella"]
+    SUBTYPE = {"HO3":"HO3", "HO4":"HO4", "HO5":"HO5T4", "HO5 Superior": "HO5", "HO6":"HO6"}
+    STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
+    CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
+    
     userList = []
     browsers = ["Chrome","Edge"]
     y = datetime.today()+timedelta(days=65)
     default_date = y.strftime("%m/%d/%Y").split("/")
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
-    LOB = ["Dwelling Property","Homeowners","Businessowners","Personal Umbrella","Commercial Umbrella"]
-    SUBTYPE = {"HO3":"HO3", "HO4":"HO4", "HO5":"HO5T4", "HO5 Superior": "HO5", "HO6":"HO6"}
-    STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
-    CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
 
-    new_app_layout = [  [sg.Text('Enter Information for Creating An Application',border_width=3)],
-                        [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1)),sg.Text("                      "),sg.Button("Delete User",size=(10,1),key="-REMU-")],
-                        [sg.Text()],
-                        [sg.Text("Select Producer"),sg.DropDown(list(env_files_plus_users[env_used]["Producers"]["ProducerNames"]),size=(TEXTLEN,1),key="-PRODUCER-"),sg.Text("     "),sg.Button("Delete Producer",size=(10,2),key="-REMPROD-")],
-                        [sg.Text()],
-                        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-",enable_events=True),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
-                        [sg.Text("Address 1 (Required)",visible=False,justification="left",key = "-AddText1-",),sg.Text("   "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD1-")],
-                        [sg.Text("                      Address 2",visible=False,justification="left", key = "-AddText2-"),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD2-")],
-                        [sg.Text("City (Required)",visible=False,justification="left", key = "-CityText-"),sg.Text("            "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CITY-")],
-                        [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
-                        [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
-                        [sg.Text("Select Carrier",key="-CARRIERTEXT-"),sg.DropDown(list(CARRIER.keys()),key="-CARRIER-",enable_events=True)],
-                        [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(list(SUBTYPE.keys()),key="-SUBTYPE-",default_value="HO5",enable_events=True, visible=False)],
-                        [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
-                        [sg.Text("Enter Date or Select Date Below")],
-                        [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
-                        [sg.Text()],
-                        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(list(payment_plan_most.keys()),visible=True,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLAN-"),sg.DropDown(list(payment_plan_bop.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANBOP-"),sg.DropDown(list(payment_plan_pumb.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANPUMB-")],
-                        [sg.Text()],
-                        [sg.Text("Create Quote,Application or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
-                        [sg.Text()],
-                        [sg.Button('Submit'), sg.Button('Cancel')],
-                    ]
+    top_layout = [ 
+        [sg.Text('Andover Automation', size=(38, 1), justification='center', font=("Helvetica", 16), relief=sg.RELIEF_RIDGE, key='-TEXTHEADING-', enable_events=True)]
+    ]
 
-    add_address_layout= [
-                            [sg.Text("")],
-                            [sg.Button("Add Address",key="-ADDRESS-")],
-                            [sg.Text()],
-                            [sg.Text("Address: "),sg.Text(key = "ADD_DISP")],
-                            [sg.Text("City: "),sg.Text(key = "CITY_DISP")],
-                        ]
+    all_tabs_info = [
+        [sg.Text('Select Local or QA Environment'), sg.DropDown(list(gw_environment.keys()),enable_events=True,key="-ENVLIST-")],
+        [sg.Text('Select Browser'), sg.DropDown(browsers, key = "BROWSER")],
+         [sg.Text("Select Producer"),sg.DropDown(list(env_files_plus_users[env_used]["Producers"]["ProducerNames"]),size=(TEXTLEN,1),key="-PRODUCER-"),sg.Push(),sg.Button("Delete",size=(10,1),key="-REMPROD-")],
+        [sg.HorizontalSeparator()]
+    ]
+
+    new_app_layout = [  
+        [sg.Text('Enter Information for Creating An Application',border_width=3)],
+        [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1)),sg.Text("                      "),sg.Button("Delete User",size=(10,1),key="-REMU-")],
+        [sg.Text()],
+        [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-",enable_events=True),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
+        [sg.Text("Address 1 (Required)",visible=False,justification="left",key = "-AddText1-",),sg.Text("   "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD1-")],
+        [sg.Text("                      Address 2",visible=False,justification="left", key = "-AddText2-"),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD2-")],
+        [sg.Text("City (Required)",visible=False,justification="left", key = "-CityText-"),sg.Text("            "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CITY-")],
+        [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
+        [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
+        [sg.Text("Select Carrier",key="-CARRIERTEXT-"),sg.DropDown(list(CARRIER.keys()),key="-CARRIER-",enable_events=True)],
+        [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(list(SUBTYPE.keys()),key="-SUBTYPE-",default_value="HO5",enable_events=True, visible=False)],
+        [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
+        [sg.Text("Enter Date or Select Date Below")],
+        [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
+        [sg.Text()],
+        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(list(payment_plan_most.keys()),visible=True,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLAN-"),sg.DropDown(list(payment_plan_bop.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANBOP-"),sg.DropDown(list(payment_plan_pumb.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANPUMB-")],
+        [sg.Text()],
+        [sg.Text("Create Quote,Application or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
+        [sg.Text()],
+        [sg.Button('Submit'), sg.Button('Cancel')],
+    ]
     
     new_user_layout = [
-                        [sg.Text()],
-                        [sg.Text('Select Login Username'), sg.DropDown(userList,key="-CREATE_USERLIST-",size =(20,1),enable_events=True)],
-                        [sg.Text()],
-                        [sg.Text('Add Producer')],
-                        [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
-                        [sg.Button("Add Producer",key="-ADD_PROD-")],
-                        [sg.Text()],
-                        [sg.Text('Add User')],
-                        [sg.Text("Username"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="USER")],
-                        [sg.Text("Password"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="PASS")],
-                        [sg.Button("Add User",key="-ADDU-")],
-                        [sg.Text()]
-                    ]
+        [sg.Text()],
+        [sg.Text('Select Login Username'), sg.DropDown(userList,key="-CREATE_USERLIST-",size =(20,1),enable_events=True)],
+        [sg.Text()],
+        [sg.Text('Add Producer')],
+        [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
+        [sg.Button("Add Producer",key="-ADD_PROD-")],
+        [sg.Text()],
+        [sg.Text('Add User')],
+        [sg.Text("Username"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="USER")],
+        [sg.Text("Password"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="PASS")],
+        [sg.Button("Add User",key="-ADDU-")],
+        [sg.Text()],
+        [sg.Text('Create User',key="-CREATE_TEXT-",enable_events=True,visible=False)],
+        [sg.DropDown(list(user_dict.keys()),key="UserDrop",enable_events=True,visible=False)],
+        [sg.Button("Add User",key="-CREATE_USER-",enable_events=True,visible=False)]
+    ]
     
-    create_producer_layout = [ 
-                            [sg.Text('Select Login Username'), sg.DropDown(userList,key="-CREATE_USERLIST-",size =(20,1),enable_events=True)],
-                            [sg.Text()],
-                            [sg.Text('Add Producer')],
-                            [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
-                            [sg.Button("Create Producer",key="-ADD_PROD-")]
-                        ]
-                        
     exist_app_layout = [
-                        [sg.Text('Enter Information for An Existing Application')],
-                        [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
-                    ]
+        [sg.Text('Enter Information for An Existing Application')],
+        [sg.Text("Application Number"), sg.InputText(size=(TEXTLEN,1))]
+    ]
 
+    tabs_layout = [
+        [sg.TabGroup([
+            [sg.Tab('Creating New Applications', new_app_layout),
+             sg.Tab('Add Users and Producers', new_user_layout),
+             #sg.Tab('Create Producers', create_producer_layout),
+             #sg.Tab('Add Custom Address', add_address_layout),
+            ]],
+        key = "-TABGROUP-",expand_x=True, expand_y=True)]
+    ]
 
-    layout = [[sg.Text('Andover Automation', size=(38, 1), justification='center', font=("Helvetica", 16), relief=sg.RELIEF_RIDGE, key='-TEXTHEADING-', enable_events=True)]]
-    layout += [[sg.Text('Select Local or QA Environment'), sg.DropDown(list(gw_environment.keys()),enable_events=True,key="-ENVLIST-")],
-               [sg.Text('Select Browser'), sg.DropDown(browsers, key = "BROWSER")],
-               [sg.HorizontalSeparator()]]
-    layout+=[[sg.TabGroup([[  sg.Tab('Creating New Applications', new_app_layout),
-                               sg.Tab('Add Users and Producers', new_user_layout),
-                               #sg.Tab('Create Producers', create_producer_layout),
-                               #sg.Tab('Add Custom Address', add_address_layout),
-                               ]],key = "-TABGROUP-",expand_x=True, expand_y=True)]]
+    layout = [top_layout]
+    layout += [all_tabs_info]
+    layout+=[tabs_layout]
 
     # Create the Window
     window = sg.Window('Automation for Andover', layout)
@@ -470,7 +548,6 @@ def make_window():
         password = values["PASS"]
         selectedUser = values["-ULIST-"]
         selectedEnviron = values["-ENVLIST-"]
-        #add_prod = values['-PROD-']
         producer = values["-PRODUCER-"]
         doc_type = values["-CREATE-"]
         city = values["-CITY-"]
@@ -488,11 +565,26 @@ def make_window():
         carrier = values["-CARRIER-"]
         producer_name = values["-PROD_IN-"]
         producer_user_name = values["-CREATE_USERLIST-"]
+        add_user = values["UserDrop"]
 
-        if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name:
+        if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name and browser_chose:
             browser_chosen = browser_chose
             prod_thread = threading.Thread(target=create_producer,args=(producer_name,producer_user_name))
             prod_thread.start()
+
+        if event == "-CREATE_USER-" and add_user != "" and selectedEnviron and producer_user_name and browser_chose:
+            browser_chosen = browser_chose
+            prod_thread = threading.Thread(target=create_user,args=(add_user,producer_user_name))
+            prod_thread.start()
+
+        if selectedEnviron == "Local":
+            window['UserDrop'].update(visible=True)
+            window['-CREATE_USER-'].update(visible=True)
+            window['-CREATE_TEXT-'].update(visible=True)
+        else:
+            window['UserDrop'].update(visible=False)
+            window['-CREATE_USER-'].update(visible=False)
+            window['-CREATE_TEXT-'].update(visible=False)
 
         if (event == "-LOB-" and state != "") or (event == "-STATE-" and lob != ""):
             if STATES[state] == "NY": 
