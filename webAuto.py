@@ -17,12 +17,14 @@ import requests
 import threading
 import itertools
 import time
+import logging
 
 #*Constants
 TEST = False
 THEME = "TanBlue"
 TEXTLEN = 25
 COMPANY = "ADVR"
+VERSION = "1.0"
 
 #*Global Variables
 gw_environment ={"Local":"https://localhost:9443","QA":"https://qa-advr.iscs.com/","UAT3":"https://uat3-advr.in.guidewire.net/innovation?saml=off","UAT4":"https://uat4-advr.in.guidewire.net/innovation","QA2":"https://qa2-acx-advr.in.guidewire.net/innovation"}
@@ -47,6 +49,7 @@ payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanC
 payment_plan_pumb = {"Automated Monthly":"BasicPolicy.PayPlanCd_1","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_2","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_3","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_5","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_7","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_8","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_9"}
 pay_plan = ""
 user_dict = {"AgentAdmin":"AgentAdmin","Admin":"Everything","Underwriter":"PolicyUnderwriter","Agent":"PolicyAgent"}
+logger = logging.getLogger(__name__)
 
 addresses = {
             "CT1":["CT","Waterbury","1250 W Main St"],
@@ -421,7 +424,7 @@ def startApplication(multiAdd,subType,carrier):
     CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
     
     password = get_password(user_chosen)
-    print("Username: "+user_chosen + "  Password: " + password)
+    logger.info("Username: "+user_chosen + "  Password: " + password)
 
     browser = load_page()
     
@@ -463,7 +466,7 @@ def make_window():
     default_date = (int(default_date[0]),int(default_date[1]),int(default_date[2]))
 
     top_layout = [ 
-        [sg.Text('Andover Automation', size=(38, 1), justification='center', font=("Helvetica", 16), relief=sg.RELIEF_RIDGE, key='-TEXTHEADING-', enable_events=True)]
+        [sg.Text('Andover Automation', size=(38, 1), justification='center',relief=sg.RELIEF_RIDGE,font=("Helvetica", 16),key='-TEXTHEADING-')]
     ]
 
     all_tabs_info = [
@@ -475,21 +478,24 @@ def make_window():
 
     new_app_layout = [  
         [sg.Text('Enter Information for Creating An Application',border_width=3)],
-        [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1)),sg.Text("                      "),sg.Button("Delete User",size=(10,1),key="-REMU-")],
+        [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1)),sg.Push(),sg.Button("Delete User",size=(10,1),key="-REMU-")],
         [sg.Text()],
         [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-",enable_events=True),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
         [sg.Text("Address 1 (Required)",visible=False,justification="left",key = "-AddText1-",),sg.Text("   "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD1-")],
         [sg.Text("                      Address 2",visible=False,justification="left", key = "-AddText2-"),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CADD2-")],
         [sg.Text("City (Required)",visible=False,justification="left", key = "-CityText-"),sg.Text("            "),sg.InputText(size = (TEXTLEN,1),visible=False, key = "-CITY-")],
-        [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Text("                "),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
+        [sg.Button("Verify Address",visible=False,key="BTN_VERIFY"),sg.Push(),sg.Text("Verified",text_color="green",visible=False,key = "-VERIFY_BUTTON-")],
         [sg.Text("Select Line of Business"),sg.DropDown(LOB,key="-LOB-",enable_events=True)],
         [sg.Text("Select Carrier",key="-CARRIERTEXT-"),sg.DropDown(list(CARRIER.keys()),key="-CARRIER-",enable_events=True)],
         [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"),sg.DropDown(list(SUBTYPE.keys()),key="-SUBTYPE-",default_value="HO5",enable_events=True, visible=False)],
-        [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],[sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
+        [sg.Text("Multiple Locations? ", visible=False,key="-MULT-"),sg.DropDown(["Yes","No"],visible=False,default_value="No",enable_events=True,key="-MULTI-")],
+        [sg.Text("Locations ", justification="left",visible=False,key="-NUMMULT-"),sg.DropDown([2,3,4,5],visible=False,default_value="2",key="-NUMLOC-")],
         [sg.Text("Enter Date or Select Date Below")],
-        [sg.Input(key='-IN4-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-IN4-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
+        [sg.Input(key='-DATE-', size=(20,1)), sg.CalendarButton('Date Select', close_when_date_chosen=True ,target='-DATE-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
         [sg.Text()],
-        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(list(payment_plan_most.keys()),visible=True,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLAN-"),sg.DropDown(list(payment_plan_bop.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANBOP-"),sg.DropDown(list(payment_plan_pumb.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANPUMB-")],
+        [sg.Text("Payment Plan: ", visible=True),sg.DropDown(list(payment_plan_most.keys()),visible=True,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLAN-"),
+         sg.DropDown(list(payment_plan_bop.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANBOP-"),
+         sg.DropDown(list(payment_plan_pumb.keys()),visible=False,default_value="Direct Bill Full Pay",enable_events=True,key="-PAYPLANPUMB-")],
         [sg.Text()],
         [sg.Text("Create Quote,Application or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
         [sg.Text()],
@@ -523,8 +529,6 @@ def make_window():
         [sg.TabGroup([
             [sg.Tab('Creating New Applications', new_app_layout),
              sg.Tab('Add Users and Producers', new_user_layout),
-             #sg.Tab('Create Producers', create_producer_layout),
-             #sg.Tab('Add Custom Address', add_address_layout),
             ]],
         key = "-TABGROUP-",expand_x=True, expand_y=True)]
     ]
@@ -534,7 +538,7 @@ def make_window():
     layout+=[tabs_layout]
 
     # Create the Window
-    window = sg.Window('Automation for Andover', layout)
+    window = sg.Window(f"Automation for Andover                                       Version: {VERSION}", layout)
     # Event Loop to process "events" and get the "values" of the inputs
     while True:
         event, values = window.read()
@@ -542,7 +546,7 @@ def make_window():
             break
 
         for value in values:
-            print(values[value])
+            logger.info(values[value])
 
         user_name = values["USER"]
         password = values["PASS"]
@@ -799,14 +803,6 @@ def make_window():
         else:
             window["-NUMLOC-"].update(visible = False)
             window["-NUMMULT-"].update(visible = False)
-
-        """
-        if event == "-ADDP-" and selectedEnviron!= '':
-            add_producer(add_prod)
-            prodList = env_files_plus_users[env_used]["Producers"]["ProducerNames"]
-            window["-PRODUCER-"].update(values = prodList)
-            window.refresh()
-        """
                     
         if event == "-REMU-" and len(env_files_plus_users[env_used]["Users"]["Usernames"].keys()) > 0 and selectedUser != "" :
             del env_files_plus_users[env_used]["Users"]["Usernames"][selectedUser]
@@ -830,11 +826,12 @@ def make_window():
             window["CITY_DISP"].update(value = city)
             window.refresh()
 
-        if event == "Submit" and selectedUser and selectedEnviron and producer and browser_chose and date_chosen and values["-IN4-"] and (custom_address["Flag"] or cust_addr == False):
+        if event == "Submit" and selectedUser and selectedEnviron and producer and browser_chose  and state and values["-DATE-"] and (custom_address["Flag"] or cust_addr == False):
+            logger.info("Started Andover" + doc_type)
             line_of_business = values["-LOB-"]         
             browser_chosen = browser_chose
-            state_chosen = STATES[values["-STATE-"]]
-            date_chosen = values["-IN4-"]
+            state_chosen = STATES[state]
+            date_chosen = values["-DATE-"]
             producer_selected = producer
             create_type = doc_type
             user_chosen = selectedUser
@@ -842,15 +839,13 @@ def make_window():
                 #if line_of_business == "Homeowners":
                     #pay_plan = payment_plan + " "+state_chosen
                 if line_of_business == "Personal Umbrella" or line_of_business == "Commercial Umbrella":
-                    #pay_plan = payment_plan_pumb + " "+state_chosen
                     pay_plan = payment_p_pumb
                 else:
                     pay_plan = payment_p
             else:
-                #pay_plan = payment_plan_bop + " "+state_chosen
                 pay_plan = payment_p_bop
 
-            print(pay_plan)
+            logger.info("Pay Plan: "+pay_plan)
             if(multi == "Yes" and lob == "Dwelling Property"):
                 multiAdd = True
                 number_of_addresses = values["-NUMLOC-"]
@@ -860,6 +855,10 @@ def make_window():
 
             app_thread = threading.Thread(target=startApplication,args=(multiAdd,subType,carrier))
             app_thread.start()
+        else:
+            submit_errors = ["User","Environment","Producer","Browser","Date","Custom Address","State"]
+            pass
+
 
     window.close()
 
@@ -919,8 +918,7 @@ def remove_javascript(browser):
          parent.delete();  
         }
     """
-
-     #parent.style.display = "none";
+    
     try:
         t = find_Element(browser,element_used).is_displayed()
         if(t == True):
@@ -1118,10 +1116,10 @@ def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
     waitPageLoad(browser)
-    print(pay_plan)
+    logger.info("Pay Plan: "+ pay_plan)
 
     elements = browser.find_elements(By.NAME,"BasicPolicy.PayPlanCd")
-    print(f"The number of payment plans is: {len(elements)}")
+    logger.info(f"The number of payment plans is: {len(elements)}")
     for e in elements:
         val1 = e.get_attribute("value")
         try: 
@@ -1327,7 +1325,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         start = time.perf_counter()
         underwriting_questions(browser,multiLoc)
         end = time.perf_counter()
-        print("\n\n\n\n Time to complete: " + str(end-start) + " seconds \n\n\n\n\n")
+        logger.info("\n\n\n\n Time to complete: " + str(end-start) + " seconds \n\n\n\n\n")
         
         billing(browser)
 
@@ -1372,8 +1370,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
                 find_Element(browser,"Return").click()
                 find_Element(browser,"policyLink0").click()
                 billing(browser)
-                #find_Element(browser,"Closeout").click()
-
+        
         if line_of_business == "Commercial Umbrella":
             find_Element(browser,"GetUmbrellaQuote").click()
             waitPageLoad(browser)
@@ -1404,7 +1401,6 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
                 find_Element(browser,"policyLink0").click()
                 if pay_plan.__contains__("Bill To Other"):
                     billing(browser)
-                #find_Element(browser,"Closeout").click()
             
     if(create_type == "Policy"):
         submit_policy(browser)
@@ -1442,10 +1438,16 @@ def get_password(user):
     return password
 
 def main():
+    if(not path.exists("Logs")):
+        os.mkdir("Logs")
+    logging.basicConfig(filename="Logs\AndoverAutomation.log",level=logging.INFO)
+    logger.info("Started Creating Files")
     create_files()
-    
-    #user_name, multi, subType,carrier = 
+    logger.info("Finished Creating Files")
+    logger.info("Starting Andover Automation GUI")
     make_window()
+    logger.info("Finished")
+
 
 if __name__ == '__main__':
     main()
