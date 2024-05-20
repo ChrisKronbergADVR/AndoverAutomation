@@ -507,11 +507,11 @@ def make_window():
         [sg.Text('Add User')],
         [sg.Text("Username"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="USER")],
         [sg.Text("Password"),sg.InputText(do_not_clear=False,size=(TEXTLEN,1),key="PASS")],
-        [sg.Button("Add User",key="-ADDU-")],
+        [sg.Button("Add",key="-ADDU-")],
         [sg.Text()],
-        [sg.Text('Create User',key="-CREATE_TEXT-",enable_events=True,visible=False)],
+        [sg.Text("Create User in Andover (Local Only)",key="-CREATE_TEXT-",enable_events=True,visible=False)],
         [sg.DropDown(list(user_dict.keys()),key="UserDrop",enable_events=True,visible=False)],
-        [sg.Button("Add User",key="-CREATE_USER-",enable_events=True,visible=False)]
+        [sg.Button("Create",key="-CREATE_USER-",enable_events=True,visible=False)]
     ]
     
     exist_app_layout = [
@@ -565,17 +565,17 @@ def make_window():
         carrier = values["-CARRIER-"]
         producer_name = values["-PROD_IN-"]
         producer_user_name = values["-CREATE_USERLIST-"]
-        add_user = values["UserDrop"]
+        add_user_value = values["UserDrop"]
 
         if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name and browser_chose:
             browser_chosen = browser_chose
             prod_thread = threading.Thread(target=create_producer,args=(producer_name,producer_user_name))
             prod_thread.start()
 
-        if event == "-CREATE_USER-" and add_user != "" and selectedEnviron and producer_user_name and browser_chose:
+        if event == "-CREATE_USER-" and add_user_value != "" and selectedEnviron and producer_user_name and browser_chose:
             browser_chosen = browser_chose
-            prod_thread = threading.Thread(target=create_user,args=(add_user,producer_user_name))
-            prod_thread.start()
+            user_thread = threading.Thread(target=create_user,args=(add_user_value,producer_user_name))
+            user_thread.start()
 
         if selectedEnviron == "Local":
             window['UserDrop'].update(visible=True)
