@@ -545,8 +545,8 @@ def make_window():
         if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel or exit
             break
 
-        for value in values:
-            logger.info(values[value])
+        #for value in values:
+        #    logger.info(values[value])
 
         user_name = values["USER"]
         password = values["PASS"]
@@ -570,6 +570,7 @@ def make_window():
         producer_name = values["-PROD_IN-"]
         producer_user_name = values["-CREATE_USERLIST-"]
         add_user_value = values["UserDrop"]
+        date_selected = values["-DATE-"]
 
         if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name and browser_chose:
             browser_chosen = browser_chose
@@ -826,12 +827,12 @@ def make_window():
             window["CITY_DISP"].update(value = city)
             window.refresh()
 
-        if event == "Submit" and selectedUser and selectedEnviron and producer and browser_chose  and state and values["-DATE-"] and (custom_address["Flag"] or cust_addr == False):
-            logger.info("Started Andover" + doc_type)
-            line_of_business = values["-LOB-"]         
+        if event == "Submit" and selectedUser and selectedEnviron and producer and browser_chose and lob and state and date_selected and (custom_address["Flag"] or cust_addr == False):
+            logger.info(f"Started {doc_type} for {state} {lob} in {selectedEnviron} with {selectedUser} user where date = {date_selected}")
+            line_of_business = lob        
             browser_chosen = browser_chose
             state_chosen = STATES[state]
-            date_chosen = values["-DATE-"]
+            date_chosen = date_selected
             producer_selected = producer
             create_type = doc_type
             user_chosen = selectedUser
@@ -845,7 +846,7 @@ def make_window():
             else:
                 pay_plan = payment_p_bop
 
-            logger.info("Pay Plan: "+pay_plan)
+            #logger.info("Pay Plan: "+pay_plan)
             if(multi == "Yes" and lob == "Dwelling Property"):
                 multiAdd = True
                 number_of_addresses = values["-NUMLOC-"]
@@ -1440,14 +1441,13 @@ def get_password(user):
 def main():
     if(not path.exists("Logs")):
         os.mkdir("Logs")
-    logging.basicConfig(filename="Logs\AndoverAutomation.log",level=logging.INFO)
-    logger.info("Started Creating Files")
+    time_stamp = str(datetime.now())
+    logging.basicConfig(filename=f"Logs\\Automation.log",filemode='w',format='%(asctime)s - %(levelname)s - %(message)s',datefmt="%m/%d/%Y %I:%M:%S %p",level=logging.INFO)
+
     create_files()
-    logger.info("Finished Creating Files")
     logger.info("Starting Andover Automation GUI")
     make_window()
-    logger.info("Finished")
-
+    logger.info("Andover Automation GUI Closed")
 
 if __name__ == '__main__':
     main()
