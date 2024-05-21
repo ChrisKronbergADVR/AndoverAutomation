@@ -187,6 +187,7 @@ def create_producer(producerName,user_name):
     try:
         login(browser,user_name,password)
     except ValueError:
+        logger.error(f"Username or Password is not correct. username: {user_name} password: {password}")
         sleep(5)
         browser.quit()
         raise Exception("Incorrect username and/or password")
@@ -421,9 +422,16 @@ def create_user(user_type,user_name):
 
 #Start application creation    
 def startApplication(multiAdd,subType,carrier):
+    global logger
     CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
-    
     password = get_password(user_chosen)
+    logger = logging.getLogger(__name__)
+
+    time_stamp = datetime.now().strftime("%m-%d-%Y - %I_%M %p")
+    logging.basicConfig(filename=f"Logs\\Automation_{state_chosen}_{line_of_business}_created_{time_stamp}.log",format='%(asctime)s - %(levelname)s - %(message)s',datefmt="%m/%d/%Y %I:%M:%S %p",level=logging.INFO)
+
+    #logger.info(f"Started {doc_type} for {state} {lob} in {selectedEnviron} with {selectedUser} user where date = {date_selected}")
+    logger.info(f"Started {create_type} for {state_chosen} {line_of_business} in {gw_environment} with {user_chosen} user where date = {date_chosen}")
 
     browser = load_page()
     
@@ -543,9 +551,6 @@ def make_window():
         event, values = window.read()
         if event == sg.WIN_CLOSED or event == 'Cancel': # if user closes window or clicks cancel or exit
             break
-
-        #for value in values:
-        #    logger.info(values[value])
 
         user_name = values["USER"]
         password = values["PASS"]
@@ -826,8 +831,9 @@ def make_window():
             window["CITY_DISP"].update(value = city)
             window.refresh()
 
-        if event == "Submit" and selectedUser and selectedEnviron and producer and browser_chose and lob and state and date_selected and (custom_address["Flag"] or cust_addr == False):
-            logger.info(f"Started {doc_type} for {state} {lob} in {selectedEnviron} with {selectedUser} user where date = {date_selected}")
+        if (event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and state 
+            and date_selected and (custom_address["Flag"] or cust_addr == False)):
+        
             line_of_business = lob        
             browser_chosen = browser_chose
             state_chosen = STATES[state]
@@ -845,7 +851,6 @@ def make_window():
             else:
                 pay_plan = payment_p_bop
 
-            #logger.info("Pay Plan: "+pay_plan)
             if(multi == "Yes" and lob == "Dwelling Property"):
                 multiAdd = True
                 number_of_addresses = values["-NUMLOC-"]
@@ -855,18 +860,25 @@ def make_window():
 
             app_thread = threading.Thread(target=startApplication,args=(multiAdd,subType,carrier))
             app_thread.start()
-        else:
-            submit_errors = ["User","Environment","Producer","Browser","Date","Custom Address","State"]
-            pass
 
-
+        elif event == "Submit":
+            submit_errors = {"User":selectedUser,"Environment":selectedEnviron,"Producer":producer,"Browser":browser_chose,"Date":date_selected,"State":state,"Application Type":doc_type,"Subtype":subType}
+            submit_message = []
+            err_text = ""
+            for error_key, error_value in submit_errors.items():
+                if error_value == "":
+                    err_text += f"{error_key} \n" 
+                    submit_message.append(error_value)
+                    logger.warning(f"{error_key} was not selected")
+            
+            sg.popup_notify("Fields Below must be filled in to Submit \n--------------------------------------------------\n" + err_text,display_duration_in_ms=10000,location=(800,394))
     window.close()
 
 #*function for login
 def login(browser,user = "admin",password = "Not9999!"):
     waitPageLoad(browser)
     find_Element(browser,"j_username").send_keys(user)
-    find_Element(browser,"j_password").send_keys(password + Keys.RETURN)    
+    find_Element(browser,"j_password").send_keys(password + Keys.RETURN)
 
 #*function for finding elements in the browser
 def find_Element(browser,browser_Element, id = By.ID):
@@ -1119,7 +1131,6 @@ def billing(browser):
     logger.info("Pay Plan: "+ pay_plan)
 
     elements = browser.find_elements(By.NAME,"BasicPolicy.PayPlanCd")
-    logger.info(f"The number of payment plans is: {len(elements)}")
     for e in elements:
         val1 = e.get_attribute("value")
         try: 
@@ -1297,7 +1308,6 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
     check_for_value(browser,"BasicPolicy.PolicyCarrierCd",carrier)
 
     #multiple locations here
-    
     if line_of_business != "Businessowners" and line_of_business != "Commercial Umbrella":
         core_coverages(browser)
         if(multiLoc == True and line_of_business == "Dwelling Property"):
@@ -1317,7 +1327,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         if(state_chosen == "NJ" and (line_of_business == "Homeowners" or line_of_business == "Personal Umbrella")):
             find_Element(browser,"Wizard_Risks").click()
             waitPageLoad(browser)
-            check_for_value(browser,"Building.InspectionSurveyReqInd","No")
+            check_for_value(browser,"Building.Inspecti onSurveyReqInd","No")
 
             #click the save button
             save(browser)
@@ -1325,7 +1335,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         start = time.perf_counter()
         underwriting_questions(browser,multiLoc)
         end = time.perf_counter()
-        logger.info("\n\n\n\n Time to complete: " + str(end-start) + " seconds \n\n\n\n\n")
+        logger.info("Time to Complete Underwriting Questions: " + str(end-start) + " seconds")
         
         billing(browser)
 
@@ -1440,13 +1450,10 @@ def get_password(user):
 def main():
     if(not path.exists("Logs")):
         os.mkdir("Logs")
-    time_stamp = str(datetime.now())
-    logging.basicConfig(filename=f"Logs\\Automation.log",filemode='w',format='%(asctime)s - %(levelname)s - %(message)s',datefmt="%m/%d/%Y %I:%M:%S %p",level=logging.INFO)
-
+    #time_stamp = datetime.now().strftime("%m-%d-%Y - %H_%M %p")
+    #logging.basicConfig(filename=f"Logs\\Automation_{time_stamp}.log",filemode='w',format='%(asctime)s - %(levelname)s - %(message)s',datefmt="%m/%d/%Y %I:%M:%S %p",level=logging.INFO)
     create_files()
-    logger.info("Starting Andover Automation GUI")
     make_window()
-    logger.info("Andover Automation GUI Closed")
 
 if __name__ == '__main__':
     main()
