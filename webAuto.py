@@ -424,7 +424,6 @@ def startApplication(multiAdd,subType,carrier):
     CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
     
     password = get_password(user_chosen)
-    logger.info("Username: "+user_chosen + "  Password: " + password)
 
     browser = load_page()
     
