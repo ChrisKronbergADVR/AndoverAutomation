@@ -18,6 +18,7 @@ import threading
 import itertools
 import time
 import logging
+from MultiLog import MultiLog
 
 #*Constants
 TEST = False
@@ -49,7 +50,6 @@ payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanC
 payment_plan_pumb = {"Automated Monthly":"BasicPolicy.PayPlanCd_1","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_2","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_3","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_5","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_7","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_8","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_9"}
 pay_plan = ""
 user_dict = {"AgentAdmin":"AgentAdmin","Admin":"Everything","Underwriter":"PolicyUnderwriter","Agent":"PolicyAgent"}
-logger = logging.getLogger(__name__)
 
 addresses = {
             "CT1":["CT","Waterbury","1250 W Main St"],
@@ -115,7 +115,7 @@ def write_username_password(file,user_dict):
             writer.writerow({'Username':user,'Password':password})
 
 def add_user(user_name,password):
-    global env_files_plus_users, file_name
+    global env_files_plus_users
     env_files_plus_users[env_used]['Users']['Usernames'][user_name] = password
     file_name = env_files_plus_users[env_used]['Users']['file']
     user_dict = env_files_plus_users[env_used]['Users']['Usernames']
@@ -187,7 +187,7 @@ def create_producer(producerName,user_name):
     try:
         login(browser,user_name,password)
     except ValueError:
-        logger.error(f"Username or Password is not correct. username: {user_name} password: {password}")
+        #logger.error(f"Username or Password is not correct. username: {user_name} password: {password}")
         sleep(5)
         browser.quit()
         raise Exception("Incorrect username and/or password")
@@ -420,19 +420,18 @@ def create_user(user_type,user_name):
         add_user(user_type,new_user_password)
 
 
+
 #Start application creation    
 def startApplication(multiAdd,subType,carrier):
-    global logger
+    thread_name = str(threading.current_thread().name)
+    app_logger = MultiLog()
+    if env_used == "local":
+        created_log = app_logger.createLog(state_chosen,line_of_business,thread_name)
+
     CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
     password = get_password(user_chosen)
-    logger = logging.getLogger(__name__)
 
-    time_stamp = datetime.now().strftime("%m-%d-%Y - %I_%M %p")
-    logging.basicConfig(filename=f"Logs\\Automation_{state_chosen}_{line_of_business}_created_{time_stamp}.log",format='%(asctime)s - %(levelname)s - %(message)s',datefmt="%m/%d/%Y %I:%M:%S %p",level=logging.INFO)
-
-    #logger.info(f"Started {doc_type} for {state} {lob} in {selectedEnviron} with {selectedUser} user where date = {date_selected}")
-    logger.info(f"Started {create_type} for {state_chosen} {line_of_business} in {gw_environment} with {user_chosen} user where date = {date_chosen}")
-
+    app_logger.add_log(created_log,f"Started {create_type} for {state_chosen} {line_of_business} in {env_used} Environment with {user_chosen} user where date = {date_chosen}",logging.INFO)
     browser = load_page()
     
     try:
@@ -459,7 +458,7 @@ def startApplication(multiAdd,subType,carrier):
 
 #Function for making the GUI
 def make_window():
-    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses,pay_plan,user_dict
+    global user_name,date_chosen,env_used,state_chosen,producer_selected,create_type,browser_chosen,line_of_business,user_chosen,verified,number_of_addresses,pay_plan,user_dict,thread_name
     sg.theme(THEME)
     LOB = ["Dwelling Property","Homeowners","Businessowners","Personal Umbrella","Commercial Umbrella"]
     SUBTYPE = {"HO3":"HO3", "HO4":"HO4", "HO5":"HO5T4", "HO5 Superior": "HO5", "HO6":"HO6"}
@@ -830,7 +829,7 @@ def make_window():
             window["ADD_DISP"].update(value = addr)
             window["CITY_DISP"].update(value = city)
             window.refresh()
-
+ 
         if (event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and state 
             and date_selected and (custom_address["Flag"] or cust_addr == False)):
         
@@ -857,7 +856,7 @@ def make_window():
             else:
                 number_of_addresses = 1
                 multiAdd = False
-
+            
             app_thread = threading.Thread(target=startApplication,args=(multiAdd,subType,carrier))
             app_thread.start()
 
@@ -869,7 +868,7 @@ def make_window():
                 if error_value == "":
                     err_text += f"{error_key} \n" 
                     submit_message.append(error_value)
-                    logger.warning(f"{error_key} was not selected")
+                    #warning(f"{error_key} was not selected")
             
             sg.popup_notify("Fields Below must be filled in to Submit \n--------------------------------------------------\n" + err_text,display_duration_in_ms=10000,location=(800,394))
     window.close()
@@ -1128,7 +1127,7 @@ def billing(browser):
     waitPageLoad(browser)
     find_Element(browser,"Wizard_Review").click()
     waitPageLoad(browser)
-    logger.info("Pay Plan: "+ pay_plan)
+    #logger.info("Pay Plan: "+ pay_plan)
 
     elements = browser.find_elements(By.NAME,"BasicPolicy.PayPlanCd")
     for e in elements:
@@ -1335,7 +1334,7 @@ def create_new_quote(browser,date,state:str,producer:str,first_name:str,last_nam
         start = time.perf_counter()
         underwriting_questions(browser,multiLoc)
         end = time.perf_counter()
-        logger.info("Time to Complete Underwriting Questions: " + str(end-start) + " seconds")
+        #logger.info("Time to Complete Underwriting Questions: " + str(end-start) + " seconds")
         
         billing(browser)
 
@@ -1450,8 +1449,6 @@ def get_password(user):
 def main():
     if(not path.exists("Logs")):
         os.mkdir("Logs")
-    #time_stamp = datetime.now().strftime("%m-%d-%Y - %H_%M %p")
-    #logging.basicConfig(filename=f"Logs\\Automation_{time_stamp}.log",filemode='w',format='%(asctime)s - %(levelname)s - %(message)s',datefmt="%m/%d/%Y %I:%M:%S %p",level=logging.INFO)
     create_files()
     make_window()
 

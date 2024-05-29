@@ -38,3 +38,4 @@ fib.py
 output.xml
 package-lock.json
 Logs/
+__pycache__/MultiLog.cpython-312.pyc
