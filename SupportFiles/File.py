@@ -2,8 +2,8 @@ import os
 from csv import DictReader,DictWriter
 
 class File:
-    folder = "csvFiles/"
-    env_used = "Local"
+    env_used = None
+    folder = "/csvFiles/"
 
     env_files_plus_users= {
             "QA":{"Users":{"file":"users.csv","Usernames":{}},
@@ -28,8 +28,8 @@ class File:
     @staticmethod
     def create_files():
         folder = File.folder
-        if(not os.path.exists("csvFiles")):
-            os.mkdir("csvFiles")
+        if(not os.path.exists(folder)):
+            os.mkdir(folder)
         for env_name in File.env_files_plus_users.keys():    
             file_user = File.env_files_plus_users[env_name]['Users']['file']
             file_prod = File.env_files_plus_users[env_name]['Producers']['file']

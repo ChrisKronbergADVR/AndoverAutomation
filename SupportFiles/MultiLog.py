@@ -3,7 +3,7 @@ from datetime import datetime
 
 class MultiLog:
 
-    filePath = "Logs\\"
+    filePath = "AndoverAutomation\\Logs\\"
 
     def createLog(self,state_chosen,line_of_business,log_name):
         log = logging.getLogger(log_name)

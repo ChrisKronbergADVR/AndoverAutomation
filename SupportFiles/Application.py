@@ -20,7 +20,7 @@ class Application:
     line_of_business = None
     state_chosen = None
     date_chosen = None
-    env_used = "Local"
+    env_used = None
     producer_selected = None
     doc_types = ["Quote","Application","Policy"]
     create_type = doc_types[1]

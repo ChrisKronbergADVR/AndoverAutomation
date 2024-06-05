@@ -5,11 +5,10 @@ from SupportFiles.Address import Address
 from SupportFiles.Application import Application
 from SupportFiles.File import File
 
-THEME = "TanBlue"
-        
 class Interface:
     VERSION = "1.0"
     TEXTLEN = 25
+    THEME = "TanBlue"
    
     gw_environment ={"Local":"https://localhost:9443","QA":"https://qa-advr.iscs.com/","UAT3":"https://uat3-advr.in.guidewire.net/innovation?saml=off","UAT4":"https://uat4-advr.in.guidewire.net/innovation","QA2":"https://qa2-acx-advr.in.guidewire.net/innovation"}
 
@@ -32,17 +31,17 @@ class Interface:
     pay_plan = None
     user_dict = {"AgentAdmin":"AgentAdmin","Admin":"Everything","Underwriter":"PolicyUnderwriter","Agent":"PolicyAgent"}
     thread_name = None
+    userList = []
 
     #Function for making the GUI
     def make_window(self):
-    
-        sg.theme(THEME)
+
+        sg.theme(self.THEME)
         LOB = ["Dwelling Property","Homeowners","Businessowners","Personal Umbrella","Commercial Umbrella"]
         SUBTYPE = {"HO3":"HO3", "HO4":"HO4", "HO5":"HO5T4", "HO5 Superior": "HO5", "HO6":"HO6"}
         STATES = {"Connecticut":"CT","Illinois":"IL","Maine":"ME","Massechusetts":"MA","New Hampshire":"NH","New Jersey":"NJ","New York":"NY","Rhode Island":"RI"}
         CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
         
-        userList = []
         browsers = ["Chrome","Edge"]
         y = datetime.today()+timedelta(days=65)
         default_date = y.strftime("%m/%d/%Y").split("/")
@@ -61,7 +60,7 @@ class Interface:
 
         new_app_layout = [  
             [sg.Text('Enter Information for Creating An Application',border_width=3)],
-            [sg.Text('Username'), sg.DropDown(userList,key="-ULIST-",size =(20,1)),sg.Push(),sg.Button("Delete User",size=(10,1),key="-REMU-")],
+            [sg.Text('Username'), sg.DropDown(self.userList,key="-ULIST-",size =(20,1)),sg.Push(),sg.Button("Delete User",size=(10,1),key="-REMU-")],
             [sg.Text()],
             [sg.Text("Select State"),sg.DropDown(list(STATES.keys()),key="-STATE-",enable_events=True),sg.Checkbox(text="Use Custom Address",enable_events=True,key="ADD_CHECK")],
             [sg.Text("Address 1 (Required)",visible=False,justification="left",key = "-AddText1-",),sg.Text("   "),sg.InputText(size = (self.TEXTLEN,1),visible=False, key = "-CADD1-")],
@@ -87,7 +86,7 @@ class Interface:
         
         new_user_layout = [
             [sg.Text()],
-            [sg.Text('Select Login Username'), sg.DropDown(userList,key="-CREATE_USERLIST-",size =(20,1),enable_events=True)],
+            [sg.Text('Select Login Username'), sg.DropDown(self.userList,key="-CREATE_USERLIST-",size =(20,1),enable_events=True)],
             [sg.Text()],
             [sg.Text('Add Producer')],
             [sg.Text("Producer Name"),sg.InputText(do_not_clear=False,key="-PROD_IN-")],
@@ -276,22 +275,24 @@ class Interface:
             
             if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2' or selectedEnviron =='Model'or selectedEnviron =='Model 2' or selectedEnviron =='Model 3'):
                 self.env_used = selectedEnviron
+                File.env_used = self.env_used
+                Application.env_used = self.env_used
                 File.read_username_password()
                 File.read_producers()
                 prod_user_list = []
-                userList = list(File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())
-                for user in userList:
+                self.userList = list(File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())
+                for user in self.userList:
                     if user.lower().__contains__("admin") and (not user.lower().__contains__("agent")):
                         prod_user_list.append(user)
                 window["-CREATE_USERLIST-"].update(values = prod_user_list)
-                window["-ULIST-"].update(values = userList)
+                window["-ULIST-"].update(values = self.userList)
                 window["-PRODUCER-"].update(values = File.env_files_plus_users[self.env_used]["Producers"]["ProducerNames"])
                 window.refresh()
     
             if event == "-ADDU-" and selectedEnviron!= '':
                 File.add_user(user_name,password)
-                userList = list(File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())
-                window["-ULIST-"].update(values = userList)
+                self.userList = list(File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())
+                window["-ULIST-"].update(values = self.userList)
                 window.refresh()
 
             if event == "BTN_VERIFY" and city and addr and state:
@@ -387,9 +388,9 @@ class Interface:
                         
             if event == "-REMU-" and len(File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys()) > 0 and selectedUser != "" :
                 del File.env_files_plus_users[self.env_used]["Users"]["Usernames"][selectedUser]
-                userList = File.env_files_plus_users[self.env_used]["Users"]["Usernames"]
-                File.write_username_password(File.folder+File.env_files_plus_users[self.env_used]["Users"]["file"],userList)
-                window["-ULIST-"].update(values = list(userList.keys()))
+                self.userList = File.env_files_plus_users[self.env_used]["Users"]["Usernames"]
+                File.write_username_password(File.folder+File.env_files_plus_users[self.env_used]["Users"]["file"],self.userList)
+                window["-ULIST-"].update(values = list(self.userList.keys()))
                 window.refresh()
 
             if event == "-REMPROD-" and len(File.env_files_plus_users[self.env_used]["Producers"]["ProducerNames"]) > 0 and producer!="":
