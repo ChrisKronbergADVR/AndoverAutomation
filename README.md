@@ -7,7 +7,7 @@ Python Automation with GUI for Andover Local and QA Environments
 ---
 
 ## 1. Installing Python
-- click  [here](https://www.python.org/ftp/python/3.12.1/python-3.12.1-amd64.exe) to download python version 3.12.1
+- click  [here](https://www.python.org/ftp/python/3.12.3/python-3.12.3-amd64.exe) to download python version 3.12.3
 
 
 &emsp; <a href="https://www.python.org/downloads/"><img src = "https://www.python.org/static/img/python-logo.png" height="50rem"></a>
@@ -33,7 +33,7 @@ Python Automation with GUI for Andover Local and QA Environments
 
 &emsp;&emsp;&emsp;&emsp;```python --version```
 
-&emsp;&emsp;&emsp;&emsp;- if it returns a version number for Python, it is working correctly. It should return =>  Python 3.11.4 or the python version that is installed
+&emsp;&emsp;&emsp;&emsp;- if it returns a version number for Python, it is working correctly. It should return =>  Python 3.12.3 or the python version that is installed
 
 &emsp;&emsp;&emsp;&emsp;- if it does not return Python with a version number try the suggestions below in a terminal or command prompt: 
 
