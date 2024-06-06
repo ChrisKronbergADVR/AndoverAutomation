@@ -56,6 +56,7 @@ class Application:
     #* This function is used to decide whether to use chrome or edge browser
     @staticmethod
     def load_page():
+        Application.app_logger.add_log(f"{Application.browser_chosen} Browser was Chosen",logging.INFO)
         if(Application.browser_chosen == "Chrome"):
             chrome_options = Options()
             chrome_options.add_experimental_option("detach", True)
@@ -127,11 +128,13 @@ class Application:
                 else:
                     Select(element1).select_by_value(value)
         except:
-            pass
+            Application.app_logger.add_log(f"Element Not Found with element {element} value:{value} keys:{keys}",logging.WARNING)
     
     #*Removes the errors on webpage
     @staticmethod
     def remove_javascript(browser):
+        Application.app_logger.add_log(f"Javascript Errors Removed",logging.INFO)
+
         element_used = "js_error_list"
         script = """
             const parent = document.getElementById("js_error_list").parentNode;
@@ -176,6 +179,7 @@ class Application:
 
     @staticmethod
     def core_coverages(browser):
+        Application.app_logger.add_log(f"Starting Core Coverages",logging.INFO)
         
         core_values = ["Risk.ListOfTenantsAndOccupancy","Risk.BasementInd","Risk.BldgCentralHeatInd","Risk.CircuitBreakerProtInd","Risk.UndergradResidentInd",
                     "Risk.SpaceHeatersInd","Risk.FrameClearance15ftInd","Risk.ShortTermRent","Risk.MercantileOfficeOccupantsInd","Risk.ExcessLinesInd"]
@@ -237,6 +241,8 @@ class Application:
         for value in core_values_after:
             Application.check_for_value(browser,value,"No",False)
 
+        Application.app_logger.add_log(f"Ending Core Coverages",logging.INFO)
+
         #click the save button
         Application.save(browser)
 
@@ -250,6 +256,7 @@ class Application:
     #* Function to add underwriting questions for each location
     @staticmethod
     def gen_dwell_location_questions(browser,num):
+        Application.app_logger.add_log(f"Starting questions for Dwelling",logging.INFO)
 
         ques_dwell = ["Question_PolicyKnownPersonally","Question_PolicyOtherIns","Question_PolicyArson","Question_RiskNumber1PrevDisc","Question_RiskNumber1Vacant","Question_RiskNumber1OnlineHome"
                         ,"Question_RiskNumber1Isolated","Question_RiskNumber1Island","Question_RiskNumber1Seasonal","Question_RiskNumber1SolarPanels","Question_RiskNumber1Adjacent","Question_RiskNumber1ChildCare",
@@ -300,6 +307,7 @@ class Application:
 
     @staticmethod
     def underwriting_questions(browser,multi):
+        Application.app_logger.add_log(f"Starting Underwriting Questions for {Application.state} {Application.line_of_business}",logging.INFO)
         y = datetime.today()+timedelta(days=60)
         producer_inspection_date = y.strftime("%m/%d/%Y")
         Application.find_Element(browser,"Wizard_Underwriting").click()
@@ -346,6 +354,7 @@ class Application:
 
     @staticmethod
     def billing(browser):
+
         Application.waitPageLoad(browser)
         Application.find_Element(browser,"Wizard_Review").click()
         Application.waitPageLoad(browser)
