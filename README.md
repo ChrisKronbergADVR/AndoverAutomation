@@ -4,6 +4,8 @@ Python Automation with GUI for Andover Local and QA Environments
 ### **** If you find any bugs or features you would like to be added. click on the issues Tab on Github - New Issue Button then either bug report Button or feature request Button and fill out the Information. ****
 
 ### If you already have Python installed, you can skip the Python install
+
+### A new .bat file was added to help run the python program from a shortcut. Copy the runAutomation.bat file and paste the shortcut to the desktop. After this is done, you can rename the file to whatever you want and it will launch the automation software.
 ---
 
 ## 1. Installing Python
