@@ -3,7 +3,7 @@ from csv import DictReader,DictWriter
 
 class File:
     env_used = None
-    folder = "/csvFiles/"
+    folder = "csvFiles/"
 
     env_files_plus_users= {
             "QA":{"Users":{"file":"users.csv","Usernames":{}},
