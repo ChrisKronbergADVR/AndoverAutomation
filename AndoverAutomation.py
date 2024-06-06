@@ -2,7 +2,7 @@ import os
 from SupportFiles.Interface import Interface
 from SupportFiles.File import File
 
-LOG_PATH = "\\Logs"
+LOG_PATH = "Logs/"
 
 def main():
     interface = Interface()
