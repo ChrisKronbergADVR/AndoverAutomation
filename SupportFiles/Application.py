@@ -17,6 +17,9 @@ class Application:
     TEST = False
     COMPANY = "ADVR"
 
+    #add variable for a logger here to be used within the Application Class
+    app_logger = MultiLog()
+
     line_of_business = None
     state_chosen = None
     date_chosen = None
@@ -348,7 +351,7 @@ class Application:
         Application.waitPageLoad(browser)
         state = Application.state_chosen
         pay_plan = Application.pay_plan
-        #logger.info("Pay Plan: "+ pay_plan)
+        Application.app_logger.add_log(f"Pay Plan: {pay_plan}",logging.INFO)
 
         elements = browser.find_elements(By.NAME,"BasicPolicy.PayPlanCd")
         for e in elements:
@@ -424,18 +427,16 @@ class Application:
         env_used = Application.env_used
         date_chosen = Application.date_chosen
         producer_selected = Application.producer_selected
-        created_log = None
 
         thread_name = str(threading.current_thread().name)
-        app_logger = MultiLog()
 
         if Application.env_used == "Local":
-            created_log = app_logger.createLog(Application.state_chosen,Application.line_of_business,thread_name)
+            Application.created_log = Application.app_logger.createLog(Application.state_chosen,Application.line_of_business,thread_name)
 
         CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
         password = Application.get_password(user_chosen)
 
-        app_logger.add_log(created_log,f"Started {create_type} for {state_chosen} {line_of_business} in {env_used} Environment with {user_chosen} user where date = {date_chosen}",logging.INFO)
+        Application.app_logger.add_log(f"Started {create_type} for {state_chosen} {line_of_business} in {env_used} Environment with {user_chosen} user where date = {date_chosen}",logging.INFO)
 
         browser = Application.load_page()
         
@@ -596,7 +597,7 @@ class Application:
             start = time.perf_counter()
             Application.underwriting_questions(browser,multiLoc)
             end = time.perf_counter()
-            #logger.info("Time to Complete Underwriting Questions: " + str(end-start) + " seconds")
+            Application.app_logger.add_log(Application.created_log,f"Time to Complete Underwriting Questions: {str(end-start)} seconds",logging.INFO)
             
             Application.billing(browser)
 
