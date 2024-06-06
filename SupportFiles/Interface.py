@@ -4,6 +4,7 @@ import threading
 from SupportFiles.Address import Address
 from SupportFiles.Application import Application
 from SupportFiles.File import File
+from SupportFiles.MultiLog import MultiLog
 
 class Interface:
     VERSION = "1.0"
@@ -81,7 +82,7 @@ class Interface:
             [sg.Text()],
             [sg.Text("Create Quote,Application or Policy"), sg.DropDown(["Quote","Application","Policy"],default_value="Application",key="-CREATE-")],
             [sg.Text()],
-            [sg.Button('Submit'), sg.Button('Cancel')],
+            [sg.Button('Submit'), sg.Button('Cancel'),sg.Push(),sg.Checkbox("Enable Logging",key="-LOG-")]
         ]
         
         new_user_layout = [
@@ -150,6 +151,7 @@ class Interface:
             producer_user_name = values["-CREATE_USERLIST-"]
             add_user_value = values["UserDrop"]
             date_selected = values["-DATE-"]
+            log_val = values["-LOG-"]
 
             if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name and browser_chose:
                 browser_chosen = browser_chose
@@ -169,6 +171,11 @@ class Interface:
                 window['UserDrop'].update(visible=False)
                 window['-CREATE_USER-'].update(visible=False)
                 window['-CREATE_TEXT-'].update(visible=False)
+
+            if log_val:
+                MultiLog.log_data = True
+            else:
+                MultiLog.log_data = False
 
             if (event == "-LOB-" and state != "") or (event == "-STATE-" and lob != ""):
                 if STATES[state] == "NY": 

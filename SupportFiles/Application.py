@@ -40,6 +40,7 @@ class Application:
     payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_8","Direct Bill 9 Pay":"BasicPolicy.PayPlanCd_9","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_10","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_11"}
     payment_plan_pumb = {"Automated Monthly":"BasicPolicy.PayPlanCd_1","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_2","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_3","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_5","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_7","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_8","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_9"}
     pay_plan = ""
+    user_dict = {"AgentAdmin":"AgentAdmin","Admin":"Everything","Underwriter":"PolicyUnderwriter","Agent":"PolicyAgent"}
 
     #*function for finding elements in the browser
     @staticmethod
@@ -133,8 +134,6 @@ class Application:
     #*Removes the errors on webpage
     @staticmethod
     def remove_javascript(browser):
-        Application.app_logger.add_log(f"Javascript Errors Removed",logging.INFO)
-
         element_used = "js_error_list"
         script = """
             const parent = document.getElementById("js_error_list").parentNode;
@@ -307,7 +306,7 @@ class Application:
 
     @staticmethod
     def underwriting_questions(browser,multi):
-        Application.app_logger.add_log(f"Starting Underwriting Questions for {Application.state} {Application.line_of_business}",logging.INFO)
+        Application.app_logger.add_log(f"Starting Underwriting Questions for {Application.state_chosen} {Application.line_of_business}",logging.INFO)
         y = datetime.today()+timedelta(days=60)
         producer_inspection_date = y.strftime("%m/%d/%Y")
         Application.find_Element(browser,"Wizard_Underwriting").click()
@@ -439,8 +438,8 @@ class Application:
 
         thread_name = str(threading.current_thread().name)
 
-        if Application.env_used == "Local":
-            Application.created_log = Application.app_logger.createLog(Application.state_chosen,Application.line_of_business,thread_name)
+        if MultiLog.log_data:
+            Application.app_logger.createLog(Application.state_chosen,Application.line_of_business,thread_name)
 
         CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
         password = Application.get_password(user_chosen)
@@ -606,7 +605,7 @@ class Application:
             start = time.perf_counter()
             Application.underwriting_questions(browser,multiLoc)
             end = time.perf_counter()
-            Application.app_logger.add_log(Application.created_log,f"Time to Complete Underwriting Questions: {str(end-start)} seconds",logging.INFO)
+            Application.app_logger.add_log(f"Time to Complete Underwriting Questions: {str(end-start)} seconds",logging.INFO)
             
             Application.billing(browser)
 
@@ -857,7 +856,7 @@ class Application:
     #Create a user
     @staticmethod
     def create_user(user_type,user_name):
-        global user_dict
+        user_dict = Application.user_dict
         y = datetime.today()
         default_date = y.strftime("%m/%d/%Y").split("/")
         password = Application.get_password(user_name)

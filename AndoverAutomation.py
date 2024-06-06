@@ -5,7 +5,7 @@ from SupportFiles.File import File
 LOG_PATH = "Logs/"
 
 def main():
-    interface = Interface()
+    interface = Interface()  
     if(not os.path.exists(LOG_PATH)):
         os.mkdir(LOG_PATH)
     File.create_files()
