@@ -178,6 +178,8 @@ class Application:
 
     @staticmethod
     def core_coverages(browser):
+        coverage_a =  300000
+        coverage_c = coverage_a
         Application.app_logger.add_log(f"Starting Core Coverages",logging.INFO)
         
         core_values = ["Risk.ListOfTenantsAndOccupancy","Risk.BasementInd","Risk.BldgCentralHeatInd","Risk.CircuitBreakerProtInd","Risk.UndergradResidentInd",
@@ -198,13 +200,15 @@ class Application:
         Application.check_for_value(browser,"Building.NumOfFamilies","1")
         Application.check_for_value(browser,"Building.DistanceToHydrant","1000")
         Application.check_for_value(browser,"Building.OccupancyCd","Primary Residence")
-        Application.check_for_value(browser,"Building.CovALimit",keys=300000)
+        Application.check_for_value(browser,"Building.CovALimit",keys=coverage_a)
         Application.check_for_value(browser,"Building.NumOfFamiliesSameFire","Less Than 5",False,None)
         Application.check_for_value(browser,"Building.DistanceToHydrant","1000")
         Application.check_for_value(browser,"Building.FuelLiability","300000")
         Application.check_for_value(browser,"Building.OilTankLocation","none")
         Application.check_for_value(browser,"Building.CovELimit","300000")
         Application.check_for_value(browser,"Building.CovFLimit","2000")
+        Application.check_for_value(browser,"Building.CovFLimit","100000")
+        Application.check_for_value(browser,"Building.CovCLimit",keys=coverage_c)
         Application.check_for_value(browser,"Building.StandardDed","1000")
         Application.check_for_value(browser,"Building.NumOfFamilies","1")
         Application.check_for_value(browser,"Building.DistanceToHydrant","1000")
@@ -241,6 +245,8 @@ class Application:
             Application.check_for_value(browser,value,"No",False)
 
         Application.app_logger.add_log(f"Ending Core Coverages",logging.INFO)
+
+        #check for id MissingFieldError
 
         #click the save button
         Application.save(browser)
@@ -522,6 +528,9 @@ class Application:
         Application.check_for_value(browser,"InsuredNameJoint.GivenName",keys="click")
         Application.check_for_value(browser,"InsuredNameJoint.GivenName",keys="Second")
         Application.check_for_value(browser,"InsuredNameJoint.Surname",keys="Person")
+        Application.waitPageLoad(browser)
+        Application.check_for_value(browser,"InsuredNameJoint.GivenName",keys="Second")
+        Application.check_for_value(browser,"InsuredNameJoint.Surname",keys="Person")
         Application.check_for_value(browser,"InsuredPersonalJoint.BirthDt",keys="01/01/1980")
         Application.check_for_value(browser,"InsuredPersonalJoint.OccupationClassCd","Other")
         Application.check_for_value(browser,"InsuredPersonalJoint.OccupationOtherJointDesc",keys="No")
@@ -564,6 +573,8 @@ class Application:
         #*Phone Type, Phone number, and email entered here
         Select(Application.find_Element(browser,"InsuredPhonePrimary.PhoneName")).select_by_value("Mobile")
         Application.find_Element(browser,"InsuredPhonePrimary.PhoneNumber").send_keys(5558675309)
+        Application.check_for_value(browser,"Insured.InspectionContactPhoneType","Mobile")
+        Application.check_for_value(browser,"Insured.InspectionContactNumber",keys=5558675309)
         Application.find_Element(browser,"InsuredEmail.EmailAddr").send_keys("test@mail.com")
         Application.waitPageLoad(browser)
 
@@ -587,7 +598,10 @@ class Application:
 
         if(Application.create_type == "Application" or Application.create_type == "Policy"):
             Application.waitPageLoad(browser)
+            Application.check_for_value(browser,"Wizard_Policy",keys="click")
+            Application.waitPageLoad(browser)
             Application.click_radio(browser)
+            Application.waitPageLoad(browser)
             Application.find_Element(browser,"Bind").click()
             
             if Application.line_of_business == "Businessowners" or Application.line_of_business == "Commercial Umbrella":
