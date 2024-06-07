@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from SupportFiles.MultiLog import MultiLog
 from SupportFiles.Address import Address
 from SupportFiles.File import File
+from SupportFiles.Timing import Timing
 
 class Application:
     TEST = False
@@ -57,7 +58,7 @@ class Application:
     #* This function is used to decide whether to use chrome or edge browser
     @staticmethod
     def load_page():
-        Application.app_logger.add_log(f"{Application.browser_chosen} Browser was Chosen",logging.INFO)
+        Application.app_logger.add_log(f"Browser Used: {Application.browser_chosen}",logging.INFO)
         if(Application.browser_chosen == "Chrome"):
             chrome_options = Options()
             chrome_options.add_experimental_option("detach", True)
@@ -107,12 +108,21 @@ class Application:
         my_value = e_name+"_"+str(radio_number)
         Application.click_radio_button(browser,my_value)
 
+    @staticmethod
+    def value_exists(browser,element_id):
+        try:
+            element1 = Application.find_Element(browser,element_id)
+            if element1.is_displayed():
+                return element1
+        except:
+            return None
+
     #*Functions for finding or sending values to input fields
     @staticmethod
     def check_for_value(browser,element,value = None,visible_text:bool=False,keys=None):
         try:
             element1 = Application.find_Element(browser,element)
-            if(element1.is_displayed() == True):
+            if element1.is_displayed():
                 if(keys != None):
                     if(keys == "click"):
                         if visible_text == True:
@@ -129,7 +139,7 @@ class Application:
                 else:
                     Select(element1).select_by_value(value)
         except:
-            Application.app_logger.add_log(f"Element Not Found with element {element} value:{value} keys:{keys}",logging.WARNING)
+            Application.app_logger.add_log(f"Element Not Found with id {element} value:{value} keys:{keys}",logging.DEBUG)
     
     #*Removes the errors on webpage
     @staticmethod
@@ -178,6 +188,8 @@ class Application:
 
     @staticmethod
     def core_coverages(browser):
+        core_coverages_time = Timing()
+        core_coverages_time.start()
         coverage_a =  300000
         coverage_c = coverage_a
         Application.app_logger.add_log(f"Starting Core Coverages",logging.INFO)
@@ -244,12 +256,17 @@ class Application:
         for value in core_values_after:
             Application.check_for_value(browser,value,"No",False)
 
-        Application.app_logger.add_log(f"Ending Core Coverages",logging.INFO)
-
-        #check for id MissingFieldError
+        try:
+            t = Application.find_Element(browser,"MissingFieldError").is_displayed()
+            if t:
+                Application.app_logger.add_log(f"Core Coverages Was not able to Complete because of Missing Field",logging.ERROR)
+        except:
+            Application.app_logger.add_log(f"Finishing Core Coverages without Errors",logging.INFO)
+            core_coverages_time.end()
 
         #click the save button
         Application.save(browser)
+        Application.app_logger.add_log(f"Time to complete Core Coverages: {core_coverages_time.compute_time()} seconds",logging.INFO)
 
     @staticmethod
     def question_update(question,size):
@@ -312,10 +329,10 @@ class Application:
 
     @staticmethod
     def underwriting_questions(browser,multi):
-        Application.app_logger.add_log(f"Starting Underwriting Questions for {Application.state_chosen} {Application.line_of_business}",logging.INFO)
         y = datetime.today()+timedelta(days=60)
         producer_inspection_date = y.strftime("%m/%d/%Y")
         Application.find_Element(browser,"Wizard_Underwriting").click()
+        Application.app_logger.add_log(f"Starting Underwriting Questions for {Application.state_chosen} {Application.line_of_business}",logging.INFO)
         Application.waitPageLoad(browser)
         lob = Application.line_of_business
 
@@ -356,6 +373,13 @@ class Application:
         #click the save button
         Application.save(browser)
         Application.waitPageLoad(browser)
+
+        try:
+            t = Application.find_Element(browser,"MissingFieldError").is_displayed()
+            if t:
+                Application.app_logger.add_log(f"Underwriting Questions Were not able to Complete because of Missing Field",logging.ERROR)
+        except:
+            Application.app_logger.add_log(f"Finishing Underwriting Questions without Errors",logging.INFO)
 
     @staticmethod
     def billing(browser):
@@ -590,6 +614,7 @@ class Application:
 
         #multiple locations here
         if Application.line_of_business != "Businessowners" and Application.line_of_business != "Commercial Umbrella":
+            
             Application.core_coverages(browser)
             if(multiLoc == True and Application.line_of_business == "Dwelling Property"):
                 for i in range(Application.number_of_addresses-1):
@@ -615,11 +640,14 @@ class Application:
 
                 #click the save button
                 Application.save(browser)
-
-            start = time.perf_counter()
+            
+            #Creating a Timing Object for Underwriting questions
+            underwriting_time = Timing()
+            underwriting_time.start()
             Application.underwriting_questions(browser,multiLoc)
-            end = time.perf_counter()
-            Application.app_logger.add_log(f"Time to Complete Underwriting Questions: {str(end-start)} seconds",logging.INFO)
+            underwriting_time.end()
+
+            Application.app_logger.add_log(f"Time to Complete Underwriting Questions: {underwriting_time.compute_time()} seconds",logging.INFO)
             
             Application.billing(browser)
 
@@ -695,9 +723,19 @@ class Application:
                     Application.find_Element(browser,"policyLink0").click()
                     if Application.pay_plan.__contains__("Bill To Other"):
                         Application.billing(browser)
-                
-        if(Application.create_type == "Policy"):
+        
+        Application.check_for_value(browser,"Wizard_Policy",keys="click")
+        warning_value = Application.value_exists(browser,"WarningIssues")
+        error_value = Application.value_exists(browser,"ErrorIssues")
+        if warning_value is not None:
+            Application.app_logger.add_log(f"Issues: {warning_value.text}",logging.WARNING)
+        if error_value is not None:
+            Application.app_logger.add_log(f"Issues: {error_value.text}",logging.ERROR)
+
+        if(Application.create_type == "Policy" and error_value is None):
             Application.submit_policy(browser)
+        elif(error_value is not None):
+            Application.app_logger.add_log(f"Application Could not be submitted due to {error_value.text}",logging.ERROR)
 
         sleep(5)
 
