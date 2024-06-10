@@ -17,7 +17,6 @@ class Interface:
     payment_plan_bop = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Direct Bill 9 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_8","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_9","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_10","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_11"}
     payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay":"BasicPolicy.PayPlanCd_1","Automated Monthly":"BasicPolicy.PayPlanCd_2","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_3","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_5","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_7","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_8","Direct Bill 9 Pay":"BasicPolicy.PayPlanCd_9","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_10","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_11"}
     payment_plan_pumb = {"Automated Monthly":"BasicPolicy.PayPlanCd_1","Bill To Other Automated Monthly":"BasicPolicy.PayPlanCd_2","Direct Bill 2 Pay":"BasicPolicy.PayPlanCd_3","Direct Bill 4 Pay":"BasicPolicy.PayPlanCd_4","Direct Bill 6 Pay":"BasicPolicy.PayPlanCd_5","Bill To Other 4 Pay":"BasicPolicy.PayPlanCd_6","Bill To Other 6 Pay":"BasicPolicy.PayPlanCd_7","Direct Bill Full Pay":"BasicPolicy.PayPlanCd_8","Bill To Other Full Pay":"BasicPolicy.PayPlanCd_9"}
-    pay_plan = ""
     env_used = "Local"
     state_chosen = None
     date_chosen = None
@@ -33,6 +32,8 @@ class Interface:
     user_dict = {"AgentAdmin":"AgentAdmin","Admin":"Everything","Underwriter":"PolicyUnderwriter","Agent":"PolicyAgent"}
     thread_name = None
     userList = []
+
+    application = Application()
 
     #Function for making the GUI
     def make_window(self):
@@ -154,13 +155,13 @@ class Interface:
             log_val = values["-LOG-"]
 
             if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name and browser_chose:
-                browser_chosen = browser_chose
-                prod_thread = threading.Thread(target=Application.create_producer,args=(producer_name,producer_user_name))
+                self.browser_chosen = browser_chose
+                prod_thread = threading.Thread(target=self.application.create_producer,args=(producer_name,producer_user_name))
                 prod_thread.start()
 
             if event == "-CREATE_USER-" and add_user_value != "" and selectedEnviron and producer_user_name and browser_chose:
-                browser_chosen = browser_chose
-                user_thread = threading.Thread(target=Application.create_user,args=(add_user_value,producer_user_name))
+                self.browser_chosen = browser_chose
+                user_thread = threading.Thread(target=self.application.create_user,args=(add_user_value,producer_user_name))
                 user_thread.start()
 
             if selectedEnviron == "Local":
@@ -283,7 +284,7 @@ class Interface:
             if event == "-ENVLIST-" and selectedEnviron !='' and (selectedEnviron =="QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4'or selectedEnviron == 'QA2' or selectedEnviron =='Model'or selectedEnviron =='Model 2' or selectedEnviron =='Model 3'):
                 self.env_used = selectedEnviron
                 File.env_used = self.env_used
-                Application.env_used = self.env_used
+                self.application.env_used = self.env_used
                 File.read_username_password()
                 File.read_producers()
                 prod_user_list = []
@@ -418,32 +419,34 @@ class Interface:
             if (event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and state 
                 and date_selected and (Address.custom_address["Flag"] or cust_addr == False)):
             
-                Application.line_of_business = lob        
-                Application.browser_chosen = browser_chose
-                Application.state_chosen = STATES[state]
-                Application.date_chosen = date_selected
-                Application.producer_selected = producer
-                Application.create_type = doc_type
-                Application.user_chosen = selectedUser
-                if(Application.line_of_business != "Businessowners"):
+                self.application.line_of_business = lob        
+                self.application.browser_chosen = browser_chose
+                self.application.state_chosen = STATES[state]
+                self.application.date_chosen = date_selected
+                self.application.producer_selected = producer
+                self.application.create_type = doc_type
+                self.application.user_chosen = selectedUser
+                if(self.application.line_of_business != "Businessowners"):
                     #if line_of_business == "Homeowners":
                         #pay_plan = payment_plan + " "+state_chosen
-                    if Application.line_of_business == "Personal Umbrella" or Application.line_of_business == "Commercial Umbrella":
-                        Application.pay_plan = payment_p_pumb
+                    if self.application.line_of_business == "Personal Umbrella" or self.application.line_of_business == "Commercial Umbrella":
+                        self.application.pay_plan = payment_p_pumb
                     else:
-                        Application.pay_plan = payment_p
+                        self.application.pay_plan = payment_p
                 else:
-                    Application.pay_plan = payment_p_bop
+                    self.application.pay_plan = payment_p_bop
 
                 if(multi == "Yes" and lob == "Dwelling Property"):
-                    Application.multiAdd = True
-                    Application.number_of_addresses = values["-NUMLOC-"]
+                    self.application.multiAdd = True
+                    self.application.number_of_addresses = values["-NUMLOC-"]
                 else:
-                    Application.number_of_addresses = 1
-                    Application.multiAdd = False
+                    self.application.number_of_addresses = 1
+                    self.application.multiAdd = False
                 
-                app_thread = threading.Thread(target=Application.startApplication,args=(Application.multiAdd,subType,carrier))
+                app_thread = threading.Thread(target=self.application.startApplication,args=(self.application.multiAdd,subType,carrier))
                 app_thread.start()
+                if not app_thread.is_alive():
+                    del self.application
 
             elif event == "Submit":
                 submit_errors = {"User":selectedUser,"Environment":selectedEnviron,"Producer":producer,"Browser":browser_chose,"Date":date_selected,"State":state,"Application Type":doc_type,"Subtype":subType}
