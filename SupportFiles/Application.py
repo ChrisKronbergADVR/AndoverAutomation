@@ -6,7 +6,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
-import time
 import threading
 from datetime import datetime, timedelta
 from SupportFiles.MultiLog import MultiLog
@@ -91,6 +90,7 @@ class Application:
     @staticmethod
     def save(browser):
         browser.execute_script('document.getElementById("Save").click();')
+        Application.remove_javascript(browser)
 
     @staticmethod
     def click_radio_button(browser,element):
@@ -259,14 +259,15 @@ class Application:
         try:
             t = Application.find_Element(browser,"MissingFieldError").is_displayed()
             if t:
-                Application.app_logger.add_log(f"Core Coverages Was not able to Complete because of Missing Field",logging.ERROR)
+                Application.app_logger.add_log(f"Core Coverages Was not able to Complete",logging.ERROR)
         except:
             Application.app_logger.add_log(f"Finishing Core Coverages without Errors",logging.INFO)
             core_coverages_time.end()
+            Application.app_logger.add_log(f"Time to complete Core Coverages: {core_coverages_time.compute_time()} seconds",logging.INFO)
 
         #click the save button
         Application.save(browser)
-        Application.app_logger.add_log(f"Time to complete Core Coverages: {core_coverages_time.compute_time()} seconds",logging.INFO)
+        
 
     @staticmethod
     def question_update(question,size):
@@ -533,12 +534,17 @@ class Application:
 
         #enter producer here
         Application.check_for_value(browser,"ProviderNumber",keys=producer)
-
+        
         #select entity type
         if(Application.line_of_business == "Dwelling Property" or Application.line_of_business == "Businessowners" or Application.line_of_business == "Commercial Umbrella"):
             Select(Application.find_Element(browser,"Insured.EntityTypeCd")).select_by_value("Individual")
         
         Application.waitPageLoad(browser)
+
+        quote_num = Application.find_Element(browser,"QuoteAppSummary_QuoteAppNumber")
+        Application.app_logger.add_log(f" ",logging.INFO)
+        Application.app_logger.add_log(f" ------------ QUOTE STARTED ---------------- ",logging.INFO)
+        Application.app_logger.add_log(f"Quote Number: {quote_num.text}",logging.INFO)
 
         Application.check_for_value(browser,"InsuredPersonal.OccupationClassCd","Other")
         Application.check_for_value(browser,"InsuredPersonal.OccupationOtherDesc",keys="No")
@@ -641,6 +647,11 @@ class Application:
                 #click the save button
                 Application.save(browser)
             
+            application_num = Application.find_Element(browser,"QuoteAppSummary_QuoteAppNumber")
+            Application.app_logger.add_log(f" ",logging.INFO)
+            Application.app_logger.add_log(f" ------------ APPLICATION STARTED ---------------- ",logging.INFO)
+            Application.app_logger.add_log(f"Application Number: {application_num.text}",logging.INFO)
+
             #Creating a Timing Object for Underwriting questions
             underwriting_time = Timing()
             underwriting_time.start()
@@ -734,6 +745,12 @@ class Application:
 
         if(Application.create_type == "Policy" and error_value is None):
             Application.submit_policy(browser)
+
+            policy_num = Application.find_Element(browser,"PolicySummary_PolicyNumber")
+            Application.app_logger.add_log(f" ",logging.INFO)
+            Application.app_logger.add_log(f" ------------ Policy STARTED ---------------- ",logging.INFO)
+            Application.app_logger.add_log(f"Policy Number: {policy_num.text}",logging.INFO)
+
         elif(error_value is not None):
             Application.app_logger.add_log(f"Application Could not be submitted due to {error_value.text}",logging.ERROR)
 
