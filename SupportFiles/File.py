@@ -34,12 +34,10 @@ class File:
             file_user = File.env_files_plus_users[env_name]['Users']['file']
             file_prod = File.env_files_plus_users[env_name]['Producers']['file']
             if not(os.path.exists(folder+file_user)):
-                file_users= open(folder+file_user,"w")
-                File.write_username_password(folder+file_user,File.env_files_plus_users[env_name]["Users"]["Usernames"])
-                file_prods = open(folder+file_prod,"w")
-                File.write_producer(folder+file_prod,File.env_files_plus_users[env_name]["Producers"]["ProducerNames"])
-                file_prods.close()
-                file_users.close()
+                with open(folder+file_user,"w") as file_users:
+                    File.write_username_password(folder+file_user,File.env_files_plus_users[env_name]["Users"]["Usernames"])
+                with open(folder+file_prod,"w") as file_prods:
+                    File.write_producer(folder+file_prod,File.env_files_plus_users[env_name]["Producers"]["ProducerNames"])
 
     #This function takes a file and user dictionary and writes the username and password to a csv file
     @staticmethod

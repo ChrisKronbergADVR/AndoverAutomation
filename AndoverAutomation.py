@@ -10,6 +10,6 @@ def main():
         os.mkdir(LOG_PATH)
     File.create_files()
     interface.make_window()
-
+    del interface
 if __name__ == '__main__':
     main()
