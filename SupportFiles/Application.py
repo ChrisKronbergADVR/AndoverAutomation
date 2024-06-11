@@ -6,7 +6,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
-import threading
 from datetime import datetime, timedelta
 from SupportFiles.MultiLog import MultiLog
 from SupportFiles.Address import Address
@@ -16,10 +15,6 @@ from SupportFiles.Timing import Timing
 class Application:
     TEST = False
     COMPANY = "ADVR"
-
-    #add variable for a logger here to be used within the Application Class
-    app_logger = MultiLog()
-    thread_name = str(threading.current_thread().name)
 
     line_of_business = None
     state_chosen = None
@@ -58,7 +53,7 @@ class Application:
     #* This function is used to decide whether to use chrome or edge browser
     
     def load_page(self):
-        self.app_logger.add_log(f"Browser Used: {self.browser_chosen}",logging.INFO)
+        MultiLog.add_log(f"Browser Used: {self.browser_chosen}",logging.INFO)
         if(self.browser_chosen == "Chrome"):
             chrome_options = Options()
             chrome_options.add_experimental_option("detach", True)
@@ -99,7 +94,7 @@ class Application:
             if(self.find_Element(browser,element).is_displayed()):
                 self.find_Element(browser,element).click()
         except:
-            pass
+            return None
 
     
     def click_radio(self,browser):
@@ -112,8 +107,8 @@ class Application:
     
     def value_exists(self,browser,element_id):
         try:
-            element1 = self.find_Element(browser,element_id)
-            if element1.is_displayed():
+            element1 = browser.find_elements(By.ID,element_id)
+            if len(element1) > 0:
                 return element1
         except:
             return None
@@ -140,7 +135,7 @@ class Application:
                 else:
                     Select(element1).select_by_value(value)
         except:
-            self.app_logger.add_log(f"Element Not Found with id {element} value:{value} keys:{keys}",logging.DEBUG)
+            MultiLog.add_log(f"Element Not Found with id {element} value:{value} keys:{keys}",logging.DEBUG)
     
     #*Removes the errors on webpage
     
@@ -194,7 +189,7 @@ class Application:
         core_coverages_time.start()
         coverage_a =  300000
         coverage_c = coverage_a
-        self.app_logger.add_log(f"Starting Core Coverages",logging.INFO)
+        MultiLog.add_log(f"Starting Core Coverages",logging.INFO)
         
         core_values = ["Risk.ListOfTenantsAndOccupancy","Risk.BasementInd","Risk.BldgCentralHeatInd","Risk.CircuitBreakerProtInd","Risk.UndergradResidentInd",
                     "Risk.SpaceHeatersInd","Risk.FrameClearance15ftInd","Risk.ShortTermRent","Risk.MercantileOfficeOccupantsInd","Risk.ExcessLinesInd"]
@@ -261,11 +256,11 @@ class Application:
         try:
             t = self.find_Element(browser,"MissingFieldError").is_displayed()
             if t:
-                self.app_logger.add_log(f"Core Coverages Was not able to Complete",logging.ERROR)
+                MultiLog.add_log(f"Core Coverages Was not able to Complete",logging.ERROR)
         except:
-            self.app_logger.add_log(f"Finishing Core Coverages without Errors",logging.INFO)
+            MultiLog.add_log(f"Finishing Core Coverages without Errors",logging.INFO)
             core_coverages_time.end()
-            self.app_logger.add_log(f"Time to complete Core Coverages: {core_coverages_time.compute_time()} seconds",logging.INFO)
+            MultiLog.add_log(f"Time to complete Core Coverages: {core_coverages_time.compute_time()} seconds",logging.INFO)
 
         #click the save button
         self.save(browser)
@@ -282,7 +277,7 @@ class Application:
     
     def gen_dwell_location_questions(self,browser,num):
         
-        self.app_logger.add_log(f"Starting questions for Dwelling",logging.INFO)
+        MultiLog.add_log(f"Starting questions for Dwelling",logging.INFO)
 
         ques_dwell = ["Question_PolicyKnownPersonally","Question_PolicyOtherIns","Question_PolicyArson","Question_RiskNumber1PrevDisc","Question_RiskNumber1Vacant","Question_RiskNumber1OnlineHome"
                         ,"Question_RiskNumber1Isolated","Question_RiskNumber1Island","Question_RiskNumber1Seasonal","Question_RiskNumber1SolarPanels","Question_RiskNumber1Adjacent","Question_RiskNumber1ChildCare",
@@ -337,7 +332,7 @@ class Application:
         y = datetime.today()+timedelta(days=60)
         producer_inspection_date = y.strftime("%m/%d/%Y")
         self.find_Element(browser,"Wizard_Underwriting").click()
-        self.app_logger.add_log(f"Starting Underwriting Questions for {self.state_chosen} {self.line_of_business}",logging.INFO)
+        MultiLog.add_log(f"Starting Underwriting Questions for {self.state_chosen} {self.line_of_business}",logging.INFO)
         self.waitPageLoad(browser)
         lob = self.line_of_business
 
@@ -382,9 +377,9 @@ class Application:
         try:
             t = self.find_Element(browser,"MissingFieldError").is_displayed()
             if t:
-                self.app_logger.add_log(f"Underwriting Questions Were not able to Complete because of Missing Field",logging.ERROR)
+                MultiLog.add_log(f"Underwriting Questions Were not able to Complete because of Missing Field",logging.ERROR)
         except:
-            self.app_logger.add_log(f"Finishing Underwriting Questions without Errors",logging.INFO)
+            MultiLog.add_log(f"Finishing Underwriting Questions without Errors",logging.INFO)
 
     
     def billing(self,browser):
@@ -393,7 +388,7 @@ class Application:
         self.waitPageLoad(browser)
         state = self.state_chosen
         pay_plan = self.pay_plan
-        self.app_logger.add_log(f"Pay Plan: {pay_plan}",logging.INFO)
+        MultiLog.add_log(f"Pay Plan: {pay_plan}",logging.INFO)
 
         elements = browser.find_elements(By.NAME,"BasicPolicy.PayPlanCd")
         for e in elements:
@@ -487,15 +482,15 @@ class Application:
         
 
         if MultiLog.log_data:
-            self.app_logger.createLog(self.state_chosen,self.line_of_business,self.thread_name)
+            MultiLog.create_log(self.state_chosen,self.line_of_business)
 
         CARRIER = {"Merrimack Mutual Fire Insurance":"MMFI","Cambrige Mutual Fire Insurance":"CMFI","Bay State Insurance Company":"BSIC"}
         password = self.get_password(user_chosen)
 
         if line_of_business == "Homeowners" or line_of_business == "Personal Umbrella":
-            self.app_logger.add_log(f"Started {create_type} for {state_chosen} {line_of_business}. Carrier: {carrier} | Subtype: {subType} | in {env_used} Environment with {user_chosen} user where date = {date_chosen}",logging.INFO)
+            MultiLog.add_log(f"Started {create_type} for {state_chosen} {line_of_business}. Carrier: {carrier} | Subtype: {subType} | in {env_used} Environment with {user_chosen} user where date = {date_chosen}",logging.INFO)
         else:
-            self.app_logger.add_log(f"Started {create_type} for {state_chosen} {line_of_business} in {env_used} Environment with {user_chosen} user where date = {date_chosen}",logging.INFO)
+            MultiLog.add_log(f"Started {create_type} for {state_chosen} {line_of_business} in {env_used} Environment with {user_chosen} user where date = {date_chosen}",logging.INFO)
 
         browser = self.load_page()
         
@@ -563,9 +558,9 @@ class Application:
         self.waitPageLoad(browser)
 
         quote_num = self.find_Element(browser,"QuoteAppSummary_QuoteAppNumber")
-        self.app_logger.add_log(f" ",logging.INFO)
-        self.app_logger.add_log(f" ------------ QUOTE STARTED ---------------- ",logging.INFO)
-        self.app_logger.add_log(f"Quote Number: {quote_num.text}",logging.INFO)
+        MultiLog.add_log(f" ",logging.INFO)
+        MultiLog.add_log(f" ------------ QUOTE STARTED ---------------- ",logging.INFO)
+        MultiLog.add_log(f"Quote Number: {quote_num.text}",logging.INFO)
 
         self.check_for_value(browser,"InsuredPersonal.OccupationClassCd","Other")
         self.check_for_value(browser,"InsuredPersonal.OccupationOtherDesc",keys="No")
@@ -669,9 +664,9 @@ class Application:
                 self.save(browser)
             
             application_num = self.find_Element(browser,"QuoteAppSummary_QuoteAppNumber")
-            self.app_logger.add_log(f" ",logging.INFO)
-            self.app_logger.add_log(f" ------------ APPLICATION STARTED ---------------- ",logging.INFO)
-            self.app_logger.add_log(f"Application Number: {application_num.text}",logging.INFO)
+            MultiLog.add_log(f" ",logging.INFO)
+            MultiLog.add_log(f" ------------ APPLICATION STARTED ---------------- ",logging.INFO)
+            MultiLog.add_log(f"Application Number: {application_num.text}",logging.INFO)
 
             #Creating a Timing Object for Underwriting questions
             underwriting_time = Timing()
@@ -679,7 +674,7 @@ class Application:
             self.underwriting_questions(browser,multiLoc)
             underwriting_time.end()
 
-            self.app_logger.add_log(f"Time to Complete Underwriting Questions: {underwriting_time.compute_time()} seconds",logging.INFO)
+            MultiLog.add_log(f"Time to Complete Underwriting Questions: {underwriting_time.compute_time()} seconds",logging.INFO)
             
             self.billing(browser)
 
@@ -760,20 +755,22 @@ class Application:
         warning_value = self.value_exists(browser,"WarningIssues")
         error_value = self.value_exists(browser,"ErrorIssues")
         if warning_value is not None:
-            self.app_logger.add_log(f"Issues: {warning_value.text}",logging.WARNING)
+            for warning in warning_value:
+                MultiLog.add_log(f"Issues: {warning.text}",logging.WARNING)
         if error_value is not None:
-            self.app_logger.add_log(f"Issues: {error_value.text}",logging.ERROR)
+            for error in error_value:
+                MultiLog.add_log(f"Issues: {error.text}",logging.ERROR)
 
         if(self.create_type == "Policy" and error_value is None):
             self.submit_policy(browser)
 
             policy_num = self.find_Element(browser,"PolicySummary_PolicyNumber")
-            self.app_logger.add_log(f" ",logging.INFO)
-            self.app_logger.add_log(f" ------------ Policy STARTED ---------------- ",logging.INFO)
-            self.app_logger.add_log(f"Policy Number: {policy_num.text}",logging.INFO)
+            MultiLog.add_log(f" ",logging.INFO)
+            MultiLog.add_log(f" ------------ Policy STARTED ---------------- ",logging.INFO)
+            MultiLog.add_log(f"Policy Number: {policy_num.text}",logging.INFO)
 
         elif(error_value is not None):
-            self.app_logger.add_log(f"Application Could not be submitted due to {error_value.text}",logging.ERROR)
+            MultiLog.add_log(f"Application Could not be submitted due to {error_value.text}",logging.ERROR)
 
         sleep(5)
 
@@ -941,7 +938,6 @@ class Application:
         if producerName not in prod_values:
             File.add_producer(producerName)
 
-
     #Create a user
     
     def create_user(self,user_type,user_name):
@@ -1032,6 +1028,6 @@ class Application:
         browser.execute_script(script)
         sleep(5)
         browser.quit()
-        del self.app_logger
+
         if user_type not in list(user_values):
             File.add_user(user_type,new_user_password)
