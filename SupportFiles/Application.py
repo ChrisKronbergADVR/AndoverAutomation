@@ -175,12 +175,21 @@ class Application:
         self.find_Element(browser,"InsuredResidentAddr.Addr1").send_keys(addr)
         self.find_Element(browser,"InsuredResidentAddr.City").send_keys(city)
         Select(self.find_Element(browser,"InsuredResidentAddr.StateProvCd")).select_by_value(state)
+        if self.find_Element(browser,"InsuredResidentAddr.addrVerifyImg").is_displayed():
+            script = "InsuredResidentAddr.verify()"
+            browser.execute_script(script)
+            self.waitPageLoad(browser)
 
     
     def copy_to_mailing(self,browser,addr,city,state):
         self.find_Element(browser,"InsuredMailingAddr.Addr1").send_keys(addr)
         self.find_Element(browser,"InsuredMailingAddr.City").send_keys(city)
         Select(self.find_Element(browser,"InsuredMailingAddr.StateProvCd")).select_by_value(state)
+        if self.find_Element(browser,"InsuredMailingAddr.addrVerifyImg").is_displayed():
+            script = "InsuredMailingAddr.verify()"
+            browser.execute_script(script)
+            self.waitPageLoad(browser)
+            
 
     
     def core_coverages(self,browser):
@@ -205,30 +214,22 @@ class Application:
         self.check_for_value(browser,"Building.Seasonal","No")
         self.check_for_value(browser,"Risk.TypeCd","DP2")
         self.check_for_value(browser,"Building.BuildingLimit",keys=300000)
-        self.check_for_value(browser,"Building.StandardDed","500")
         self.check_for_value(browser,"Building.NumOfFamilies","1")
-        self.check_for_value(browser,"Building.DistanceToHydrant","1000")
         self.check_for_value(browser,"Building.OccupancyCd","Primary Residence")
         self.check_for_value(browser,"Building.CovALimit",keys=coverage_a)
         self.check_for_value(browser,"Building.NumOfFamiliesSameFire","Less Than 5",False,None)
-        self.check_for_value(browser,"Building.DistanceToHydrant","1000")
         self.check_for_value(browser,"Building.FuelLiability","300000")
         self.check_for_value(browser,"Building.OilTankLocation","none")
         self.check_for_value(browser,"Building.CovELimit","300000")
         self.check_for_value(browser,"Building.CovFLimit","2000")
-        self.check_for_value(browser,"Building.CovFLimit","100000")
         self.check_for_value(browser,"Building.CovCLimit",keys=coverage_c)
         self.check_for_value(browser,"Building.StandardDed","1000")
-        self.check_for_value(browser,"Building.NumOfFamilies","1")
-        self.check_for_value(browser,"Building.DistanceToHydrant","1000")
         self.check_for_value(browser,"Building.TerritoryCd",keys="1")
         self.check_for_value(browser,"Risk.WorkersCompInd","100000")
         self.check_for_value(browser,"Risk.WorkersCompEmployees","none")
         self.check_for_value(browser,"Building.HurricaneMitigation","No Action")
-                
         self.check_for_value(browser,"Building.BuildingClassDescription","75% or more Apartments")
         self.check_for_value(browser,"Building.BuildingClassDescription","67% or more Apartments")
-        self.check_for_value(browser,"Building.DistanceToHydrant","1000")
         self.check_for_value(browser,"Building.ContentClassDescription","None - Building Owner only")
         self.check_for_value(browser,"Building.BuildingLimit",keys=900000)
         self.check_for_value(browser,"Building.DistanceToHydrant","1000")
@@ -592,6 +593,11 @@ class Application:
             self.find_Element(browser,"InsuredCurrentAddr.Addr1").send_keys(address)
             self.find_Element(browser,"InsuredCurrentAddr.City").send_keys(city)
             Select(self.find_Element(browser,"InsuredCurrentAddr.StateProvCd")).select_by_value(state)
+
+            if self.find_Element(browser,"InsuredCurrentAddr.addrVerifyImg").is_displayed():
+                script = "InsuredCurrentAddr.verify()"
+                browser.execute_script(script)
+                self.waitPageLoad(browser)
 
         #*Select state here
         if(self.line_of_business == "Businessowners" or self.line_of_business == "Commercial Umbrella"): 
