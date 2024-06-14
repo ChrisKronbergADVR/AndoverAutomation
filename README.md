@@ -5,7 +5,7 @@ Python Automation with GUI for Andover Local and QA Environments
 
 ### If you already have Python installed, you can skip the Python install
 
-### A new .bat file was added to help run the python program from a shortcut. Copy the runAutomation.bat file and paste the shortcut to the desktop. After this is done, you can rename the file to whatever you want and it will launch the automation software.
+### A new .bat file was added to help run the Python program from a shortcut. Copy the runAutomation.bat file and paste the shortcut to the desktop. After this is done, you can rename the file to whatever you want and it will launch the automation software.
 ---
 
 ## 1. Installing Python
@@ -93,20 +93,20 @@ Python Automation with GUI for Andover Local and QA Environments
 <p align="center" width="100%"><img src = "docImages\DetailedGUI1.jpg" height="700rem"></p>
 <p align="center">GUI Image 1</p>
 
-#### 1. This is where the Environment is selected. This is either one of the many QA environments or local development environment.
-#### 2. Select the web browser you would like to use. This can be either the google chrome or Edge browser
+#### 1. This is where the Environment is selected. This is either one of the many QA environments or a local development environment.
+#### 2. Select the web browser you would like to use. This can be either the Google Chrome or Edge browser
 #### 3. Select the Add users and producers tab to add users and producers or to change the password of a current user.
 #### 4. Select the username that you would like to test with here
 #### 5. Delete the user that has been selected in 4
 #### 6. Select the producer to use in testing here
-#### 7. Delete the prducer that has been selected in 6
+#### 7. Delete the producer that has been selected in 6
 #### 8. Select the state to be used for the quote, application, or policy
 #### 9. Select the checkbox for the next
 #### 10. Add Address and Select Verify Address in GUI 2
 #### 11. Select the line of business to use here
-#### 12. Select the date from clicking the date select button or entering the date in the input box to the left of the button
+#### 12. Select the date by clicking the date select button or entering the date in the input box to the left of the button
 #### 13. Enter the Insured's first and last name here
-#### 14. Click on the dropdown box for selecting a quote, application or policy
+#### 14. Click on the dropdown box to select a quote, application, or policy
 #### 15. Click submit if everything has been entered and looks good. Otherwise, you can go back and change information or click cancel to exit the application.
 
 <br>
