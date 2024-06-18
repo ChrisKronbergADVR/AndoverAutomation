@@ -11,6 +11,7 @@ from SupportFiles.MultiLog import MultiLog
 from SupportFiles.Address import Address
 from SupportFiles.File import File
 from SupportFiles.Timing import Timing
+from selenium.webdriver.support import expected_conditions as EC
 
 class Application:
     TEST = False
@@ -104,7 +105,6 @@ class Application:
         my_value = e_name+"_"+str(radio_number)
         self.click_radio_button(browser,my_value)
 
-    
     def value_exists(self,browser,element_id):
         try:
             element1 = browser.find_elements(By.ID,element_id)
@@ -190,8 +190,6 @@ class Application:
             browser.execute_script(script)
             self.waitPageLoad(browser)
             
-
-    
     def core_coverages(self,browser):
         
         core_coverages_time = Timing()
@@ -266,8 +264,6 @@ class Application:
         #click the save button
         self.save(browser)
         
-
-    
     def question_update(self,question,size):
         if(question.__contains__("1")):
             word = question.split("1")
@@ -308,7 +304,6 @@ class Application:
                 
         return newDict
 
-    
     def gen_dewll_location_extra_questions(self,browser,num):
         extra_dwell_questions = ["Question_RiskNumber1Lapse","Question_RiskNumber1NumClaims","Question_MAFireRiskNumber1PurchaseDate","Question_MAFireRiskNumber1PurchasePrice","Question_MAFireRiskNumber1EstimatedValue","Question_MAFireRiskNumber1ValuationMethod","Question_MAFireRiskNumber1AppraisalMethod"]
         updatedArr = []
@@ -326,7 +321,6 @@ class Application:
             self.find_Element(browser,updatedArr[4]).send_keys("150000")
             Select(self.find_Element(browser,updatedArr[5])).select_by_value("Replacement Cost")
             Select(self.find_Element(browser,updatedArr[6])).select_by_value("Professional Appraisal")
-
     
     def underwriting_questions(self,browser,multi):
         
@@ -381,8 +375,7 @@ class Application:
                 MultiLog.add_log(f"Underwriting Questions Were not able to Complete because of Missing Field",logging.ERROR)
         except:
             MultiLog.add_log(f"Finishing Underwriting Questions without Errors",logging.INFO)
-
-    
+  
     def billing(self,browser):
         self.waitPageLoad(browser)
         self.find_Element(browser,"Wizard_Review").click()
@@ -516,19 +509,24 @@ class Application:
         if self.TEST:
             sleep(5)
             browser.quit()
-
     
     def submit_policy(self,browser):
+        wait = WebDriverWait(browser, 30)
+        script = "return document.readyState == 'complete'"
+
         self.find_Element(browser,"Closeout").click()
         self.waitPageLoad(browser)
         Select(self.find_Element(browser,"TransactionInfo.PaymentTypeCd")).select_by_value("None")
         self.find_Element(browser,"TransactionInfo.SignatureDocument").click()
-        self.find_Element(browser,"Printself").click()
-        sleep(30)
+        self.find_Element(browser,"PrintApplication").click()
+        wait.until(EC.number_of_windows_to_be(2))
+        browser.switch_to.window(browser.window_handles[1])
+        wait.until(lambda browser:browser.execute_script(script)) 
+        browser.switch_to.window(browser.window_handles[0])
+        self.waitPageLoad(browser)
         self.find_Element(browser,"Process").click()
         self.waitPageLoad(browser)
 
-    
     def create_new_quote(self,browser,date,state:str,producer:str,first_name:str,last_name:str,address:str,city:str,multiLoc:bool,test:bool,subType:str,carrier:str):
         
         #New Quote
@@ -783,7 +781,6 @@ class Application:
         if(test and self.create_type != "Policy"):
             self.delete_quote(browser)
 
-    
     def get_created_application(self,applicaiton_number:str):
         pass
 
