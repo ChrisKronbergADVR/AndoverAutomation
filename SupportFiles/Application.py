@@ -164,13 +164,11 @@ class Application:
         self.remove_javascript(browser)
         script = "return window.seleniumPageLoadOutstanding == 0;"
         WebDriverWait(browser, 60).until(lambda browser:browser.execute_script(script)) 
-
-    
+ 
     def run_verify_address(self,browser):
         script = "InsuredMailingAddr.verify();"
         lambda browser:browser.execute_script(script)
 
-    
     def copy_to_property(self,browser,addr,city,state):
         self.find_Element(browser,"InsuredResidentAddr.Addr1").send_keys(addr)
         self.find_Element(browser,"InsuredResidentAddr.City").send_keys(city)
@@ -775,8 +773,6 @@ class Application:
 
         elif(error_value is not None):
             MultiLog.add_log(f"Application Could not be submitted due to {error_value.text}",logging.ERROR)
-
-        sleep(5)
 
         if(test and self.create_type != "Policy"):
             self.delete_quote(browser)

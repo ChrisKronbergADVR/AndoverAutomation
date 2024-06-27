@@ -1,5 +1,6 @@
 import os
 from csv import DictReader,DictWriter
+from datetime import datetime
 
 class File:
     env_used = None
@@ -24,6 +25,26 @@ class File:
                    "Producers":{"file":"model3_prod.csv","ProducerNames":[""]}}       
                    }                     
     
+    filePath = "Logs/"
+    log_path = datetime.now()
+    year = log_path.year
+    month = log_path.month
+    day = log_path.day
+
+    day_path = f"{filePath}{year}/{month}/{day}"
+    month_path = f"{filePath}{year}/{month}"
+    year_path = f"{filePath}{year}"
+    
+    @staticmethod
+    def create_folders():
+        if(not os.path.exists(File.year_path)):
+            os.mkdir(File.year_path)
+        if(not os.path.exists(File.month_path)):
+            os.mkdir(File.month_path)
+        if(not os.path.exists(File.day_path)):
+            os.mkdir(File.day_path)
+           
+
     #Functions for creating, reading and writing to files
     @staticmethod
     def create_files():
