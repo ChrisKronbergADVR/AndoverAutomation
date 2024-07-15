@@ -862,7 +862,7 @@ class Application:
             self.waitPageLoad(browser)
             self.check_for_value(browser,"CopyAddress",keys="click")
             self.waitPageLoad(browser)
-            self.check_for_value(browser,"ProviderEmail.EmailAddr",keys="testmail.com")
+            self.check_for_value(browser,"ProviderEmail.EmailAddr",keys="test@mail.com")
             self.check_for_value(browser,"AcctName.CommercialName",keys="White House")
             self.check_for_value(browser,"PayToCd",value="Agency")
             self.check_for_value(browser,"Provider.CombinePaymentInd",value="No")
@@ -887,7 +887,7 @@ class Application:
         self.waitPageLoad(browser)
         self.check_for_value(browser,"CopyAddress",keys="click")
         self.waitPageLoad(browser)
-        self.check_for_value(browser,"ProviderEmail.EmailAddr",keys="testmail.com")
+        self.check_for_value(browser,"ProviderEmail.EmailAddr",keys="test@mail.com")
         self.check_for_value(browser,"AcctName.CommercialName",keys="White House")
         self.check_for_value(browser,"PayToCd",value="Agency")
         self.check_for_value(browser,"Provider.CombinePaymentInd",value="No")
@@ -926,7 +926,7 @@ class Application:
                 self.save(browser)
                 self.waitPageLoad(browser)
         self.check_for_value(browser,"IvansCommissionInd",value="No")
-        self.check_for_value(browser,"FCRAEmail.EmailAddr",keys="test2mail.com")
+        self.check_for_value(browser,"FCRAEmail.EmailAddr",keys="test2@mail.com")
         self.save(browser)
 
         script = "alert(\"Producer Created Successfully!\")"
