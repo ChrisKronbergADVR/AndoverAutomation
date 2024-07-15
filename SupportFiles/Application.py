@@ -781,7 +781,7 @@ class Application:
         pass
 
     #Create a producer
-    
+
     def create_producer(self,producerName,user_name):
         agency_name = "All_States_All_LOB"
         agent_name = None
@@ -944,7 +944,7 @@ class Application:
         y = datetime.today()
         default_date = y.strftime("%m/%d/%Y").split("/")
         password = self.get_password(user_name)
-        user_xpath = "//div[id='System User List']/div[2]/*/*/tr[2]/td[1]/a"
+        user_xpath = "/html/body/main/form/div[1]/div/div[4]/div/div[2]/div[4]/div/div/div[2]/table/tbody/tr[2]/td[1]/a"
         new_user_password = "pass"
         user_values = File.env_files_plus_users[self.env_used]['Users']['Usernames'].keys()
         user_searched_name = None
@@ -956,6 +956,7 @@ class Application:
             sleep(5)
             browser.quit()
             raise Exception("Incorrect username and/or password")
+        
         self.waitPageLoad(browser)    
 
         browser.execute_script('document.getElementById("Menu_Admin").click();')
