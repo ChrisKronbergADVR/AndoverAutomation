@@ -125,5 +125,3 @@ class File:
                 writer.writeheader()
             for producer in prod_list:
                 writer.writerow({'Producer':producer})    
-
-    

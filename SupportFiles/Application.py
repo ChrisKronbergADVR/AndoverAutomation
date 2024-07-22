@@ -12,6 +12,7 @@ from SupportFiles.Address import Address
 from SupportFiles.File import File
 from SupportFiles.Timing import Timing
 from selenium.webdriver.support import expected_conditions as EC
+from SupportFiles.MenuItems import Billing
 
 
 class Application:
@@ -416,6 +417,7 @@ class Application:
             MultiLog.add_log(
                 f"Finishing Underwriting Questions without Errors", logging.INFO)
 
+    """
     def billing(self, browser):
         self.waitPageLoad(browser)
         self.find_Element(browser, "Wizard_Review").click()
@@ -521,6 +523,7 @@ class Application:
         # click the save button
         self.save(browser)
         self.waitPageLoad(browser)
+        """
 
     # Start application creation
 
@@ -786,7 +789,8 @@ class Application:
             MultiLog.add_log(f"Time to Complete Underwriting Questions: {
                              underwriting_time.compute_time()} seconds", logging.INFO)
 
-            self.billing(browser)
+            # self.billing(browser)
+            Billing.Billing(browser, self.pay_plan, self.state_chosen)
 
             if self.line_of_business == "Personal Umbrella":
                 self.find_Element(browser, "GetUmbrellaQuote").click()
@@ -835,7 +839,8 @@ class Application:
                        ).select_by_value("NO")
                 self.save(browser)
                 self.find_Element(browser, "Wizard_Review").click()
-                self.billing(browser)
+                Billing.Billing(browser, self.pay_plan, self.state_chosen)
+                # self.billing(browser)
                 self.waitPageLoad(browser)
                 self.save(browser)
 
@@ -845,7 +850,8 @@ class Application:
                     self.submit_policy(browser)
                     self.find_Element(browser, "Return").click()
                     self.find_Element(browser, "policyLink0").click()
-                    self.billing(browser)
+                    Billing.Billing(browser, self.pay_plan, self.state_chosen)
+                    # self.billing(browser)
 
             if self.line_of_business == "Commercial Umbrella":
                 self.find_Element(browser, "GetUmbrellaQuote").click()
@@ -871,7 +877,8 @@ class Application:
                     browser, "Question_PreviousUmbrella").send_keys("ACME")
                 self.save(browser)
                 self.find_Element(browser, "Wizard_Review").click()
-                self.billing(browser)
+                Billing.Billing(browser, self.pay_plan, self.state_chosen)
+                # self.billing(browser)
                 self.find_Element(browser, "Navigate_Location_2").click()
                 Select(self.find_Element(
                     browser, "Location.UnderlyingEmplLimitConf")).select_by_value("Yes")
@@ -884,7 +891,9 @@ class Application:
                     self.find_Element(browser, "Return").click()
                     self.find_Element(browser, "policyLink0").click()
                     if self.pay_plan.__contains__("Bill To Other"):
-                        self.billing(browser)
+                        Billing.Billing(browser, self.pay_plan,
+                                        self.state_chosen)
+                        # self.billing(browser)
 
         self.check_for_value(browser, "Wizard_Policy", keys="click")
         warning_value = self.value_exists(browser, "WarningIssues")
