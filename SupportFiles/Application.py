@@ -6,19 +6,27 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
-from datetime import datetime, timedelta
+from datetime import datetime
 from SupportFiles.MultiLog import MultiLog
 from SupportFiles.Address import Address
 from SupportFiles.File import File
 from SupportFiles.Timing import Timing
 from selenium.webdriver.support import expected_conditions as EC
-from SupportFiles.MenuItems import Billing
+
+from SupportFiles.Actions import Actions
+from SupportFiles.MenuItems.Billing import Billing
+from SupportFiles.MenuItems.CoreCoverages import CoreCoverages
+from SupportFiles.MenuItems.Underwriting import Underwriting
 
 
 class Application:
     TEST = False
     COMPANY = "ADVR"
 
+    billing = None
+    underwriting = None
+    core_coverages = None
+    browser = None
     line_of_business = None
     state_chosen = None
     date_chosen = None
@@ -47,16 +55,13 @@ class Application:
     user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
                  "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
 
-    # *function for finding elements in the browser
+    def __init__(self):
+        pass
 
-    def find_Element(self, browser, browser_Element, id=By.ID):
-        elem = browser.find_element(id, browser_Element)
-        return elem
-
-    def delete_quote(self, browser):
+    def delete_quote(self):
         # delete created Quote
-        self.find_Element(browser, "Delete").click()
-        self.find_Element(browser, "dialogOK").click()
+        Actions.find_Element(self.browser, "Delete").click()
+        Actions.find_Element(self.browser, "dialogOK").click()
 
     # * This function is used to decide whether to use chrome or edge browser
 
@@ -65,113 +70,33 @@ class Application:
         if (self.browser_chosen == "Chrome"):
             chrome_options = Options()
             chrome_options.add_experimental_option("detach", True)
-            browser = webdriver.Chrome(options=chrome_options)
+            self.browser = webdriver.Chrome(options=chrome_options)
         else:
             edge_options = webdriver.edge.options.Options()
             edge_options.add_experimental_option("detach", True)
-            browser = webdriver.Edge(options=edge_options)
-        browser.get(self.gw_environment[self.env_used])
+            self.browser = webdriver.Edge(options=edge_options)
+        self.browser.get(self.gw_environment[self.env_used])
 
-        self.check_for_value(browser, "details-button", keys="click")
-        self.check_for_value(browser, "proceed-link", keys="click")
-        self.waitPageLoad(browser)
+        Actions.check_for_value(self.browser, "details-button", keys="click")
+        Actions.check_for_value(self.browser, "proceed-link", keys="click")
+        Actions.waitPageLoad(self.browser)
 
-        assert "Guidewire InsuranceNow™ Login" in browser.title
-        return browser
+        assert "Guidewire InsuranceNow™ Login" in self.browser.title
 
     def get_password(self, user):
         password = File.env_files_plus_users[self.env_used]["Users"]["Usernames"][user]
         return password
 
     # *function for login
-
-    def login(self, browser, user="admin", password="Not9999!"):
-        self.waitPageLoad(browser)
-        self.find_Element(browser, "j_username").send_keys(user)
-        self.find_Element(browser, "j_password").send_keys(
+    def login(self, user="admin", password="Not9999!"):
+        Actions.waitPageLoad(self.browser)
+        Actions.find_Element(self.browser, "j_username").send_keys(user)
+        Actions.find_Element(self.browser, "j_password").send_keys(
             password + Keys.RETURN)
 
-    def save(self, browser):
-        browser.execute_script('document.getElementById("Save").click();')
-        self.remove_javascript(browser)
-
-    def click_radio_button(self, browser, element):
-        try:
-            if (self.find_Element(browser, element).is_displayed()):
-                self.find_Element(browser, element).click()
-        except:
-            return None
-
-    def click_radio(self, browser):
-        e_name = "QuoteCustomerClearingRef"
-        table = browser.find_elements(By.NAME, e_name)
-        radio_number = len(table)
-        my_value = e_name+"_"+str(radio_number)
-        self.click_radio_button(browser, my_value)
-
-    def value_exists(self, browser, element_id):
-        try:
-            element1 = browser.find_elements(By.ID, element_id)
-            if len(element1) > 0:
-                return element1
-        except:
-            return None
-
-    # *Functions for finding or sending values to input fields
-
-    def check_for_value(self, browser, element, value=None, visible_text: bool = False, keys=None):
-        try:
-            element1 = self.find_Element(browser, element)
-            if element1.is_displayed():
-                if (keys != None):
-                    if (keys == "click"):
-                        if visible_text:
-                            self.find_Element(
-                                browser, "Producer", id=By.LINK_TEXT).click()
-                        else:
-                            browser.execute_script(
-                                'document.getElementById("'+element+'").click();')
-                    elif keys == "index":
-                        Select(element1).select_by_index(value)
-                    else:
-                        browser.execute_script(
-                            'document.getElementById("'+element+'").value = ""')
-                        element1.send_keys(keys)
-                elif (visible_text):
-                    Select(element1).select_by_visible_text(value)
-                else:
-                    Select(element1).select_by_value(value)
-        except:
-            MultiLog.add_log(f"Element Not Found with id {element} value:{
-                             value} keys:{keys}", logging.DEBUG)
-
-    # *Removes the errors on webpage
-
-    def remove_javascript(self, browser):
-        element_used = "js_error_list"
-        script = """
-            const parent = document.getElementById("js_error_list").parentNode;
-            if(parent != null)
-            {
-            parent.delete();  
-            }
-        """
-
-        try:
-            t = self.find_Element(browser, element_used).is_displayed()
-            if t:
-                browser.execute_script(script)
-        except:
-            pass
-        finally:
-            pass
-
-    # *function used for waiting for page to load after a button is clicked and the page has to refresh
-
-    def waitPageLoad(self, browser):
-        self.remove_javascript(browser)
+        Actions.remove_javascript(self.browser)
         script = "return window.seleniumPageLoadOutstanding == 0;"
-        WebDriverWait(browser, 60).until(
+        WebDriverWait(self.browser, 60).until(
             lambda browser: browser.execute_script(script))
 
     def run_verify_address(self, browser):
@@ -179,351 +104,28 @@ class Application:
         lambda browser: browser.execute_script(script)
 
     def copy_to_property(self, browser, addr, city, state):
-        self.find_Element(browser, "InsuredResidentAddr.Addr1").send_keys(addr)
-        self.find_Element(browser, "InsuredResidentAddr.City").send_keys(city)
-        Select(self.find_Element(
+        Actions.find_Element(
+            browser, "InsuredResidentAddr.Addr1").send_keys(addr)
+        Actions.find_Element(
+            browser, "InsuredResidentAddr.City").send_keys(city)
+        Select(Actions.find_Element(
             browser, "InsuredResidentAddr.StateProvCd")).select_by_value(state)
-        if self.find_Element(browser, "InsuredResidentAddr.addrVerifyImg").is_displayed():
+        if Actions.find_Element(browser, "InsuredResidentAddr.addrVerifyImg").is_displayed():
             script = "InsuredResidentAddr.verify()"
             browser.execute_script(script)
-            self.waitPageLoad(browser)
+            Actions.waitPageLoad(browser)
 
     def copy_to_mailing(self, browser, addr, city, state):
-        self.find_Element(browser, "InsuredMailingAddr.Addr1").send_keys(addr)
-        self.find_Element(browser, "InsuredMailingAddr.City").send_keys(city)
-        Select(self.find_Element(
+        Actions.find_Element(
+            browser, "InsuredMailingAddr.Addr1").send_keys(addr)
+        Actions.find_Element(
+            browser, "InsuredMailingAddr.City").send_keys(city)
+        Select(Actions.find_Element(
             browser, "InsuredMailingAddr.StateProvCd")).select_by_value(state)
-        if self.find_Element(browser, "InsuredMailingAddr.addrVerifyImg").is_displayed():
+        if Actions.find_Element(browser, "InsuredMailingAddr.addrVerifyImg").is_displayed():
             script = "InsuredMailingAddr.verify()"
             browser.execute_script(script)
-            self.waitPageLoad(browser)
-
-    def core_coverages(self, browser):
-
-        core_coverages_time = Timing()
-        core_coverages_time.start()
-        coverage_a = 300000
-        coverage_c = coverage_a
-        MultiLog.add_log(f"Starting Core Coverages", logging.INFO)
-
-        core_values = ["Risk.ListOfTenantsAndOccupancy", "Risk.BasementInd", "Risk.BldgCentralHeatInd", "Risk.CircuitBreakerProtInd", "Risk.UndergradResidentInd",
-                       "Risk.SpaceHeatersInd", "Risk.FrameClearance15ftInd", "Risk.ShortTermRent", "Risk.MercantileOfficeOccupantsInd", "Risk.ExcessLinesInd"]
-
-        core_values_after = ["Risk.RoofUpdatedIn15YrsInd", "Risk.AdequateSmokeDetInd",
-                             "Risk.BldgOccGt75PctInd", "Risk.EgressFromAllUnitsInd", "Risk.MaintProgramInd"]
-
-        browser.execute_script(
-            "document.getElementById('Wizard_Risks').click();")
-
-        self.waitPageLoad(browser)
-        self.check_for_value(browser, "Building.ConstructionCd", "Frame")
-        self.check_for_value(browser, "Building.YearBuilt", keys=2020)
-        self.check_for_value(browser, "Building.OccupancyCd",
-                             "Owner occupied dwelling")
-        self.check_for_value(browser, "Building.Seasonal", "No")
-        self.check_for_value(browser, "Risk.TypeCd", "DP2")
-        self.check_for_value(browser, "Building.BuildingLimit", keys=300000)
-        self.check_for_value(browser, "Building.NumOfFamilies", "1")
-        self.check_for_value(
-            browser, "Building.OccupancyCd", "Primary Residence")
-        self.check_for_value(browser, "Building.CovALimit", keys=coverage_a)
-        self.check_for_value(
-            browser, "Building.NumOfFamiliesSameFire", "Less Than 5", False, None)
-        self.check_for_value(browser, "Building.FuelLiability", "300000")
-        self.check_for_value(browser, "Building.OilTankLocation", "none")
-        self.check_for_value(browser, "Building.CovELimit", "300000")
-        self.check_for_value(browser, "Building.CovFLimit", "2000")
-        self.check_for_value(browser, "Building.CovCLimit", keys=coverage_c)
-        self.check_for_value(browser, "Building.StandardDed", "1000")
-        self.check_for_value(browser, "Building.TerritoryCd", keys="1")
-        self.check_for_value(browser, "Risk.WorkersCompInd", "100000")
-        self.check_for_value(browser, "Risk.WorkersCompEmployees", "none")
-        self.check_for_value(
-            browser, "Building.HurricaneMitigation", "No Action")
-        self.check_for_value(
-            browser, "Building.BuildingClassDescription", "75% or more Apartments")
-        self.check_for_value(
-            browser, "Building.BuildingClassDescription", "67% or more Apartments")
-        self.check_for_value(
-            browser, "Building.ContentClassDescription", "None - Building Owner only")
-        self.check_for_value(browser, "Building.BuildingLimit", keys=900000)
-        self.check_for_value(browser, "Building.DistanceToHydrant", "1000")
-        self.check_for_value(browser, "Risk.SqFtArea", keys=2000)
-        self.check_for_value(browser, "Risk.PremisesAlarm", "None", True)
-        self.check_for_value(browser, "Risk.YrsInBusinessInd", "1", True)
-        self.check_for_value(
-            browser, "Building.NumOfApartmentCondoBuilding", keys=5)
-        self.check_for_value(
-            browser, "Building.MaxNumOfAptCondoBetweenBrickWalls", keys=5)
-        self.check_for_value(browser, "Building.NumOfStories", keys=5)
-        self.check_for_value(
-            browser, "Risk.ListOfTenantsAndOccupancy", keys="None")
-        self.check_for_value(browser, "Risk.NumOfStories", keys=3)
-        self.check_for_value(browser, "Building.ProtectionClass", keys=3)
-
-        # if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
-        for value in core_values:
-            self.check_for_value(browser, value, "No", False)
-
-        # save(browser)
-        self.save(browser)
-        self.waitPageLoad(browser)
-
-        for value in core_values_after:
-            self.check_for_value(browser, value, "No", False)
-
-        try:
-            t = self.find_Element(browser, "MissingFieldError").is_displayed()
-            if t:
-                MultiLog.add_log(
-                    f"Core Coverages Was not able to Complete", logging.ERROR)
-        except:
-            MultiLog.add_log(
-                f"Finishing Core Coverages without Errors", logging.INFO)
-            core_coverages_time.end()
-            MultiLog.add_log(f"Time to complete Core Coverages: {
-                             core_coverages_time.compute_time()} seconds", logging.INFO)
-
-        # click the save button
-        self.save(browser)
-
-    def question_update(self, question, size):
-        if (question.__contains__("1")):
-            word = question.split("1")
-            new_word = word[0]+str(size)+word[1]
-        return new_word
-
-    # * Function to add underwriting questions for each location
-
-    def gen_dwell_location_questions(self, browser, num):
-
-        MultiLog.add_log(f"Starting questions for Dwelling", logging.INFO)
-
-        ques_dwell = ["Question_PolicyKnownPersonally", "Question_PolicyOtherIns", "Question_PolicyArson", "Question_RiskNumber1PrevDisc", "Question_RiskNumber1Vacant", "Question_RiskNumber1OnlineHome", "Question_RiskNumber1Isolated", "Question_RiskNumber1Island", "Question_RiskNumber1Seasonal", "Question_RiskNumber1SolarPanels", "Question_RiskNumber1Adjacent", "Question_RiskNumber1ChildCare",
-                      "Question_RiskNumber1OtherBusiness", "Question_RiskNumber1Undergrad", "Question_RiskNumber1DogsAnimals", "Question_RiskNumber1Electrical", "Question_RiskNumber1EdisonFuses", "Question_RiskNumber1Stove",
-                      "Question_RiskNumber1OilHeated", "Question_RiskNumber1Pool", "Question_RiskNumber1Trampoline", "Question_RiskNumber1Outbuildings", "Question_RiskNumber1InsDeclined", "Question_MAFireRiskNumber1OtherFireInsuranceApp",
-                      "Question_MAFireRiskNumber1OtherFireInsuranceActive", "Question_MAFireRiskNumber1FireInPast", "Question_MAFireRiskNumber1PropertyForSale", "Question_MAFireRiskNumber1ApplicantMortgageeCrime",
-                      "Question_MAFireRiskNumber1ShareholderTrusteeCrime", "Question_MAFireRiskNumber1MortgagePaymentsDelinquent", "Question_MAFireRiskNumber1RealEstateTaxesDelinquent", "Question_MAFireRiskNumber1CodeViolations"]
-
-        newDict = {1: ques_dwell}
-        newArr = []
-
-        self.gen_dewll_location_extra_questions(browser, 1)
-        if self.state_chosen == "RI":
-            self.find_Element(browser, "Question_RiskNumber" +
-                              str(1)+"InspectorName").send_keys("No")
-
-        if (num > 1):
-            for loc in range(num-1):
-                number = loc+2
-                for question_name in ques_dwell:
-                    if (question_name.__contains__("1")):
-                        word = question_name.split("1")
-                        newArr.append(word[0]+str(number)+word[1])
-                newDict[number] = newArr
-                if self.state_chosen == "RI":
-                    self.find_Element(
-                        browser, "Question_RiskNumber"+str(number)+"InspectorName").send_keys("No")
-                self.gen_dewll_location_extra_questions(browser, number)
-
-        return newDict
-
-    def gen_dewll_location_extra_questions(self, browser, num):
-        extra_dwell_questions = ["Question_RiskNumber1Lapse", "Question_RiskNumber1NumClaims", "Question_MAFireRiskNumber1PurchaseDate", "Question_MAFireRiskNumber1PurchasePrice",
-                                 "Question_MAFireRiskNumber1EstimatedValue", "Question_MAFireRiskNumber1ValuationMethod", "Question_MAFireRiskNumber1AppraisalMethod"]
-        updatedArr = []
-
-        if (num > 1):
-            for question in extra_dwell_questions:
-                updatedArr.append(self.question_update(question, num))
-        else:
-            updatedArr = extra_dwell_questions
-        Select(self.find_Element(browser, updatedArr[0])).select_by_value(
-            "No-New purchase")
-        self.find_Element(browser, updatedArr[1]).send_keys(0)
-        if (self.state_chosen == 'MA'):
-            self.find_Element(browser, updatedArr[2]).send_keys("01/01/2022")
-            self.find_Element(browser, updatedArr[3]).send_keys("100000")
-            self.find_Element(browser, updatedArr[4]).send_keys("150000")
-            Select(self.find_Element(browser, updatedArr[5])).select_by_value(
-                "Replacement Cost")
-            Select(self.find_Element(browser, updatedArr[6])).select_by_value(
-                "Professional Appraisal")
-
-    def underwriting_questions(self, browser, multi):
-
-        y = datetime.today()+timedelta(days=60)
-        producer_inspection_date = y.strftime("%m/%d/%Y")
-        self.find_Element(browser, "Wizard_Underwriting").click()
-        MultiLog.add_log(f"Starting Underwriting Questions for {
-                         self.state_chosen} {self.line_of_business}", logging.INFO)
-        self.waitPageLoad(browser)
-        lob = self.line_of_business
-
-        questions_home = ["Question_PermanentFoundation", "Question_IslandProperty", "Question_IsolatedProperty", "Question_IslandHome", "Question_PrevKnown",
-                          "Question_PrevDiscussed", "Question_OtherInsurance", "Question_VacantOrOccupied", "Question_OnlineHome", "Question_OnlineHome",
-                          "Question_SeasonalHome", "Question_FrameDwellings", "Question_DayCareOnPremises", "Question_UndergraduateStudents", "Question_SolarPanels", "Question_UndergraduateStudents",
-                          "Question_DogsCare", "Question_ElectricalService", "Question_WiringInUse", "Question_StoveOnPremises", "Question_OilHeated", "Question_PoolOnPremises",
-                          "Question_TrampolineOnPremises", "Question_AnyOutbuildings", "Question_CancelledRecently", "Question_ArsonConvicted"]
-
-        if self.line_of_business == "Dwelling Property":
-            if multi:
-                dwell_questions = self.gen_dwell_location_questions(
-                    browser, self.number_of_addresses)
-            else:
-                dwell_questions = self.gen_dwell_location_questions(browser, 1)
-
-        if self.line_of_business == "Homeowners" or self.line_of_business == "Personal Umbrella":
-            self.check_for_value(
-                browser, "Question_InspectorName", keys="Gadget")
-
-            for question in questions_home:
-                self.check_for_value(browser, question, "No", True)
-            self.check_for_value(
-                browser, "Question_AnyLapsePast", "No-New Purchase", True)
-            self.check_for_value(browser, "Question_ClaimsRecently", keys=0)
-            self.check_for_value(
-                browser, "Question_PurchasePrice", keys=500000)
-
-        if (lob == "Dwelling Property"):
-            for key in range(len(dwell_questions.keys())):
-                for question in dwell_questions[key+1]:
-                    self.check_for_value(browser, question, "No", True)
-
-        if (lob == "Businessowners" or lob == "Commercial Umbrella"):
-            Select(self.find_Element(
-                browser, "Question_01CoverageCancellation")).select_by_visible_text("No")
-            self.find_Element(
-                browser, "Question_03PreviousCarrierPropertyLimitsPremium").send_keys("No")
-            Select(self.find_Element(browser, "Question_08NumLosses")
-                   ).select_by_value("0")
-            self.find_Element(
-                browser, "Question_05ProducerName").send_keys("No")
-            self.find_Element(browser, "Question_06ProducerInspectionDt").send_keys(
-                producer_inspection_date)
-            Select(self.find_Element(browser, "Question_09Broker")
-                   ).select_by_visible_text("No")
-
-        # click the save button
-        self.save(browser)
-        self.waitPageLoad(browser)
-
-        try:
-            t = self.find_Element(browser, "MissingFieldError").is_displayed()
-            if t:
-                MultiLog.add_log(
-                    f"Underwriting Questions Were not able to Complete because of Missing Field", logging.ERROR)
-        except:
-            MultiLog.add_log(
-                f"Finishing Underwriting Questions without Errors", logging.INFO)
-
-    """
-    def billing(self, browser):
-        self.waitPageLoad(browser)
-        self.find_Element(browser, "Wizard_Review").click()
-        self.waitPageLoad(browser)
-        state = self.state_chosen
-        pay_plan = self.pay_plan
-        MultiLog.add_log(f"Pay Plan: {pay_plan}", logging.INFO)
-
-        elements = browser.find_elements(By.NAME, "BasicPolicy.PayPlanCd")
-        for e in elements:
-            self.remove_javascript(browser)
-            val1 = e.get_attribute("value")
-            id_value = e.get_attribute("id")
-            try:
-                if val1.index(" "+state):
-                    value = val1.index(" "+state)
-                    val2 = val1[:value]
-                    if (val2 == pay_plan):
-                        script = f"document.getElementById(\"{
-                            id_value}\").checked = true"
-                        try:
-                            t = self.find_Element(
-                                browser, id_value).is_displayed()
-                            if t:
-                                browser.execute_script(script)
-                                break
-                        except:
-                            pass
-                        break
-            except:
-                if (val1 == pay_plan):
-                    script = f"document.getElementById(\"{
-                        id_value}\").checked = true"
-                    try:
-                        t = self.find_Element(browser, id_value).is_displayed()
-                        if t:
-                            browser.execute_script(script)
-                            break
-                    except:
-                        pass
-
-        self.waitPageLoad(browser)
-
-        if pay_plan.__contains__("Automated Monthly"):
-            Select(self.find_Element(
-                browser, "InstallmentSource.MethodCd")).select_by_value("ACH")
-            self.waitPageLoad(browser)
-            Select(self.find_Element(
-                browser, "InstallmentSource.ACHStandardEntryClassCd")).select_by_value("PPD")
-            Select(self.find_Element(
-                browser, "InstallmentSource.ACHBankAccountTypeCd")).select_by_value("Checking")
-            self.find_Element(
-                browser, "InstallmentSource.ACHBankName").send_keys("Bank")
-            self.find_Element(
-                browser, "InstallmentSource.ACHBankAccountNumber").send_keys(123456789)
-            self.find_Element(
-                browser, "InstallmentSource.ACHRoutingNumber").send_keys("011000015")
-            self.find_Element(browser, "BasicPolicy.PaymentDay").send_keys(15)
-            self.find_Element(browser, "BasicPolicy.CheckedEFTForm").click()
-        if pay_plan.__contains__("Bill To Other") or pay_plan.__contains__("Mortgagee"):
-            self.find_Element(browser, "UWAINew").click()
-            self.waitPageLoad(browser)
-            if pay_plan.__contains__("Bill To Other"):
-                Select(self.find_Element(browser, "AI.InterestTypeCd")
-                       ).select_by_value("Bill To Other")
-                self.waitPageLoad(browser)
-            else:
-                Select(self.find_Element(browser, "AI.InterestTypeCd")
-                       ).select_by_value("First Mortgagee")
-                Select(self.find_Element(browser, "AI.EscrowInd")
-                       ).select_by_value("Yes")
-                Select(self.find_Element(browser, "AI.BillMortgRnwlInd")
-                       ).select_by_value("No")
-            self.find_Element(browser, "AI.AccountNumber").send_keys(12345)
-            self.check_for_value(browser, "AI.BTORnwlInd", "No")
-            self.find_Element(
-                browser, "AI.InterestName").send_keys("First Last")
-            self.find_Element(browser, "AIMailingAddr.Addr1").send_keys(
-                "1595 N Peach Ave")
-            self.find_Element(
-                browser, "AIMailingAddr.City").send_keys("Fresno")
-            Select(self.find_Element(
-                browser, "AIMailingAddr.StateProvCd")).select_by_value("CA")
-            self.find_Element(
-                browser, "AIMailingAddr.PostalCode").send_keys(93727)
-            Select(self.find_Element(browser, "AIMailingAddr.RegionCd")
-                   ).select_by_value("United States")
-
-            try:
-                self.find_Element(browser, "LinkReferenceInclude_0").click()
-            except:
-                try:
-                    self.find_Element(
-                        browser, "LinkReferenceInclude_1").click()
-                except:
-                    pass
-
-            self.waitPageLoad(browser)
-            self.save(browser)
-
-        self.waitPageLoad(browser)
-
-        # click the save button
-        self.save(browser)
-        self.waitPageLoad(browser)
-        """
+            Actions.waitPageLoad(browser)
 
     # Start application creation
 
@@ -550,15 +152,21 @@ class Application:
             MultiLog.add_log(f"Started {create_type} for {state_chosen} {line_of_business} in {
                              env_used} Environment with {user_chosen} user where date = {date_chosen}", logging.INFO)
 
-        browser = self.load_page()
+        self.load_page()
 
         try:
-            self.login(browser, user_chosen, password)
+            self.login(user_chosen, password)
         except:
             raise Exception("Incorrect username and/or password")
 
+        self.billing = Billing(self.browser, self.pay_plan, self.state_chosen)
+        self.core_coverages = CoreCoverages(
+            self.browser)
+        self.underwriting = Underwriting(
+            self.browser, self.state_chosen, self.line_of_business, self.number_of_addresses)
+
         # *Tab to click  for recent quotes, applications, and policies
-        self.find_Element(browser, "Tab_Recent").click()
+        Actions.find_Element(self.browser, "Tab_Recent").click()
         state1, CITY, ADDRESS = Address.addresses[str(state_chosen+"1")]
         custom_city = Address.custom_address["City"]
         custom_add = Address.custom_address["Address"]
@@ -566,214 +174,221 @@ class Application:
         last_name = "Automation"
 
         if Address.custom_address["Flag"]:
-            self.create_new_quote(browser, date_chosen, state1, producer_selected, first_name,
+            self.create_new_quote(date_chosen, state1, producer_selected, first_name,
                                   last_name, custom_add, custom_city, multiAdd, self.TEST, subType, CARRIER[carrier])
         else:
-            self.create_new_quote(browser, date_chosen, state1, producer_selected, first_name,
+            self.create_new_quote(date_chosen, state1, producer_selected, first_name,
                                   last_name, ADDRESS, CITY, multiAdd, self.TEST, subType, CARRIER[carrier])
 
         if self.TEST:
             sleep(5)
-            browser.quit()
+            self.browser.quit()
 
-    def submit_policy(self, browser):
-        wait = WebDriverWait(browser, 30)
+    def submit_policy(self):
+        wait = WebDriverWait(self.browser, 30)
         script = "return document.readyState == 'complete'"
 
-        self.find_Element(browser, "Closeout").click()
-        self.waitPageLoad(browser)
-        Select(self.find_Element(browser, "TransactionInfo.PaymentTypeCd")
+        Actions.find_Element(self.browser, "Closeout").click()
+        Actions.waitPageLoad(self.browser)
+        Select(Actions.find_Element(self.browser, "TransactionInfo.PaymentTypeCd")
                ).select_by_value("None")
-        self.find_Element(browser, "TransactionInfo.SignatureDocument").click()
-        self.find_Element(browser, "PrintApplication").click()
+        Actions.find_Element(
+            self.browser, "TransactionInfo.SignatureDocument").click()
+        Actions.find_Element(self.browser, "PrintApplication").click()
         wait.until(EC.number_of_windows_to_be(2))
-        browser.switch_to.window(browser.window_handles[1])
+        self.browser.switch_to.window(self.browser.window_handles[1])
         wait.until(lambda browser: browser.execute_script(script))
-        browser.switch_to.window(browser.window_handles[0])
-        self.waitPageLoad(browser)
-        self.find_Element(browser, "Process").click()
-        self.waitPageLoad(browser)
+        self.browser.switch_to.window(self.browser.window_handles[0])
+        Actions.waitPageLoad(self.browser)
+        Actions.find_Element(self.browser, "Process").click()
+        Actions.waitPageLoad(self.browser)
 
-    def create_new_quote(self, browser, date, state: str, producer: str, first_name: str, last_name: str, address: str, city: str, multiLoc: bool, test: bool, subType: str, carrier: str):
+    def create_new_quote(self, date, state: str, producer: str, first_name: str, last_name: str, address: str, city: str, multiLoc: bool, test: bool, subType: str, carrier: str):
 
         # New Quote
-        self.find_Element(browser, "QuickAction_NewQuote_Holder").click()
-        self.find_Element(browser, "QuickAction_EffectiveDt").send_keys(date)
+        Actions.find_Element(
+            self.browser, "QuickAction_NewQuote_Holder").click()
+        Actions.find_Element(
+            self.browser, "QuickAction_EffectiveDt").send_keys(date)
 
-        self.waitPageLoad(browser)
+        Actions.waitPageLoad(self.browser)
         # State Select
-        browser.execute_script(
+        self.browser.execute_script(
             "document.getElementById('QuickAction_StateCd').value = '"+state+"';")
-        self.check_for_value(
-            browser, "QuickAction_CarrierGroupCd", self.COMPANY)
+        Actions.check_for_value(
+            self.browser, "QuickAction_CarrierGroupCd", self.COMPANY)
 
-        browser.execute_script(
+        self.browser.execute_script(
             "document.getElementById('QuickAction_NewQuote').click()")
 
         if self.line_of_business == "Personal Umbrella":
-            self.find_Element(browser, "Homeowners", By.LINK_TEXT).click()
+            Actions.find_Element(
+                self.browser, "Homeowners", By.LINK_TEXT).click()
         elif self.line_of_business == "Commercial Umbrella":
-            self.find_Element(browser, "Businessowners", By.LINK_TEXT).click()
+            Actions.find_Element(
+                self.browser, "Businessowners", By.LINK_TEXT).click()
         else:
-            self.find_Element(browser, self.line_of_business,
-                              By.LINK_TEXT).click()
+            Actions.find_Element(self.browser, self.line_of_business,
+                                 By.LINK_TEXT).click()
 
         # enter producer here
-        self.check_for_value(browser, "ProviderNumber", keys=producer)
+        Actions.check_for_value(self.browser, "ProviderNumber", keys=producer)
 
         # select entity type
         if (self.line_of_business == "Dwelling Property" or self.line_of_business == "Businessowners" or self.line_of_business == "Commercial Umbrella"):
-            Select(self.find_Element(browser, "Insured.EntityTypeCd")
+            Select(Actions.find_Element(self.browser, "Insured.EntityTypeCd")
                    ).select_by_value("Individual")
 
-        self.waitPageLoad(browser)
+        Actions.waitPageLoad(self.browser)
 
-        quote_num = self.find_Element(
-            browser, "QuoteAppSummary_QuoteAppNumber")
+        quote_num = Actions.find_Element(
+            self.browser, "QuoteAppSummary_QuoteAppNumber")
         MultiLog.add_log(f" ", logging.INFO)
         MultiLog.add_log(
             f" ------------ QUOTE STARTED ---------------- ", logging.INFO)
         MultiLog.add_log(f"Quote Number: {quote_num.text}", logging.INFO)
 
-        self.check_for_value(
-            browser, "InsuredPersonal.OccupationClassCd", "Other")
-        self.check_for_value(
-            browser, "InsuredPersonal.OccupationOtherDesc", keys="No")
+        Actions.check_for_value(
+            self.browser, "InsuredPersonal.OccupationClassCd", "Other")
+        Actions.check_for_value(
+            self.browser, "InsuredPersonal.OccupationOtherDesc", keys="No")
 
         if self.state_chosen == "NY" and (self.line_of_business == "Homeowners" or self.line_of_business == "Personal Umbrella"):
-            Select(self.find_Element(
-                browser, "BasicPolicy.GeographicTerritory")).select_by_value("Upstate")
+            Select(Actions.find_Element(
+                self.browser, "BasicPolicy.GeographicTerritory")).select_by_value("Upstate")
 
-        browser.execute_script(
+        self.browser.execute_script(
             'document.getElementById("InsuredName.GivenName").value = "' + first_name + '"')
-        browser.execute_script(
+        self.browser.execute_script(
             'document.getElementById("InsuredName.Surname").value = "' + last_name + '"')
 
-        self.check_for_value(
-            browser, "InsuredNameJoint.GivenName", keys="click")
-        self.check_for_value(
-            browser, "InsuredNameJoint.GivenName", keys="Second")
-        self.check_for_value(
-            browser, "InsuredNameJoint.Surname", keys="Person")
-        self.waitPageLoad(browser)
-        self.check_for_value(
-            browser, "InsuredNameJoint.GivenName", keys="Second")
-        self.check_for_value(
-            browser, "InsuredNameJoint.Surname", keys="Person")
-        self.check_for_value(
-            browser, "InsuredPersonalJoint.BirthDt", keys="01/01/1980")
-        self.check_for_value(
-            browser, "InsuredPersonalJoint.OccupationClassCd", "Other")
-        self.check_for_value(
-            browser, "InsuredPersonalJoint.OccupationOtherJointDesc", keys="No")
+        Actions.check_for_value(
+            self.browser, "InsuredNameJoint.GivenName", keys="click")
+        Actions.check_for_value(
+            self.browser, "InsuredNameJoint.GivenName", keys="Second")
+        Actions.check_for_value(
+            self.browser, "InsuredNameJoint.Surname", keys="Person")
+        Actions.waitPageLoad(self.browser)
+        Actions.check_for_value(
+            self.browser, "InsuredNameJoint.GivenName", keys="Second")
+        Actions.check_for_value(
+            self.browser, "InsuredNameJoint.Surname", keys="Person")
+        Actions.check_for_value(
+            self.browser, "InsuredPersonalJoint.BirthDt", keys="01/01/1980")
+        Actions.check_for_value(
+            self.browser, "InsuredPersonalJoint.OccupationClassCd", "Other")
+        Actions.check_for_value(
+            self.browser, "InsuredPersonalJoint.OccupationOtherJointDesc", keys="No")
 
         if (self.line_of_business == "Homeowners" or self.line_of_business == "Personal Umbrella") and subType:
-            self.check_for_value(
-                browser, "BasicPolicy.DisplaySubTypeCd", subType)
+            Actions.check_for_value(
+                self.browser, "BasicPolicy.DisplaySubTypeCd", subType)
             if self.state_chosen == "NY":
-                Select(self.find_Element(
-                    browser, "BasicPolicy.DisplaySubTypeCd")).select_by_index(1)
+                Select(Actions.find_Element(
+                    self.browser, "BasicPolicy.DisplaySubTypeCd")).select_by_index(1)
 
         if self.line_of_business != "Businessowners" and self.line_of_business != "Commercial Umbrella":
-            self.find_Element(
-                browser, "InsuredPersonal.BirthDt").send_keys("01/01/1980")
-            self.find_Element(
-                browser, "InsuredCurrentAddr.Addr1").send_keys(address)
-            self.find_Element(
-                browser, "InsuredCurrentAddr.City").send_keys(city)
-            Select(self.find_Element(
-                browser, "InsuredCurrentAddr.StateProvCd")).select_by_value(state)
+            Actions.find_Element(
+                self.browser, "InsuredPersonal.BirthDt").send_keys("01/01/1980")
+            Actions.find_Element(
+                self.browser, "InsuredCurrentAddr.Addr1").send_keys(address)
+            Actions.find_Element(
+                self.browser, "InsuredCurrentAddr.City").send_keys(city)
+            Select(Actions.find_Element(
+                self.browser, "InsuredCurrentAddr.StateProvCd")).select_by_value(state)
 
-            if self.find_Element(browser, "InsuredCurrentAddr.addrVerifyImg").is_displayed():
+            if Actions.find_Element(self.browser, "InsuredCurrentAddr.addrVerifyImg").is_displayed():
                 script = "InsuredCurrentAddr.verify()"
-                browser.execute_script(script)
-                self.waitPageLoad(browser)
+                self.browser.execute_script(script)
+                Actions.waitPageLoad(self.browser)
 
         # *Select state here
         if (self.line_of_business == "Businessowners" or self.line_of_business == "Commercial Umbrella"):
-            self.find_Element(
-                browser, "InsuredMailingAddr.Addr1").send_keys(address)
-            self.find_Element(
-                browser, "InsuredMailingAddr.City").send_keys(city)
-            Select(self.find_Element(
-                browser, "InsuredMailingAddr.StateProvCd")).select_by_value(state)
+            Actions.find_Element(
+                self.browser, "InsuredMailingAddr.Addr1").send_keys(address)
+            Actions.find_Element(
+                self.browser, "InsuredMailingAddr.City").send_keys(city)
+            Select(Actions.find_Element(
+                self.browser, "InsuredMailingAddr.StateProvCd")).select_by_value(state)
 
         # *Adding geographic territory and policy carrier here
         if (self.state_chosen == "NY" and (self.line_of_business == "Homeowners" or self.line_of_business == "Personal Umbrella")):
-            Select(self.find_Element(
-                browser, "BasicPolicy.GeographicTerritory")).select_by_value("Metro")
+            Select(Actions.find_Element(
+                self.browser, "BasicPolicy.GeographicTerritory")).select_by_value("Metro")
 
-        self.waitPageLoad(browser)
+        Actions.waitPageLoad(self.browser)
         if self.line_of_business == "Businessowners" or self.line_of_business == "Commercial Umbrella":
-            self.find_Element(browser, "DefaultAddress").click()
+            Actions.find_Element(self.browser, "DefaultAddress").click()
 
         if self.line_of_business != "Businessowners" and self.line_of_business != "Commercial Umbrella":
-            self.copy_to_property(browser, address, city, state)
-            self.copy_to_mailing(browser, address, city, state)
-            self.waitPageLoad(browser)
+            self.copy_to_property(self.browser, address, city, state)
+            self.copy_to_mailing(self.browser, address, city, state)
+            Actions.waitPageLoad(self.browser)
 
         # *First and Last names copied to input fields here
-        self.find_Element(browser, "InsuredName.MailtoName").send_keys(
+        Actions.find_Element(self.browser, "InsuredName.MailtoName").send_keys(
             f"{first_name} {last_name}")
-        self.find_Element(browser, "Insured.InspectionContact").send_keys(
+        Actions.find_Element(self.browser, "Insured.InspectionContact").send_keys(
             f"{first_name} {last_name}")
 
         # *Phone Type, Phone number, and email entered here
-        Select(self.find_Element(browser, "InsuredPhonePrimary.PhoneName")
+        Select(Actions.find_Element(self.browser, "InsuredPhonePrimary.PhoneName")
                ).select_by_value("Mobile")
-        self.find_Element(
-            browser, "InsuredPhonePrimary.PhoneNumber").send_keys(5558675309)
-        self.check_for_value(
-            browser, "Insured.InspectionContactPhoneType", "Mobile")
-        self.check_for_value(
-            browser, "Insured.InspectionContactNumber", keys=5558675309)
-        self.find_Element(browser, "InsuredEmail.EmailAddr").send_keys(
+        Actions.find_Element(
+            self.browser, "InsuredPhonePrimary.PhoneNumber").send_keys(5558675309)
+        Actions.check_for_value(
+            self.browser, "Insured.InspectionContactPhoneType", "Mobile")
+        Actions.check_for_value(
+            self.browser, "Insured.InspectionContactNumber", keys=5558675309)
+        Actions.find_Element(self.browser, "InsuredEmail.EmailAddr").send_keys(
             "test@mail.com")
-        self.waitPageLoad(browser)
+        Actions.waitPageLoad(self.browser)
 
         # Set insurance score if available
-        self.check_for_value(
-            browser, "InsuredInsuranceScore.OverriddenInsuranceScore", keys="999")
+        Actions.check_for_value(
+            self.browser, "InsuredInsuranceScore.OverriddenInsuranceScore", keys="999")
 
         # *click the save button
-        self.save(browser)
-        self.waitPageLoad(browser)
+        Actions.save(self.browser)
+        Actions.waitPageLoad(self.browser)
 
         # Select the second policy carrier
-        self.check_for_value(browser, "BasicPolicy.PolicyCarrierCd", carrier)
+        Actions.check_for_value(
+            self.browser, "BasicPolicy.PolicyCarrierCd", carrier)
 
         # multiple locations here
         if self.line_of_business != "Businessowners" and self.line_of_business != "Commercial Umbrella":
 
-            self.core_coverages(browser)
+            self.core_coverages.start_coverages()
             if (multiLoc and self.line_of_business == "Dwelling Property"):
                 for i in range(self.number_of_addresses-1):
-                    self.find_Element(browser, "CopyRisk").click()
-                    self.save(browser)
+                    Actions.find_Element(self.browser, "CopyRisk").click()
+                    Actions.save(self.browser)
 
         if (self.create_type == "Application" or self.create_type == "Policy"):
-            self.waitPageLoad(browser)
-            self.check_for_value(browser, "Wizard_Policy", keys="click")
-            self.waitPageLoad(browser)
-            self.click_radio(browser)
-            self.waitPageLoad(browser)
-            self.find_Element(browser, "Bind").click()
+            Actions.waitPageLoad(self.browser)
+            Actions.check_for_value(
+                self.browser, "Wizard_Policy", keys="click")
+            Actions.waitPageLoad(self.browser)
+            Actions.click_radio(self.browser)
+            Actions.waitPageLoad(self.browser)
+            Actions.find_Element(self.browser, "Bind").click()
 
             if self.line_of_business == "Businessowners" or self.line_of_business == "Commercial Umbrella":
-                self.core_coverages(browser)
+                self.core_coverages(self.browser)
 
-            self.waitPageLoad(browser)
+            Actions.waitPageLoad(self.browser)
             if (self.state_chosen == "NJ" and (self.line_of_business == "Homeowners" or self.line_of_business == "Personal Umbrella")):
-                self.find_Element(browser, "Wizard_Risks").click()
-                self.waitPageLoad(browser)
-                self.check_for_value(
-                    browser, "Building.Inspecti onSurveyReqInd", "No")
+                Actions.find_Element(self.browser, "Wizard_Risks").click()
+                Actions.waitPageLoad(self.browser)
+                Actions.check_for_value(
+                    self.browser, "Building.Inspecti onSurveyReqInd", "No")
 
                 # click the save button
-                self.save(browser)
+                Actions.save(self.browser)
 
-            application_num = self.find_Element(
-                browser, "QuoteAppSummary_QuoteAppNumber")
+            application_num = Actions.find_Element(
+                self.browser, "QuoteAppSummary_QuoteAppNumber")
             MultiLog.add_log(f" ", logging.INFO)
             MultiLog.add_log(
                 f" ------------ APPLICATION STARTED ---------------- ", logging.INFO)
@@ -783,121 +398,127 @@ class Application:
             # Creating a Timing Object for Underwriting questions
             underwriting_time = Timing()
             underwriting_time.start()
-            self.underwriting_questions(browser, multiLoc)
+            self.underwriting.underwriting_questions(multiLoc)
             underwriting_time.end()
 
             MultiLog.add_log(f"Time to Complete Underwriting Questions: {
                              underwriting_time.compute_time()} seconds", logging.INFO)
 
-            # self.billing(browser)
-            Billing.Billing(browser, self.pay_plan, self.state_chosen)
+            self.billing.run_billing()
 
             if self.line_of_business == "Personal Umbrella":
-                self.find_Element(browser, "GetUmbrellaQuote").click()
-                self.waitPageLoad(browser)
-                self.find_Element(browser, "Wizard_UmbrellaLiability").click()
-                Select(self.find_Element(
-                    browser, "Line.PersonalLiabilityLimit")).select_by_value("1000000")
-                self.find_Element(
-                    browser, "Line.TotMotOwnLeasBus").send_keys(0)
-                self.find_Element(browser, "Line.NumMotExcUmb").send_keys(0)
-                self.find_Element(browser, "Line.NumHouseAutoRec").send_keys(0)
-                self.find_Element(browser, "Line.NumOfYouthInexp").send_keys(0)
+                Actions.find_Element(self.browser, "GetUmbrellaQuote").click()
+                Actions.waitPageLoad(self.browser)
+                Actions.find_Element(
+                    self.browser, "Wizard_UmbrellaLiability").click()
+                Select(Actions.find_Element(
+                    self.browser, "Line.PersonalLiabilityLimit")).select_by_value("1000000")
+                Actions.find_Element(
+                    self.browser, "Line.TotMotOwnLeasBus").send_keys(0)
+                Actions.find_Element(
+                    self.browser, "Line.NumMotExcUmb").send_keys(0)
+                Actions.find_Element(
+                    self.browser, "Line.NumHouseAutoRec").send_keys(0)
+                Actions.find_Element(
+                    self.browser, "Line.NumOfYouthInexp").send_keys(0)
                 if self.state_chosen == "NH":
-                    Select(self.find_Element(
-                        browser, "Line.RejectExcessUninsuredMotorists")).select_by_value("No")
-                    Select(self.find_Element(
-                        browser, "Line.UnderAutLiabPerOcc")).select_by_value("No")
+                    Select(Actions.find_Element(
+                        self.browser, "Line.RejectExcessUninsuredMotorists")).select_by_value("No")
+                    Select(Actions.find_Element(
+                        self.browser, "Line.UnderAutLiabPerOcc")).select_by_value("No")
                 if self.state_chosen == "NJ" or self.state_chosen == "NY" or self.state_chosen == "RI" or self.state_chosen == "CT" or self.state_chosen == "IL" or self.state_chosen == "ME" or self.state_chosen == "MA":
-                    Select(self.find_Element(
-                        browser, "Line.UnderAutLiabPerOcc")).select_by_value("No")
-                self.find_Element(browser, "Bind").click()
-                self.find_Element(browser, "Wizard_Underwriting").click()
-                Select(self.find_Element(
-                    browser, "Question_DiscussedWithUnderwriter")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_DUIConvicted")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_ConvictedTraffic")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_WatercraftBusiness")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_DayCarePremises")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_UndergraduateStudents")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_AnimalsCustody")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_PoolPremises")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_TrampolinePremises")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_CancelledRecently")).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_BusinessPolicies")).select_by_value("NO")
-                Select(self.find_Element(browser, "Question_OnlineHome")
+                    Select(Actions.find_Element(
+                        self.browser, "Line.UnderAutLiabPerOcc")).select_by_value("No")
+                Actions.find_Element(self.browser, "Bind").click()
+                Actions.find_Element(
+                    self.browser, "Wizard_Underwriting").click()
+                Select(Actions.find_Element(
+                    self.browser, "Question_DiscussedWithUnderwriter")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_DUIConvicted")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_ConvictedTraffic")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_WatercraftBusiness")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_DayCarePremises")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_UndergraduateStudents")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_AnimalsCustody")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_PoolPremises")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_TrampolinePremises")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_CancelledRecently")).select_by_value("NO")
+                Select(Actions.find_Element(
+                    self.browser, "Question_BusinessPolicies")).select_by_value("NO")
+                Select(Actions.find_Element(self.browser, "Question_OnlineHome")
                        ).select_by_value("NO")
-                self.save(browser)
-                self.find_Element(browser, "Wizard_Review").click()
-                Billing.Billing(browser, self.pay_plan, self.state_chosen)
-                # self.billing(browser)
-                self.waitPageLoad(browser)
-                self.save(browser)
+                Actions.save(self.browser)
+                Actions.find_Element(self.browser, "Wizard_Review").click()
+
+                self.billing.run_billing()
+
+                Actions.waitPageLoad(self.browser)
+                Actions.save(self.browser)
 
                 if self.create_type == "Policy":
-                    self.find_Element(browser, "Return").click()
-                    self.find_Element(browser, "policyLink0").click()
-                    self.submit_policy(browser)
-                    self.find_Element(browser, "Return").click()
-                    self.find_Element(browser, "policyLink0").click()
-                    Billing.Billing(browser, self.pay_plan, self.state_chosen)
-                    # self.billing(browser)
+                    Actions.find_Element(self.browser, "Return").click()
+                    Actions.find_Element(self.browser, "policyLink0").click()
+                    self.submit_policy(self.browser)
+                    Actions.find_Element(self.browser, "Return").click()
+                    Actions.find_Element(self.browser, "policyLink0").click()
+                    self.billing.run_billing()
 
             if self.line_of_business == "Commercial Umbrella":
-                self.find_Element(browser, "GetUmbrellaQuote").click()
-                self.waitPageLoad(browser)
-                self.find_Element(browser, "Wizard_UmbrellaLiability").click()
+                Actions.find_Element(self.browser, "GetUmbrellaQuote").click()
+                Actions.waitPageLoad(self.browser)
+                Actions.find_Element(
+                    self.browser, "Wizard_UmbrellaLiability").click()
                 if self.state_chosen == "CT" or self.state_chosen == "NH" or self.state_chosen == "NY" or self.state_chosen == "RI":
-                    Select(self.find_Element(browser, "Line.CoverageTypeCd")).select_by_value(
+                    Select(Actions.find_Element(self.browser, "Line.CoverageTypeCd")).select_by_value(
                         "Businessowners Umbrella Liability")
-                Select(self.find_Element(
-                    browser, "Line.CommercialLiabilityLimit")).select_by_value("1000000")
-                Select(self.find_Element(browser, "Line.OwnedAutosInd")
+                Select(Actions.find_Element(
+                    self.browser, "Line.CommercialLiabilityLimit")).select_by_value("1000000")
+                Select(Actions.find_Element(self.browser, "Line.OwnedAutosInd")
                        ).select_by_value("No")
-                Select(self.find_Element(
-                    browser, "Line.EmplLiabCovrInsured")).select_by_value("No")
-                self.find_Element(browser, "Wizard_Policy").click()
-                self.find_Element(browser, "Bind").click()
-                self.find_Element(browser, "Wizard_Underwriting").click()
-                Select(self.find_Element(browser, "Question_OtherLiab")
+                Select(Actions.find_Element(
+                    self.browser, "Line.EmplLiabCovrInsured")).select_by_value("No")
+                Actions.find_Element(self.browser, "Wizard_Policy").click()
+                Actions.find_Element(self.browser, "Bind").click()
+                Actions.find_Element(
+                    self.browser, "Wizard_Underwriting").click()
+                Select(Actions.find_Element(self.browser, "Question_OtherLiab")
                        ).select_by_value("NO")
-                Select(self.find_Element(
-                    browser, "Question_PriorCovCancelled")).select_by_value("NO")
-                self.find_Element(
-                    browser, "Question_PreviousUmbrella").send_keys("ACME")
-                self.save(browser)
-                self.find_Element(browser, "Wizard_Review").click()
-                Billing.Billing(browser, self.pay_plan, self.state_chosen)
-                # self.billing(browser)
-                self.find_Element(browser, "Navigate_Location_2").click()
-                Select(self.find_Element(
-                    browser, "Location.UnderlyingEmplLimitConf")).select_by_value("Yes")
-                self.find_Element(browser, "NextPage").click()
+                Select(Actions.find_Element(
+                    self.browser, "Question_PriorCovCancelled")).select_by_value("NO")
+                Actions.find_Element(
+                    self.browser, "Question_PreviousUmbrella").send_keys("ACME")
+                Actions.save(self.browser)
+                Actions.find_Element(self.browser, "Wizard_Review").click()
+
+                self.billing.run_billing()
+
+                Actions.find_Element(
+                    self.browser, "Navigate_Location_2").click()
+                Select(Actions.find_Element(
+                    self.browser, "Location.UnderlyingEmplLimitConf")).select_by_value("Yes")
+                Actions.find_Element(self.browser, "NextPage").click()
 
                 if self.create_type == "Policy":
-                    self.find_Element(browser, "Return").click()
-                    self.find_Element(browser, "policyLink0").click()
-                    self.submit_policy(browser)
-                    self.find_Element(browser, "Return").click()
-                    self.find_Element(browser, "policyLink0").click()
+                    Actions.find_Element(self.browser, "Return").click()
+                    Actions.find_Element(self.browser, "policyLink0").click()
+                    self.submit_policy(self.browser)
+                    Actions.find_Element(self.browser, "Return").click()
+                    Actions.find_Element(self.browser, "policyLink0").click()
                     if self.pay_plan.__contains__("Bill To Other"):
-                        Billing.Billing(browser, self.pay_plan,
-                                        self.state_chosen)
-                        # self.billing(browser)
+                        self.billing.run_billing()
 
-        self.check_for_value(browser, "Wizard_Policy", keys="click")
-        warning_value = self.value_exists(browser, "WarningIssues")
-        error_value = self.value_exists(browser, "ErrorIssues")
+        Actions.check_for_value(self.browser, "Wizard_Policy", keys="click")
+        warning_value = Actions.value_exists(self.browser, "WarningIssues")
+        error_value = Actions.value_exists(self.browser, "ErrorIssues")
         if warning_value is not None:
             for warning in warning_value:
                 MultiLog.add_log(f"Issues: {warning.text}", logging.WARNING)
@@ -906,10 +527,10 @@ class Application:
                 MultiLog.add_log(f"Issues: {error.text}", logging.ERROR)
 
         if (self.create_type == "Policy" and error_value is None):
-            self.submit_policy(browser)
+            self.submit_policy(self.browser)
 
-            policy_num = self.find_Element(
-                browser, "PolicySummary_PolicyNumber")
+            policy_num = Actions.find_Element(
+                self.browser, "PolicySummary_PolicyNumber")
             MultiLog.add_log(f" ", logging.INFO)
             MultiLog.add_log(
                 f" ------------ Policy STARTED ---------------- ", logging.INFO)
@@ -920,7 +541,7 @@ class Application:
                              error_value.text}", logging.ERROR)
 
         if (test and self.create_type != "Policy"):
-            self.delete_quote(browser)
+            self.delete_quote(self.browser)
 
     def get_created_application(self, applicaiton_number: str):
         pass
@@ -947,7 +568,7 @@ class Application:
             sleep(5)
             browser.quit()
             raise Exception("Incorrect username and/or password")
-        self.waitPageLoad(browser)
+        Actions.waitPageLoad(browser)
 
         #################### Searching for a Producer #########################
         browser.execute_script(
@@ -955,30 +576,30 @@ class Application:
         browser.execute_script(
             'document.getElementById("Menu_Policy_UnderwritingMaintenance").click();')
 
-        self.find_Element(browser, "Producer", id=By.LINK_TEXT).click()
-        self.check_for_value(browser, "SearchText", keys=producerName)
-        self.check_for_value(browser, "SearchBy", "ProviderNumber")
-        self.check_for_value(browser, "SearchFor", "Producer")
-        self.check_for_value(browser, "SearchOperator", "=")
-        self.check_for_value(browser, "Search", keys="click")
-        self.waitPageLoad(browser)
+        Actions.find_Element(browser, "Producer", id=By.LINK_TEXT).click()
+        Actions.check_for_value(browser, "SearchText", keys=producerName)
+        Actions.check_for_value(browser, "SearchBy", "ProviderNumber")
+        Actions.check_for_value(browser, "SearchFor", "Producer")
+        Actions.check_for_value(browser, "SearchOperator", "=")
+        Actions.check_for_value(browser, "Search", keys="click")
+        Actions.waitPageLoad(browser)
 
         try:
-            prod_name = self.find_Element(
+            prod_name = Actions.find_Element(
                 browser, "//div[id='Agency/Producer List']/*/*/tr[2]/td[2]", By.XPATH)
         except:
             pass
 
         #################### Searching for an Agency #########################
-        self.check_for_value(browser, "SearchText", keys=agency_name)
-        self.check_for_value(browser, "SearchBy", "ProviderNumber")
-        self.check_for_value(browser, "SearchFor", "Agency")
-        self.check_for_value(browser, "SearchOperator", "=")
-        self.check_for_value(browser, "Search", keys="click")
-        self.waitPageLoad(browser)
+        Actions.check_for_value(browser, "SearchText", keys=agency_name)
+        Actions.check_for_value(browser, "SearchBy", "ProviderNumber")
+        Actions.check_for_value(browser, "SearchFor", "Agency")
+        Actions.check_for_value(browser, "SearchOperator", "=")
+        Actions.check_for_value(browser, "Search", keys="click")
+        Actions.waitPageLoad(browser)
 
         try:
-            agent_name = self.find_Element(
+            agent_name = Actions.find_Element(
                 browser, "//div[id='Agency/Producer List']/*/*/tr[2]/td[2]", By.XPATH)
 
         except:
@@ -998,116 +619,119 @@ class Application:
 
         if agent_name is None:
             ################ Create Agency #################################
-            self.check_for_value(browser, "NewProducer", keys="click")
-            self.check_for_value(
+            Actions.check_for_value(browser, "NewProducer", keys="click")
+            Actions.check_for_value(
                 browser, "Provider.ProviderNumber", keys=agency_name)
-            self.check_for_value(browser, "ProducerTypeCd", value="Agency")
-            self.check_for_value(
+            Actions.check_for_value(browser, "ProducerTypeCd", value="Agency")
+            Actions.check_for_value(
                 browser, "Provider.StatusDt", keys=default_date)
-            self.check_for_value(browser, "AppointedDt", keys="01/01/1900")
-            self.check_for_value(browser, "CombinedGroup", value="No")
-            self.check_for_value(
+            Actions.check_for_value(browser, "AppointedDt", keys="01/01/1900")
+            Actions.check_for_value(browser, "CombinedGroup", value="No")
+            Actions.check_for_value(
                 browser, "ProviderName.CommercialName", keys="The White House")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "ProviderStreetAddr.Addr1", keys="1600 Pennsylvania Ave NW")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "ProviderStreetAddr.City", keys="Washington")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "ProviderStreetAddr.StateProvCd", value="DC")
-            self.waitPageLoad(browser)
-            self.check_for_value(browser, "CopyAddress", keys="click")
-            self.waitPageLoad(browser)
-            self.check_for_value(
+            Actions.waitPageLoad(browser)
+            Actions.check_for_value(browser, "CopyAddress", keys="click")
+            Actions.waitPageLoad(browser)
+            Actions.check_for_value(
                 browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "AcctName.CommercialName", keys="White House")
-            self.check_for_value(browser, "PayToCd", value="Agency")
-            self.check_for_value(
+            Actions.check_for_value(browser, "PayToCd", value="Agency")
+            Actions.check_for_value(
                 browser, "Provider.CombinePaymentInd", value="No")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "Provider.PaymentPreferenceCd", value="Check")
-            self.check_for_value(browser, "CopyBillingAddress", keys="click")
-            self.waitPageLoad(browser)
-            self.save(browser)
-            self.check_for_value(browser, "Return", keys="click")
-            self.waitPageLoad(browser)
+            Actions.check_for_value(
+                browser, "CopyBillingAddress", keys="click")
+            Actions.waitPageLoad(browser)
+            Actions.save(browser)
+            Actions.check_for_value(browser, "Return", keys="click")
+            Actions.waitPageLoad(browser)
 
-        self.check_for_value(browser, "NewProducer", keys="click")
-        self.check_for_value(
+        Actions.check_for_value(browser, "NewProducer", keys="click")
+        Actions.check_for_value(
             browser, "Provider.ProviderNumber", keys=producerName)
-        self.check_for_value(browser, "ProducerTypeCd", value="Producer")
-        self.check_for_value(browser, "ProducerAgency", keys=agency_name)
-        self.check_for_value(browser, "Provider.StatusDt", keys=default_date)
-        self.check_for_value(browser, "AppointedDt", keys="01/01/1900")
-        self.check_for_value(browser, "CombinedGroup", value="No")
-        self.check_for_value(
+        Actions.check_for_value(browser, "ProducerTypeCd", value="Producer")
+        Actions.check_for_value(browser, "ProducerAgency", keys=agency_name)
+        Actions.check_for_value(
+            browser, "Provider.StatusDt", keys=default_date)
+        Actions.check_for_value(browser, "AppointedDt", keys="01/01/1900")
+        Actions.check_for_value(browser, "CombinedGroup", value="No")
+        Actions.check_for_value(
             browser, "ProviderName.CommercialName", keys="Starbucks")
-        self.check_for_value(
+        Actions.check_for_value(
             browser, "ProviderStreetAddr.Addr1", keys="43 Crossing Way")
-        self.check_for_value(
+        Actions.check_for_value(
             browser, "ProviderStreetAddr.City", keys="Augusta")
-        self.check_for_value(
+        Actions.check_for_value(
             browser, "ProviderStreetAddr.StateProvCd", value="ME")
-        self.waitPageLoad(browser)
-        self.check_for_value(browser, "CopyAddress", keys="click")
-        self.waitPageLoad(browser)
-        self.check_for_value(
+        Actions.waitPageLoad(browser)
+        Actions.check_for_value(browser, "CopyAddress", keys="click")
+        Actions.waitPageLoad(browser)
+        Actions.check_for_value(
             browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
-        self.check_for_value(
+        Actions.check_for_value(
             browser, "AcctName.CommercialName", keys="White House")
-        self.check_for_value(browser, "PayToCd", value="Agency")
-        self.check_for_value(browser, "Provider.CombinePaymentInd", value="No")
-        self.check_for_value(
+        Actions.check_for_value(browser, "PayToCd", value="Agency")
+        Actions.check_for_value(
+            browser, "Provider.CombinePaymentInd", value="No")
+        Actions.check_for_value(
             browser, "Provider.PaymentPreferenceCd", value="Check")
-        self.check_for_value(browser, "CopyBillingAddress", keys="click")
-        self.waitPageLoad(browser)
-        self.save(browser)
-        self.waitPageLoad(browser)
-        self.check_for_value(browser, "IvansCommissionInd", value="No")
+        Actions.check_for_value(browser, "CopyBillingAddress", keys="click")
+        Actions.waitPageLoad(browser)
+        Actions.save(browser)
+        Actions.waitPageLoad(browser)
+        Actions.check_for_value(browser, "IvansCommissionInd", value="No")
 
         #########################  Add States ############################
 
         for state in states:
-            self.check_for_value(browser, "AddState", keys="click")
-            self.check_for_value(browser, "StateInfo.StateCd", value=state)
-            self.check_for_value(
+            Actions.check_for_value(browser, "AddState", keys="click")
+            Actions.check_for_value(browser, "StateInfo.StateCd", value=state)
+            Actions.check_for_value(
                 browser, "StateInfo.AppointedDt", keys="01/01/1900")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "StateInfo.MerrimackAppointedDt", keys="01/01/1900")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "StateInfo.CambridgeAppointedDt", keys="01/01/1900")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "StateInfo.BayStateAppointedDt", keys="01/01/1900")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "StateInfo.MerrimackLicensedDt", keys="01/01/2999")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "StateInfo.CambridgeLicensedDt", keys="01/01/2999")
-            self.check_for_value(
+            Actions.check_for_value(
                 browser, "StateInfo.BayStateLicensedDt", keys="01/01/2999")
-            self.save(browser)
-            self.waitPageLoad(browser)
+            Actions.save(browser)
+            Actions.waitPageLoad(browser)
 
         ############################ Add Products ################################
 
         for state in states:
             for bus in LOB:
-                self.check_for_value(browser, "AddProduct", keys="click")
-                self.check_for_value(
+                Actions.check_for_value(browser, "AddProduct", keys="click")
+                Actions.check_for_value(
                     browser, "LicensedProduct.LicenseClassCd", value=bus)
-                self.check_for_value(
+                Actions.check_for_value(
                     browser, "LicensedProduct.StateProvCd", value=state)
-                self.check_for_value(
+                Actions.check_for_value(
                     browser, "LicensedProduct.EffectiveDt", keys="01/01/1900")
-                self.check_for_value(
+                Actions.check_for_value(
                     browser, "LicensedProduct.CommissionNewPct", keys="5")
-                self.check_for_value(
+                Actions.check_for_value(
                     browser, "LicensedProduct.CommissionRenewalPct", keys="5")
-                self.save(browser)
-                self.waitPageLoad(browser)
-        self.check_for_value(browser, "IvansCommissionInd", value="No")
-        self.check_for_value(
+                Actions.save(browser)
+                Actions.waitPageLoad(browser)
+        Actions.check_for_value(browser, "IvansCommissionInd", value="No")
+        Actions.check_for_value(
             browser, "FCRAEmail.EmailAddr", keys="test2@mail.com")
-        self.save(browser)
+        Actions.save(browser)
 
         script = "alert(\"Producer Created Successfully!\")"
         browser.execute_script(script)
@@ -1118,7 +742,6 @@ class Application:
             File.add_producer(producerName)
 
     # Create a user
-
     def create_user(self, user_type, user_name):
         user_dict = self.user_dict
         y = datetime.today()
@@ -1138,7 +761,7 @@ class Application:
             browser.quit()
             raise Exception("Incorrect username and/or password")
 
-        self.waitPageLoad(browser)
+        Actions.waitPageLoad(browser)
 
         browser.execute_script(
             'document.getElementById("Menu_Admin").click();')
@@ -1146,12 +769,12 @@ class Application:
             'document.getElementById("Menu_Admin_UserManagement").click();')
 
         #################### Searching for a User #########################
-        self.check_for_value(browser, "SearchText", keys=user_type)
-        self.check_for_value(browser, "MatchType", "=")
-        self.check_for_value(browser, "Search", keys="click")
+        Actions.check_for_value(browser, "SearchText", keys=user_type)
+        Actions.check_for_value(browser, "MatchType", "=")
+        Actions.check_for_value(browser, "Search", keys="click")
 
         try:
-            user_searched_name = self.find_Element(
+            user_searched_name = Actions.find_Element(
                 browser, user_xpath, By.XPATH)
         except:
             pass
@@ -1168,52 +791,54 @@ class Application:
         except:
             pass
 
-        self.check_for_value(browser, "AddUser", keys="click")
-        self.check_for_value(browser, "UserInfo.LoginId", keys=user_type)
+        Actions.check_for_value(browser, "AddUser", keys="click")
+        Actions.check_for_value(browser, "UserInfo.LoginId", keys=user_type)
         if (user_type == "Agent" or user_type == "Agent Admin"):
-            self.check_for_value(browser, "UserInfo.TypeCd", "Producer")
+            Actions.check_for_value(browser, "UserInfo.TypeCd", "Producer")
         else:
-            self.check_for_value(browser, "UserInfo.TypeCd", "Company")
+            Actions.check_for_value(browser, "UserInfo.TypeCd", "Company")
 
-        self.check_for_value(browser, "UserInfo.DefaultLanguageCd", "en_US")
-        self.check_for_value(browser, "UserInfo.FirstName", keys=user_type)
-        self.check_for_value(browser, "UserInfo.LastName", keys="User")
-        self.check_for_value(browser, "UserInfo.ConcurrentSessions", keys=100)
-        self.check_for_value(
+        Actions.check_for_value(browser, "UserInfo.DefaultLanguageCd", "en_US")
+        Actions.check_for_value(browser, "UserInfo.FirstName", keys=user_type)
+        Actions.check_for_value(browser, "UserInfo.LastName", keys="User")
+        Actions.check_for_value(
+            browser, "UserInfo.ConcurrentSessions", keys=100)
+        Actions.check_for_value(
             browser, "PasswordInfo.PasswordRequirementTemplateId", "Exempt")
-        self.check_for_value(browser, "ChangePassword", keys=new_user_password)
-        self.check_for_value(browser, "ConfirmPassword",
-                             keys=new_user_password)
+        Actions.check_for_value(
+            browser, "ChangePassword", keys=new_user_password)
+        Actions.check_for_value(browser, "ConfirmPassword",
+                                keys=new_user_password)
         script = "document.getElementById(\"UserInfo.PasswordMustChangeInd\").checked = false"
         browser.execute_script(script)
-        self.check_for_value(browser, "ProviderNumber",
-                             keys=self.producer_selected)
-        self.check_for_value(browser, "UserInfo.BranchCd", "Home Office")
-        self.save(browser)
+        Actions.check_for_value(browser, "ProviderNumber",
+                                keys=self.producer_selected)
+        Actions.check_for_value(browser, "UserInfo.BranchCd", "Home Office")
+        Actions.save(browser)
 
-        self.check_for_value(browser, "AddProviderSecurity", keys="click")
-        self.check_for_value(
+        Actions.check_for_value(browser, "AddProviderSecurity", keys="click")
+        Actions.check_for_value(
             browser, "ProviderSecurity.ProviderSecurityCd", keys=self.producer_selected)
-        self.save(browser)
-        self.waitPageLoad(browser)
+        Actions.save(browser)
+        Actions.waitPageLoad(browser)
 
-        self.check_for_value(browser, "AddRole", keys="click")
-        self.check_for_value(
+        Actions.check_for_value(browser, "AddRole", keys="click")
+        Actions.check_for_value(
             browser, "UserRole.AuthorityRoleIdRef", user_dict[user_type])
-        self.save(browser)
-        self.waitPageLoad(browser)
+        Actions.save(browser)
+        Actions.waitPageLoad(browser)
 
         if user_type == "Underwriter":
             values_used = ["UWServicesPersonal", "UnderwritingPersonalLines", "UnderwritingCommercialLines",
                            "UWServicesCommercial", "UWServicesPersonal-CLM", "UWServicesCommercial-CLM", "UnderwritingPersonalLines-CLM"]
             for value in values_used:
-                self.check_for_value(browser, "AddTaskGroup", keys="click")
-                self.check_for_value(
+                Actions.check_for_value(browser, "AddTaskGroup", keys="click")
+                Actions.check_for_value(
                     browser, "UserTaskGroup.TaskGroupCd", value)
-                self.save(browser)
+                Actions.save(browser)
 
-        self.waitPageLoad(browser)
-        self.save(browser)
+        Actions.waitPageLoad(browser)
+        Actions.save(browser)
 
         script = "alert(\"User Created Successfully!\")"
         browser.execute_script(script)
