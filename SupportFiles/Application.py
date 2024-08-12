@@ -38,6 +38,9 @@ class Application:
     multiAdd = None
     number_of_addresses = 1
     pay_plan = None
+    dwelling_program = None
+    first_name = None
+    last_name = None
 
     gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
                       "UAT4": "https://uat4-advr.in.guidewire.net/innovation", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation"}
@@ -96,6 +99,7 @@ class Application:
 
         Actions.remove_javascript(self.browser)
         script = "return window.seleniumPageLoadOutstanding == 0;"
+
         WebDriverWait(self.browser, 60).until(
             lambda browser: browser.execute_script(script))
 
@@ -161,7 +165,7 @@ class Application:
 
         self.billing = Billing(self.browser, self.pay_plan, self.state_chosen)
         self.core_coverages = CoreCoverages(
-            self.browser)
+            self.browser, self.dwelling_program)
         self.underwriting = Underwriting(
             self.browser, self.state_chosen, self.line_of_business, self.number_of_addresses)
 
@@ -170,8 +174,13 @@ class Application:
         state1, CITY, ADDRESS = Address.addresses[str(state_chosen+"1")]
         custom_city = Address.custom_address["City"]
         custom_add = Address.custom_address["Address"]
-        first_name = state_chosen + " " + line_of_business
-        last_name = "Automation"
+
+        if not self.first_name:
+            first_name = state_chosen + " " + line_of_business
+            last_name = "Automation"
+        else:
+            first_name = self.first_name
+            last_name = self.last_name
 
         if Address.custom_address["Flag"]:
             self.create_new_quote(date_chosen, state1, producer_selected, first_name,
@@ -527,7 +536,7 @@ class Application:
                 MultiLog.add_log(f"Issues: {error.text}", logging.ERROR)
 
         if (self.create_type == "Policy" and error_value is None):
-            self.submit_policy(self.browser)
+            self.submit_policy()
 
             policy_num = Actions.find_Element(
                 self.browser, "PolicySummary_PolicyNumber")
@@ -559,48 +568,49 @@ class Application:
         LOB = ["PUL", "HO", "DP", "BOP-UMB", "BOP"]
         prod_values = File.env_files_plus_users[self.env_used]['Producers']['ProducerNames']
 
-        browser = self.load_page()
+        self.load_page()
 
         try:
-            self.login(browser, user_name, password)
+            self.login(user_name, password)
         except ValueError:
             # logger.error(f"Username or Password is not correct. username: {user_name} password: {password}")
             sleep(5)
-            browser.quit()
+            self.browser.quit()
             raise Exception("Incorrect username and/or password")
-        Actions.waitPageLoad(browser)
+        Actions.waitPageLoad(self.browser)
 
         #################### Searching for a Producer #########################
-        browser.execute_script(
+        self.browser.execute_script(
             'document.getElementById("Menu_Policy").click();')
-        browser.execute_script(
+        self.browser.execute_script(
             'document.getElementById("Menu_Policy_UnderwritingMaintenance").click();')
 
-        Actions.find_Element(browser, "Producer", id=By.LINK_TEXT).click()
-        Actions.check_for_value(browser, "SearchText", keys=producerName)
-        Actions.check_for_value(browser, "SearchBy", "ProviderNumber")
-        Actions.check_for_value(browser, "SearchFor", "Producer")
-        Actions.check_for_value(browser, "SearchOperator", "=")
-        Actions.check_for_value(browser, "Search", keys="click")
-        Actions.waitPageLoad(browser)
+        Actions.find_Element(self.browser, "Producer", id=By.LINK_TEXT).click()
+        Actions.check_for_value(self.browser, "SearchText", keys=producerName)
+        Actions.check_for_value(self.browser, "SearchBy", "ProviderNumber")
+        Actions.check_for_value(self.browser, "SearchFor", "Producer")
+        Actions.check_for_value(self.browser, "SearchOperator", "=")
+        Actions.check_for_value(self.browser, "Search", keys="click")
+        Actions.waitPageLoad(self.browser)
 
         try:
             prod_name = Actions.find_Element(
-                browser, "//div[id='Agency/Producer List']/*/*/tr[2]/td[2]", By.XPATH)
+                self.browser, "//*[@id=\"Agency/Producer List\"]/table/tbody/tr[2]/td[2]", By.XPATH)
+
         except:
             pass
 
         #################### Searching for an Agency #########################
-        Actions.check_for_value(browser, "SearchText", keys=agency_name)
-        Actions.check_for_value(browser, "SearchBy", "ProviderNumber")
-        Actions.check_for_value(browser, "SearchFor", "Agency")
-        Actions.check_for_value(browser, "SearchOperator", "=")
-        Actions.check_for_value(browser, "Search", keys="click")
-        Actions.waitPageLoad(browser)
+        Actions.check_for_value(self.browser, "SearchText", keys=agency_name)
+        Actions.check_for_value(self.browser, "SearchBy", "ProviderNumber")
+        Actions.check_for_value(self.browser, "SearchFor", "Agency")
+        Actions.check_for_value(self.browser, "SearchOperator", "=")
+        Actions.check_for_value(self.browser, "Search", keys="click")
+        Actions.waitPageLoad(self.browser)
 
         try:
             agent_name = Actions.find_Element(
-                browser, "//div[id='Agency/Producer List']/*/*/tr[2]/td[2]", By.XPATH)
+                self.browser, "//*[@id=\"Agency/Producer List\"]/table/tbody/tr[2]/td[2]", By.XPATH)
 
         except:
             pass
@@ -610,133 +620,140 @@ class Application:
                 if producerName not in prod_values:
                     File.add_producer(producerName)
                 script = "alert('Producer Already Exists')"
-                browser.execute_script(script)
+                self.browser.execute_script(script)
                 sleep(5)
-                browser.quit()
+                self.browser.quit()
                 return False
         except:
             pass
 
         if agent_name is None:
             ################ Create Agency #################################
-            Actions.check_for_value(browser, "NewProducer", keys="click")
+            Actions.check_for_value(self.browser, "NewProducer", keys="click")
             Actions.check_for_value(
-                browser, "Provider.ProviderNumber", keys=agency_name)
-            Actions.check_for_value(browser, "ProducerTypeCd", value="Agency")
+                self.browser, "Provider.ProviderNumber", keys=agency_name)
             Actions.check_for_value(
-                browser, "Provider.StatusDt", keys=default_date)
-            Actions.check_for_value(browser, "AppointedDt", keys="01/01/1900")
-            Actions.check_for_value(browser, "CombinedGroup", value="No")
+                self.browser, "ProducerTypeCd", value="Agency")
             Actions.check_for_value(
-                browser, "ProviderName.CommercialName", keys="The White House")
+                self.browser, "Provider.StatusDt", keys=default_date)
             Actions.check_for_value(
-                browser, "ProviderStreetAddr.Addr1", keys="1600 Pennsylvania Ave NW")
+                self.browser, "AppointedDt", keys="01/01/1900")
+            Actions.check_for_value(self.browser, "CombinedGroup", value="No")
             Actions.check_for_value(
-                browser, "ProviderStreetAddr.City", keys="Washington")
+                self.browser, "ProviderName.CommercialName", keys="The White House")
             Actions.check_for_value(
-                browser, "ProviderStreetAddr.StateProvCd", value="DC")
-            Actions.waitPageLoad(browser)
-            Actions.check_for_value(browser, "CopyAddress", keys="click")
-            Actions.waitPageLoad(browser)
+                self.browser, "ProviderStreetAddr.Addr1", keys="1600 Pennsylvania Ave NW")
             Actions.check_for_value(
-                browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
+                self.browser, "ProviderStreetAddr.City", keys="Washington")
             Actions.check_for_value(
-                browser, "AcctName.CommercialName", keys="White House")
-            Actions.check_for_value(browser, "PayToCd", value="Agency")
+                self.browser, "ProviderStreetAddr.StateProvCd", value="DC")
+            Actions.waitPageLoad(self.browser)
+            Actions.check_for_value(self.browser, "CopyAddress", keys="click")
+            Actions.waitPageLoad(self.browser)
             Actions.check_for_value(
-                browser, "Provider.CombinePaymentInd", value="No")
+                self.browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
             Actions.check_for_value(
-                browser, "Provider.PaymentPreferenceCd", value="Check")
+                self.browser, "AcctName.CommercialName", keys="White House")
+            Actions.check_for_value(self.browser, "PayToCd", value="Agency")
             Actions.check_for_value(
-                browser, "CopyBillingAddress", keys="click")
-            Actions.waitPageLoad(browser)
-            Actions.save(browser)
-            Actions.check_for_value(browser, "Return", keys="click")
-            Actions.waitPageLoad(browser)
+                self.browser, "Provider.CombinePaymentInd", value="No")
+            Actions.check_for_value(
+                self.browser, "Provider.PaymentPreferenceCd", value="Check")
+            Actions.check_for_value(
+                self.browser, "CopyBillingAddress", keys="click")
+            Actions.waitPageLoad(self.browser)
+            Actions.save(self.browser)
+            Actions.check_for_value(self.browser, "Return", keys="click")
+            Actions.waitPageLoad(self.browser)
 
-        Actions.check_for_value(browser, "NewProducer", keys="click")
+        Actions.check_for_value(self.browser, "NewProducer", keys="click")
         Actions.check_for_value(
-            browser, "Provider.ProviderNumber", keys=producerName)
-        Actions.check_for_value(browser, "ProducerTypeCd", value="Producer")
-        Actions.check_for_value(browser, "ProducerAgency", keys=agency_name)
+            self.browser, "Provider.ProviderNumber", keys=producerName)
         Actions.check_for_value(
-            browser, "Provider.StatusDt", keys=default_date)
-        Actions.check_for_value(browser, "AppointedDt", keys="01/01/1900")
-        Actions.check_for_value(browser, "CombinedGroup", value="No")
+            self.browser, "ProducerTypeCd", value="Producer")
         Actions.check_for_value(
-            browser, "ProviderName.CommercialName", keys="Starbucks")
+            self.browser, "ProducerAgency", keys=agency_name)
         Actions.check_for_value(
-            browser, "ProviderStreetAddr.Addr1", keys="43 Crossing Way")
+            self.browser, "Provider.StatusDt", keys=default_date)
+        Actions.check_for_value(self.browser, "AppointedDt", keys="01/01/1900")
+        Actions.check_for_value(self.browser, "CombinedGroup", value="No")
         Actions.check_for_value(
-            browser, "ProviderStreetAddr.City", keys="Augusta")
+            self.browser, "ProviderName.CommercialName", keys="Starbucks")
         Actions.check_for_value(
-            browser, "ProviderStreetAddr.StateProvCd", value="ME")
-        Actions.waitPageLoad(browser)
-        Actions.check_for_value(browser, "CopyAddress", keys="click")
-        Actions.waitPageLoad(browser)
+            self.browser, "ProviderStreetAddr.Addr1", keys="43 Crossing Way")
         Actions.check_for_value(
-            browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
+            self.browser, "ProviderStreetAddr.City", keys="Augusta")
         Actions.check_for_value(
-            browser, "AcctName.CommercialName", keys="White House")
-        Actions.check_for_value(browser, "PayToCd", value="Agency")
+            self.browser, "ProviderStreetAddr.StateProvCd", value="ME")
+        Actions.waitPageLoad(self.browser)
+        Actions.check_for_value(self.browser, "CopyAddress", keys="click")
+        Actions.waitPageLoad(self.browser)
         Actions.check_for_value(
-            browser, "Provider.CombinePaymentInd", value="No")
+            self.browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
         Actions.check_for_value(
-            browser, "Provider.PaymentPreferenceCd", value="Check")
-        Actions.check_for_value(browser, "CopyBillingAddress", keys="click")
-        Actions.waitPageLoad(browser)
-        Actions.save(browser)
-        Actions.waitPageLoad(browser)
-        Actions.check_for_value(browser, "IvansCommissionInd", value="No")
+            self.browser, "AcctName.CommercialName", keys="White House")
+        Actions.check_for_value(self.browser, "PayToCd", value="Agency")
+        Actions.check_for_value(
+            self.browser, "Provider.CombinePaymentInd", value="No")
+        Actions.check_for_value(
+            self.browser, "Provider.PaymentPreferenceCd", value="Check")
+        Actions.check_for_value(
+            self.browser, "CopyBillingAddress", keys="click")
+        Actions.waitPageLoad(self.browser)
+        Actions.save(self.browser)
+        Actions.waitPageLoad(self.browser)
+        Actions.check_for_value(self.browser, "IvansCommissionInd", value="No")
 
         #########################  Add States ############################
 
         for state in states:
-            Actions.check_for_value(browser, "AddState", keys="click")
-            Actions.check_for_value(browser, "StateInfo.StateCd", value=state)
+            Actions.check_for_value(self.browser, "AddState", keys="click")
             Actions.check_for_value(
-                browser, "StateInfo.AppointedDt", keys="01/01/1900")
+                self.browser, "StateInfo.StateCd", value=state)
             Actions.check_for_value(
-                browser, "StateInfo.MerrimackAppointedDt", keys="01/01/1900")
+                self.browser, "StateInfo.AppointedDt", keys="01/01/1900")
             Actions.check_for_value(
-                browser, "StateInfo.CambridgeAppointedDt", keys="01/01/1900")
+                self.browser, "StateInfo.MerrimackAppointedDt", keys="01/01/1900")
             Actions.check_for_value(
-                browser, "StateInfo.BayStateAppointedDt", keys="01/01/1900")
+                self.browser, "StateInfo.CambridgeAppointedDt", keys="01/01/1900")
             Actions.check_for_value(
-                browser, "StateInfo.MerrimackLicensedDt", keys="01/01/2999")
+                self.browser, "StateInfo.BayStateAppointedDt", keys="01/01/1900")
             Actions.check_for_value(
-                browser, "StateInfo.CambridgeLicensedDt", keys="01/01/2999")
+                self.browser, "StateInfo.MerrimackLicensedDt", keys="01/01/2999")
             Actions.check_for_value(
-                browser, "StateInfo.BayStateLicensedDt", keys="01/01/2999")
-            Actions.save(browser)
-            Actions.waitPageLoad(browser)
+                self.browser, "StateInfo.CambridgeLicensedDt", keys="01/01/2999")
+            Actions.check_for_value(
+                self.browser, "StateInfo.BayStateLicensedDt", keys="01/01/2999")
+            Actions.save(self.browser)
+            Actions.waitPageLoad(self.browser)
 
         ############################ Add Products ################################
 
         for state in states:
             for bus in LOB:
-                Actions.check_for_value(browser, "AddProduct", keys="click")
                 Actions.check_for_value(
-                    browser, "LicensedProduct.LicenseClassCd", value=bus)
+                    self.browser, "AddProduct", keys="click")
                 Actions.check_for_value(
-                    browser, "LicensedProduct.StateProvCd", value=state)
+                    self.browser, "LicensedProduct.LicenseClassCd", value=bus)
                 Actions.check_for_value(
-                    browser, "LicensedProduct.EffectiveDt", keys="01/01/1900")
+                    self.browser, "LicensedProduct.StateProvCd", value=state)
                 Actions.check_for_value(
-                    browser, "LicensedProduct.CommissionNewPct", keys="5")
+                    self.browser, "LicensedProduct.EffectiveDt", keys="01/01/1900")
                 Actions.check_for_value(
-                    browser, "LicensedProduct.CommissionRenewalPct", keys="5")
-                Actions.save(browser)
-                Actions.waitPageLoad(browser)
-        Actions.check_for_value(browser, "IvansCommissionInd", value="No")
+                    self.browser, "LicensedProduct.CommissionNewPct", keys="5")
+                Actions.check_for_value(
+                    self.browser, "LicensedProduct.CommissionRenewalPct", keys="5")
+                Actions.save(self.browser)
+                Actions.waitPageLoad(self.browser)
+        Actions.check_for_value(self.browser, "IvansCommissionInd", value="No")
         Actions.check_for_value(
-            browser, "FCRAEmail.EmailAddr", keys="test2@mail.com")
-        Actions.save(browser)
+            self.browser, "FCRAEmail.EmailAddr", keys="test2@mail.com")
+        Actions.save(self.browser)
 
         script = "alert(\"Producer Created Successfully!\")"
-        browser.execute_script(script)
+        self.browser.execute_script(script)
         sleep(5)
-        browser.quit()
+        self.browser.quit()
 
         if producerName not in prod_values:
             File.add_producer(producerName)
@@ -752,30 +769,31 @@ class Application:
         user_values = File.env_files_plus_users[self.env_used]['Users']['Usernames'].keys(
         )
         user_searched_name = None
-        browser = self.load_page()
+
+        self.load_page()
 
         try:
-            self.login(browser, user_name, password)
+            self.login(user_name, password)
         except ValueError:
             sleep(5)
-            browser.quit()
+            self.browser.quit()
             raise Exception("Incorrect username and/or password")
 
-        Actions.waitPageLoad(browser)
+        Actions.waitPageLoad(self.browser)
 
-        browser.execute_script(
+        self.browser.execute_script(
             'document.getElementById("Menu_Admin").click();')
-        browser.execute_script(
+        self.browser.execute_script(
             'document.getElementById("Menu_Admin_UserManagement").click();')
 
         #################### Searching for a User #########################
-        Actions.check_for_value(browser, "SearchText", keys=user_type)
-        Actions.check_for_value(browser, "MatchType", "=")
-        Actions.check_for_value(browser, "Search", keys="click")
+        Actions.check_for_value(self.browser, "SearchText", keys=user_type)
+        Actions.check_for_value(self.browser, "MatchType", "=")
+        Actions.check_for_value(self.browser, "Search", keys="click")
 
         try:
             user_searched_name = Actions.find_Element(
-                browser, user_xpath, By.XPATH)
+                self.browser, user_xpath, By.XPATH)
         except:
             pass
 
@@ -784,66 +802,73 @@ class Application:
                 if user_dict not in list(user_values):
                     File.add_user(user_type, new_user_password)
                 script = "alert(\"User Already Exists\")"
-                browser.execute_script(script)
+                self.browser.execute_script(script)
                 sleep(5)
-                browser.quit()
+                self.browser.quit()
                 return False
         except:
             pass
 
-        Actions.check_for_value(browser, "AddUser", keys="click")
-        Actions.check_for_value(browser, "UserInfo.LoginId", keys=user_type)
+        Actions.check_for_value(self.browser, "AddUser", keys="click")
+        Actions.check_for_value(
+            self.browser, "UserInfo.LoginId", keys=user_type)
         if (user_type == "Agent" or user_type == "Agent Admin"):
-            Actions.check_for_value(browser, "UserInfo.TypeCd", "Producer")
+            Actions.check_for_value(
+                self.browser, "UserInfo.TypeCd", "Producer")
         else:
-            Actions.check_for_value(browser, "UserInfo.TypeCd", "Company")
+            Actions.check_for_value(self.browser, "UserInfo.TypeCd", "Company")
 
-        Actions.check_for_value(browser, "UserInfo.DefaultLanguageCd", "en_US")
-        Actions.check_for_value(browser, "UserInfo.FirstName", keys=user_type)
-        Actions.check_for_value(browser, "UserInfo.LastName", keys="User")
         Actions.check_for_value(
-            browser, "UserInfo.ConcurrentSessions", keys=100)
+            self.browser, "UserInfo.DefaultLanguageCd", "en_US")
         Actions.check_for_value(
-            browser, "PasswordInfo.PasswordRequirementTemplateId", "Exempt")
+            self.browser, "UserInfo.FirstName", keys=user_type)
+        Actions.check_for_value(self.browser, "UserInfo.LastName", keys="User")
         Actions.check_for_value(
-            browser, "ChangePassword", keys=new_user_password)
-        Actions.check_for_value(browser, "ConfirmPassword",
+            self.browser, "UserInfo.ConcurrentSessions", keys=100)
+        Actions.check_for_value(
+            self.browser, "PasswordInfo.PasswordRequirementTemplateId", "Exempt")
+        Actions.check_for_value(
+            self.browser, "ChangePassword", keys=new_user_password)
+        Actions.check_for_value(self.browser, "ConfirmPassword",
                                 keys=new_user_password)
         script = "document.getElementById(\"UserInfo.PasswordMustChangeInd\").checked = false"
-        browser.execute_script(script)
-        Actions.check_for_value(browser, "ProviderNumber",
+        self.browser.execute_script(script)
+        Actions.check_for_value(self.browser, "ProviderNumber",
                                 keys=self.producer_selected)
-        Actions.check_for_value(browser, "UserInfo.BranchCd", "Home Office")
-        Actions.save(browser)
-
-        Actions.check_for_value(browser, "AddProviderSecurity", keys="click")
         Actions.check_for_value(
-            browser, "ProviderSecurity.ProviderSecurityCd", keys=self.producer_selected)
-        Actions.save(browser)
-        Actions.waitPageLoad(browser)
+            self.browser, "UserInfo.BranchCd", "Home Office")
+        Actions.save(self.browser)
 
-        Actions.check_for_value(browser, "AddRole", keys="click")
         Actions.check_for_value(
-            browser, "UserRole.AuthorityRoleIdRef", user_dict[user_type])
-        Actions.save(browser)
-        Actions.waitPageLoad(browser)
+            self.browser, "AddProviderSecurity", keys="click")
+        Actions.check_for_value(
+            self.browser, "ProviderSecurity.ProviderSecurityCd", keys=self.producer_selected)
+        Actions.save(self.browser)
+        Actions.waitPageLoad(self.browser)
+
+        Actions.check_for_value(self.browser, "AddRole", keys="click")
+        Actions.check_for_value(
+            self.browser, "UserRole.AuthorityRoleIdRef", user_dict[user_type])
+        Actions.save(self.browser)
+        Actions.waitPageLoad(self.browser)
 
         if user_type == "Underwriter":
             values_used = ["UWServicesPersonal", "UnderwritingPersonalLines", "UnderwritingCommercialLines",
                            "UWServicesCommercial", "UWServicesPersonal-CLM", "UWServicesCommercial-CLM", "UnderwritingPersonalLines-CLM"]
             for value in values_used:
-                Actions.check_for_value(browser, "AddTaskGroup", keys="click")
                 Actions.check_for_value(
-                    browser, "UserTaskGroup.TaskGroupCd", value)
-                Actions.save(browser)
+                    self.browser, "AddTaskGroup", keys="click")
+                Actions.check_for_value(
+                    self.browser, "UserTaskGroup.TaskGroupCd", value)
+                Actions.save(self.browser)
 
-        Actions.waitPageLoad(browser)
-        Actions.save(browser)
+        Actions.waitPageLoad(self.browser)
+        Actions.save(self.browser)
 
         script = "alert(\"User Created Successfully!\")"
-        browser.execute_script(script)
+        self.browser.execute_script(script)
         sleep(5)
-        browser.quit()
+        self.browser.quit()
 
         if user_type not in list(user_values):
             File.add_user(user_type, new_user_password)

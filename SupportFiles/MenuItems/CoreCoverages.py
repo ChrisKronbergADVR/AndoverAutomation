@@ -9,6 +9,7 @@ class CoreCoverages:
     coverage_a = 300000
     coverage_c = coverage_a
     browser = None
+    dwelling_program = None
 
     core_values = ["Risk.ListOfTenantsAndOccupancy", "Risk.BasementInd", "Risk.BldgCentralHeatInd", "Risk.CircuitBreakerProtInd", "Risk.UndergradResidentInd",
                    "Risk.SpaceHeatersInd", "Risk.FrameClearance15ftInd", "Risk.ShortTermRent", "Risk.MercantileOfficeOccupantsInd", "Risk.ExcessLinesInd"]
@@ -16,8 +17,9 @@ class CoreCoverages:
     core_values_after = ["Risk.RoofUpdatedIn15YrsInd", "Risk.AdequateSmokeDetInd",
                          "Risk.BldgOccGt75PctInd", "Risk.EgressFromAllUnitsInd", "Risk.MaintProgramInd"]
 
-    def __init__(self, browser):
+    def __init__(self, browser, dwelling_program):
         self.browser = browser
+        self.dwelling_program = dwelling_program
 
     def start_coverages(self):
         self.core_coverages_time.start()
@@ -34,7 +36,8 @@ class CoreCoverages:
         Actions.check_for_value(self.browser, "Building.OccupancyCd",
                                 "Owner occupied dwelling")
         Actions.check_for_value(self.browser, "Building.Seasonal", "No")
-        Actions.check_for_value(self.browser, "Risk.TypeCd", "DP2")
+        Actions.check_for_value(
+            self.browser, "Risk.TypeCd", self.dwelling_program)
         Actions.check_for_value(
             self.browser, "Building.BuildingLimit", keys=300000)
         Actions.check_for_value(self.browser, "Building.NumOfFamilies", "1")

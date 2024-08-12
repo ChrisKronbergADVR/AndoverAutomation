@@ -39,6 +39,7 @@ class Interface:
                  "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
     thread_name = None
     userList = []
+    dwelling_program = None
 
     application = Application()
 
@@ -54,6 +55,7 @@ class Interface:
                   "New Hampshire": "NH", "New Jersey": "NJ", "New York": "NY", "Rhode Island": "RI"}
         CARRIER = {"Merrimack Mutual Fire Insurance": "MMFI",
                    "Cambrige Mutual Fire Insurance": "CMFI", "Bay State Insurance Company": "BSIC"}
+        DWELLING_PROGRAM = ["DP1", "DP2", "DP3"]
 
         browsers = ["Chrome", "Edge"]
         y = datetime.today()+timedelta(days=65)
@@ -79,7 +81,13 @@ class Interface:
             [sg.Text('Enter Information for Creating An Application', border_width=3)],
             [sg.Text('Username'), sg.DropDown(self.userList, key="-ULIST-", size=(20, 1)),
              sg.Push(), sg.Button("Delete User", size=(10, 1), key="-REMU-")],
-            [sg.Text()],
+            [sg.Checkbox(text="Use Custom Name",
+                         enable_events=True, key="-NAME_CHECK-")],
+            [sg.Text("First Name", visible=False, justification="left",  enable_events=True, key="-FIRST_TEXT-",),
+             sg.Text("   "),
+             sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-FIRST-")],
+            [sg.Text("Last Name", visible=False, justification="left",  enable_events=True, key="-LAST_TEXT-"),
+             sg.Text("   "), sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-LAST-")],
             [sg.Text("Select State"), sg.DropDown(list(STATES.keys()), key="-STATE-", enable_events=True),
              sg.Checkbox(text="Use Custom Address", enable_events=True, key="ADD_CHECK")],
             [sg.Text("Address 1 (Required)", visible=False, justification="left", key="-AddText1-",),
@@ -94,6 +102,8 @@ class Interface:
                 LOB, key="-LOB-", enable_events=True)],
             [sg.Text("Select Carrier", key="-CARRIERTEXT-"),
              sg.DropDown(list(CARRIER.keys()), key="-CARRIER-", enable_events=True)],
+            [sg.Text("Program", key="-DPTEXT-", enable_events=True, visible=False), sg.DropDown(
+                DWELLING_PROGRAM, key="-DP-", enable_events=True, visible=False)],
             [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"), sg.DropDown(list(
                 SUBTYPE.keys()), key="-SUBTYPE-", default_value="HO5", enable_events=True, visible=False)],
             [sg.Text("Multiple Locations? ", visible=False, key="-MULT-"), sg.DropDown(["Yes",
@@ -109,7 +119,7 @@ class Interface:
                          default_value="Direct Bill Full Pay", enable_events=True, key="-PAYPLANBOP-"),
              sg.DropDown(list(self.payment_plan_pumb.keys()), visible=False, default_value="Direct Bill Full Pay", enable_events=True, key="-PAYPLANPUMB-")],
             [sg.Text()],
-            [sg.Text("Create Quote,Application or Policy"), sg.DropDown(
+            [sg.Text("Create Quote, Application or Policy"), sg.DropDown(
                 ["Quote", "Application", "Policy"], default_value="Application", key="-CREATE-")],
             [sg.Text()],
             [sg.Button('Submit'), sg.Button('Cancel'), sg.Push(),
@@ -192,6 +202,8 @@ class Interface:
             add_user_value = values["UserDrop"]
             date_selected = values["-DATE-"]
             log_val = values["-LOG-"]
+            dwelling_program = values["-DP-"]
+            custom_name = values["-NAME_CHECK-"]
 
             if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name and browser_chose:
                 self.browser_chosen = browser_chose
@@ -363,6 +375,17 @@ class Interface:
                     sg.popup_auto_close(
                         'This Address Has Not been Verified. Check the address and enter it again.')
 
+            if custom_name:
+                window['-FIRST_TEXT-'].update(visible=True)
+                window['-FIRST-'].update(visible=True)
+                window['-LAST_TEXT-'].update(visible=True)
+                window['-LAST-'].update(visible=True)
+            else:
+                window['-FIRST_TEXT-'].update(visible=False)
+                window['-FIRST-'].update(visible=False)
+                window['-LAST_TEXT-'].update(visible=False)
+                window['-LAST-'].update(visible=False)
+
             if cust_addr:
                 window["-AddText1-"].update(visible=True)
                 window["-CADD1-"].update(visible=True)
@@ -372,8 +395,7 @@ class Interface:
                 window["-CITY-"].update(visible=True)
                 window["BTN_VERIFY"].update(visible=True)
                 window.refresh()
-
-            if not cust_addr:
+            else:
                 window["-AddText1-"].update(visible=False)
                 window["-CADD1-"].update(visible=False)
                 window["-AddText2-"].update(visible=False)
@@ -404,10 +426,14 @@ class Interface:
             if lob == "Dwelling Property":
                 window["-MULT-"].update(visible=True)
                 window["-MULTI-"].update(visible=True)
+                window["-DPTEXT-"].update(visible=True)
+                window["-DP-"].update(visible=True)
                 window.refresh()
             else:
                 window["-MULT-"].update(visible=False)
                 window["-MULTI-"].update(visible=False)
+                window["-DPTEXT-"].update(visible=False)
+                window["-DP-"].update(visible=False)
                 window.refresh()
 
             if lob == "Homeowners" or lob == "Personal Umbrella":
@@ -475,6 +501,14 @@ class Interface:
                 self.application.producer_selected = producer
                 self.application.create_type = doc_type
                 self.application.user_chosen = selectedUser
+
+                if custom_name:
+                    self.application.first_name = values["-FIRST-"]
+                    self.application.last_name = values["-LAST-"]
+
+                if self.application.line_of_business == "Dwelling Property":
+                    self.application.dwelling_program = dwelling_program
+
                 if (self.application.line_of_business != "Businessowners"):
                     # if line_of_business == "Homeowners":
                     # pay_plan = payment_plan + " "+state_chosen
