@@ -103,7 +103,7 @@ class Interface:
             [sg.Text("Select Carrier", key="-CARRIERTEXT-"),
              sg.DropDown(list(CARRIER.keys()), key="-CARRIER-", enable_events=True)],
             [sg.Text("Program", key="-DPTEXT-", enable_events=True, visible=False), sg.DropDown(
-                DWELLING_PROGRAM, key="-DP-", enable_events=True, visible=False)],
+                DWELLING_PROGRAM, key="-DP-", default_value="DP1", enable_events=True, visible=False)],
             [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"), sg.DropDown(list(
                 SUBTYPE.keys()), key="-SUBTYPE-", default_value="HO5", enable_events=True, visible=False)],
             [sg.Text("Multiple Locations? ", visible=False, key="-MULT-"), sg.DropDown(["Yes",
