@@ -12,7 +12,7 @@ class Interface:
     TEXTLEN = 25
     THEME = "TanBlue"
 
-    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
                       "UAT4": "https://uat4-advr.in.guidewire.net/innovation", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation"}
 
     payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
@@ -221,10 +221,12 @@ class Interface:
                 window['UserDrop'].update(visible=True)
                 window['-CREATE_USER-'].update(visible=True)
                 window['-CREATE_TEXT-'].update(visible=True)
+                window.refresh()
             else:
                 window['UserDrop'].update(visible=False)
                 window['-CREATE_USER-'].update(visible=False)
                 window['-CREATE_TEXT-'].update(visible=False)
+                window.refresh()
 
             if log_val:
                 MultiLog.log_data = True
@@ -334,7 +336,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-            if event == "-ENVLIST-" and selectedEnviron != '' and (selectedEnviron == "QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4' or selectedEnviron == 'QA2' or selectedEnviron == 'Model' or selectedEnviron == 'Model 2' or selectedEnviron == 'Model 3'):
+            if event == "-ENVLIST-" and selectedEnviron != '' and (selectedEnviron == "QA" or selectedEnviron == "QWCP QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4' or selectedEnviron == 'QA2' or selectedEnviron == 'Model' or selectedEnviron == 'Model 2' or selectedEnviron == 'Model 3'):
                 self.env_used = selectedEnviron
                 File.env_used = self.env_used
                 self.application.env_used = self.env_used
@@ -353,6 +355,7 @@ class Interface:
                 window.refresh()
 
             if event == "-ADDU-" and selectedEnviron != '':
+                File.env_used = selectedEnviron
                 File.add_user(user_name, password)
                 self.userList = list(
                     File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())

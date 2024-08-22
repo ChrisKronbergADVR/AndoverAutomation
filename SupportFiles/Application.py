@@ -42,7 +42,7 @@ class Application:
     first_name = None
     last_name = None
 
-    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
                       "UAT4": "https://uat4-advr.in.guidewire.net/innovation", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation"}
 
     user_chosen = None
