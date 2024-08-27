@@ -7,25 +7,24 @@ class File:
     env_used = None
     folder = "csvFiles/"
 
+    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+                      "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
+
     env_files_plus_users = {
         "QA": {"Users": {"file": "users.csv", "Usernames": {}},
                "Producers": {"file": "producers.csv", "ProducerNames": ["ALLSTATES HO and DW"]}},
-        "QWCP QA": {"Users": {"file": "qwcp_users.csv", "Usernames": {}},
-                    "Producers": {"file": "qwcp_producers.csv", "ProducerNames": ["ALLSTATES HO and DW"]}},
+        "GWCP QA": {"Users": {"file": "gwcp_users.csv", "Usernames": {}},
+                    "Producers": {"file": "gwcp_producers.csv", "ProducerNames": ["ALLSTATES HO and DW"]}},
         "Local": {"Users": {"file": "local_users.csv", "Usernames": {}},
                   "Producers": {"file": "local_prod.csv", "ProducerNames": ["DEF"]}},
         "QA2": {"Users": {"file": "qa2_user.csv", "Usernames": {}},
-                "Producers": {"file": "qa2_prod.csv", "ProducerNames": [""]}},
+                "Producers": {"file": "qa2_prod.csv", "ProducerNames": ["ALLSTATES HO and DW"]}},
+        "GWCP QA2": {"Users": {"file": "gwcp_qa2_user.csv", "Usernames": {}},
+                     "Producers": {"file": "gwcp_qa2_prod.csv", "ProducerNames": ["ALLSTATES HO and DW"]}},
         "UAT3": {"Users": {"file": "uat3_user.csv", "Usernames": {}},
                  "Producers": {"file": "uat3_prod.csv", "ProducerNames": [""]}},
         "UAT4": {"Users": {"file": "uat4_user.csv", "Usernames": {}},
                  "Producers": {"file": "uat4_prod.csv", "ProducerNames": [""]}},
-        "Model": {"Users": {"file": "model_user.csv", "Usernames": {}},
-                  "Producers": {"file": "model_prod.csv", "ProducerNames": [""]}},
-        "Model 2": {"Users": {"file": "model2_user.csv", "Usernames": {}},
-                    "Producers": {"file": "model2_prod.csv", "ProducerNames": [""]}},
-        "Model 3": {"Users": {"file": "model3_user.csv", "Usernames": {}},
-                    "Producers": {"file": "model3_prod.csv", "ProducerNames": [""]}}
     }
 
     filePath = "Logs/"

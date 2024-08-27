@@ -12,8 +12,8 @@ class Interface:
     TEXTLEN = 25
     THEME = "TanBlue"
 
-    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
-                      "UAT4": "https://uat4-advr.in.guidewire.net/innovation", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation"}
+    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/",  "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+                      "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
 
     payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
                          "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
@@ -23,6 +23,7 @@ class Interface:
                               "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
     payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
                          "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
+
     env_used = "Local"
     state_chosen = None
     date_chosen = None
@@ -336,7 +337,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-            if event == "-ENVLIST-" and selectedEnviron != '' and (selectedEnviron == "QA" or selectedEnviron == "QWCP QA" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4' or selectedEnviron == 'QA2' or selectedEnviron == 'Model' or selectedEnviron == 'Model 2' or selectedEnviron == 'Model 3'):
+            if event == "-ENVLIST-" and selectedEnviron != '' and (selectedEnviron == "QA" or selectedEnviron == "GWCP QA" or selectedEnviron == "GWCP QA2" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4' or selectedEnviron == 'QA2' or selectedEnviron == 'Model' or selectedEnviron == 'Model 2' or selectedEnviron == 'Model 3'):
                 self.env_used = selectedEnviron
                 File.env_used = self.env_used
                 self.application.env_used = self.env_used

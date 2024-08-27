@@ -42,8 +42,8 @@ class Application:
     first_name = None
     last_name = None
 
-    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
-                      "UAT4": "https://uat4-advr.in.guidewire.net/innovation", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation"}
+    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/","UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+                      "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
 
     user_chosen = None
     verified = False
@@ -629,6 +629,7 @@ class Application:
 
         if agent_name is None:
             ################ Create Agency #################################
+            browser_handles = self.browser.window_handles
             Actions.check_for_value(self.browser, "NewProducer", keys="click")
             Actions.check_for_value(
                 self.browser, "Provider.ProviderNumber", keys=agency_name)
@@ -648,6 +649,12 @@ class Application:
             Actions.check_for_value(
                 self.browser, "ProviderStreetAddr.StateProvCd", value="DC")
             Actions.waitPageLoad(self.browser)
+            if EC.new_window_is_opened(browser_handles):
+                self.browser.switch_to.window(self.browser.window_handles[1])
+                Actions.check_for_value(self.browser,"addressGroupValue_0",keys="click")
+                Actions.check_for_value(self.browser,"Select",keys="click")
+                self.browser.switch_to.window(self.browser.window_handles[0])
+            Actions.waitPageLoad(self.browser)    
             Actions.check_for_value(self.browser, "CopyAddress", keys="click")
             Actions.waitPageLoad(self.browser)
             Actions.check_for_value(
