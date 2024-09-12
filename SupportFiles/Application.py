@@ -23,43 +23,59 @@ class Application:
     TEST = False
     COMPANY = "ADVR"
 
-    billing = None
-    underwriting = None
-    core_coverages = None
-    browser = None
-    line_of_business = None
-    state_chosen = None
-    date_chosen = None
-    env_used = None
-    producer_selected = None
-    doc_types = ["Quote", "Application", "Policy"]
-    create_type = doc_types[1]
-    browser_chosen = None
-    multiAdd = None
-    number_of_addresses = 1
-    pay_plan = None
-    dwelling_program = None
-    first_name = None
-    last_name = None
+    # gw_environment =
 
-    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/","UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
-                      "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
+    # user_chosen = None
+    # verified = False
+    # payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+    #                     "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
+    # payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+    #                    "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+    # payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+    #                          "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+    # payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
+    #                     "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
+    # user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
+    #             "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
 
-    user_chosen = None
-    verified = False
-    payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                         "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
-    payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                        "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-    payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                              "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-    payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
-                         "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
-    user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
-                 "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
+    def __init__(self) -> None:
+        self.billing = None
+        self.underwriting = None
+        self.core_coverages = None
+        self.browser = None
+        self.line_of_business = None
+        self.state_chosen = None
+        self.date_chosen = None
+        self.env_used = None
+        self.producer_selected = None
+        self.doc_types = ["Quote", "Application", "Policy"]
+        self.create_type = self.doc_types[1]
+        self.browser_chosen = None
+        self.multiAdd = None
+        self.number_of_addresses = 1
+        self.pay_plan = None
+        self.dwelling_program = None
+        self.first_name = None
+        self.last_name = None
+        self.custom_address = False
+        self.address1 = None
+        self.address2 = None
+        self.city = None
 
-    def __init__(self):
-        pass
+        self.verified = False
+        self.user_chosen = None
+        self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+                               "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
+        self.payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
+        self.payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                 "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+        self.payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                       "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+        self.payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
+                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
+        self.user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
+                          "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
 
     def delete_quote(self):
         # delete created Quote
@@ -103,33 +119,40 @@ class Application:
         WebDriverWait(self.browser, 60).until(
             lambda browser: browser.execute_script(script))
 
-    def run_verify_address(self, browser):
+    def run_verify_address(self):
         script = "InsuredMailingAddr.verify();"
-        lambda browser: browser.execute_script(script)
+        self.self.browser.execute_script(script)
+        # lambda browser: browser.execute_script(script)
 
-    def copy_to_property(self, browser, addr, city, state):
+    def copy_to_property(self):
         Actions.find_Element(
-            browser, "InsuredResidentAddr.Addr1").send_keys(addr)
+            self.browser, "InsuredResidentAddr.Addr1").send_keys(self.address1)
+        if self.address2 is not None:
+            Actions.find_Element(
+                self.browser, "InsuredResidentAddr.Addr1").send_keys(self.address2)
         Actions.find_Element(
-            browser, "InsuredResidentAddr.City").send_keys(city)
+            self.browser, "InsuredResidentAddr.City").send_keys(self.city)
         Select(Actions.find_Element(
-            browser, "InsuredResidentAddr.StateProvCd")).select_by_value(state)
-        if Actions.find_Element(browser, "InsuredResidentAddr.addrVerifyImg").is_displayed():
+            self.browser, "InsuredResidentAddr.StateProvCd")).select_by_value(self.state)
+        if Actions.find_Element(self.browser, "InsuredResidentAddr.addrVerifyImg").is_displayed():
             script = "InsuredResidentAddr.verify()"
-            browser.execute_script(script)
-            Actions.waitPageLoad(browser)
+            self.browser.execute_script(script)
+            Actions.waitPageLoad(self.browser)
 
-    def copy_to_mailing(self, browser, addr, city, state):
+    def copy_to_mailing(self):
         Actions.find_Element(
-            browser, "InsuredMailingAddr.Addr1").send_keys(addr)
+            self.browser, "InsuredMailingAddr.Addr1").send_keys(self.address1)
+        if self.address2 is not None:
+            Actions.find_Element(
+                self.browser, "InsuredResidentAddr.Addr1").send_keys(self.address2)
         Actions.find_Element(
-            browser, "InsuredMailingAddr.City").send_keys(city)
+            self.browser, "InsuredMailingAddr.City").send_keys(self.city)
         Select(Actions.find_Element(
-            browser, "InsuredMailingAddr.StateProvCd")).select_by_value(state)
-        if Actions.find_Element(browser, "InsuredMailingAddr.addrVerifyImg").is_displayed():
+            self.browser, "InsuredMailingAddr.StateProvCd")).select_by_value(self.state)
+        if Actions.find_Element(self.browser, "InsuredMailingAddr.addrVerifyImg").is_displayed():
             script = "InsuredMailingAddr.verify()"
-            browser.execute_script(script)
-            Actions.waitPageLoad(browser)
+            self.browser.execute_script(script)
+            Actions.waitPageLoad(self.browser)
 
     # Start application creation
 
@@ -171,9 +194,14 @@ class Application:
 
         # *Tab to click  for recent quotes, applications, and policies
         Actions.find_Element(self.browser, "Tab_Recent").click()
-        state1, CITY, ADDRESS = Address.addresses[str(state_chosen+"1")]
-        custom_city = Address.custom_address["City"]
-        custom_add = Address.custom_address["Address"]
+        self.state, self.city, self.address1 = Address.addresses[str(
+            state_chosen)]
+
+        if self.custom_address:
+            self.city = Address.custom_address["City"]
+            self.address1 = Address.custom_address["Address"]
+            if Address.custom_address["Address2"] is not None:
+                self.address2 = Address.custom_address["Address2"]
 
         if not self.first_name:
             first_name = state_chosen + " " + line_of_business
@@ -183,11 +211,11 @@ class Application:
             last_name = self.last_name
 
         if Address.custom_address["Flag"]:
-            self.create_new_quote(date_chosen, state1, producer_selected, first_name,
-                                  last_name, custom_add, custom_city, multiAdd, self.TEST, subType, CARRIER[carrier])
+            self.create_new_quote(date_chosen, producer_selected, first_name,
+                                  last_name, multiAdd, self.TEST, subType, CARRIER[carrier])
         else:
-            self.create_new_quote(date_chosen, state1, producer_selected, first_name,
-                                  last_name, ADDRESS, CITY, multiAdd, self.TEST, subType, CARRIER[carrier])
+            self.create_new_quote(date_chosen, producer_selected, first_name,
+                                  last_name, multiAdd, self.TEST, subType, CARRIER[carrier])
 
         if self.TEST:
             sleep(5)
@@ -212,7 +240,7 @@ class Application:
         Actions.find_Element(self.browser, "Process").click()
         Actions.waitPageLoad(self.browser)
 
-    def create_new_quote(self, date, state: str, producer: str, first_name: str, last_name: str, address: str, city: str, multiLoc: bool, test: bool, subType: str, carrier: str):
+    def create_new_quote(self, date, producer: str, first_name: str, last_name: str, multiLoc: bool, test: bool, subType: str, carrier: str):
 
         # New Quote
         Actions.find_Element(
@@ -223,7 +251,7 @@ class Application:
         Actions.waitPageLoad(self.browser)
         # State Select
         self.browser.execute_script(
-            "document.getElementById('QuickAction_StateCd').value = '"+state+"';")
+            "document.getElementById('QuickAction_StateCd').value = '"+self.state_chosen+"';")
         Actions.check_for_value(
             self.browser, "QuickAction_CarrierGroupCd", self.COMPANY)
 
@@ -300,11 +328,14 @@ class Application:
             Actions.find_Element(
                 self.browser, "InsuredPersonal.BirthDt").send_keys("01/01/1980")
             Actions.find_Element(
-                self.browser, "InsuredCurrentAddr.Addr1").send_keys(address)
+                self.browser, "InsuredCurrentAddr.Addr1").send_keys(self.address1)
+            if self.address2 is not None:
+                Actions.find_Element(
+                    self.browser, "InsuredCurrentAddr.Addr2").send_keys(self.address2)
             Actions.find_Element(
-                self.browser, "InsuredCurrentAddr.City").send_keys(city)
+                self.browser, "InsuredCurrentAddr.City").send_keys(self.city)
             Select(Actions.find_Element(
-                self.browser, "InsuredCurrentAddr.StateProvCd")).select_by_value(state)
+                self.browser, "InsuredCurrentAddr.StateProvCd")).select_by_value(self.state)
 
             if Actions.find_Element(self.browser, "InsuredCurrentAddr.addrVerifyImg").is_displayed():
                 script = "InsuredCurrentAddr.verify()"
@@ -314,11 +345,14 @@ class Application:
         # *Select state here
         if (self.line_of_business == "Businessowners" or self.line_of_business == "Commercial Umbrella"):
             Actions.find_Element(
-                self.browser, "InsuredMailingAddr.Addr1").send_keys(address)
+                self.browser, "InsuredMailingAddr.Addr1").send_keys(self.address1)
+            if self.address2 is not None:
+                Actions.find_Element(
+                    self.browser, "InsuredMailingAddr.Addr1").send_keys(self.address2)
             Actions.find_Element(
-                self.browser, "InsuredMailingAddr.City").send_keys(city)
+                self.browser, "InsuredMailingAddr.City").send_keys(self.city)
             Select(Actions.find_Element(
-                self.browser, "InsuredMailingAddr.StateProvCd")).select_by_value(state)
+                self.browser, "InsuredMailingAddr.StateProvCd")).select_by_value(self.state)
 
         # *Adding geographic territory and policy carrier here
         if (self.state_chosen == "NY" and (self.line_of_business == "Homeowners" or self.line_of_business == "Personal Umbrella")):
@@ -330,8 +364,8 @@ class Application:
             Actions.find_Element(self.browser, "DefaultAddress").click()
 
         if self.line_of_business != "Businessowners" and self.line_of_business != "Commercial Umbrella":
-            self.copy_to_property(self.browser, address, city, state)
-            self.copy_to_mailing(self.browser, address, city, state)
+            self.copy_to_property()
+            self.copy_to_mailing()
             Actions.waitPageLoad(self.browser)
 
         # *First and Last names copied to input fields here
@@ -651,10 +685,11 @@ class Application:
             Actions.waitPageLoad(self.browser)
             if EC.new_window_is_opened(browser_handles):
                 self.browser.switch_to.window(self.browser.window_handles[1])
-                Actions.check_for_value(self.browser,"addressGroupValue_0",keys="click")
-                Actions.check_for_value(self.browser,"Select",keys="click")
+                Actions.check_for_value(
+                    self.browser, "addressGroupValue_0", keys="click")
+                Actions.check_for_value(self.browser, "Select", keys="click")
                 self.browser.switch_to.window(self.browser.window_handles[0])
-            Actions.waitPageLoad(self.browser)    
+            Actions.waitPageLoad(self.browser)
             Actions.check_for_value(self.browser, "CopyAddress", keys="click")
             Actions.waitPageLoad(self.browser)
             Actions.check_for_value(

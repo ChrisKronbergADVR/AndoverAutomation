@@ -8,41 +8,64 @@ from SupportFiles.MultiLog import MultiLog
 
 
 class Interface:
-    VERSION = "1.0"
+    VERSION = "1.1"
     TEXTLEN = 25
     THEME = "TanBlue"
 
-    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/",  "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
-                      "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
+    def __init__(self) -> None:
+        self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/",  "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+                               "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
 
-    payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                         "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
-    payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                        "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-    payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                              "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-    payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
-                         "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
+        self.payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
+        self.payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                 "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+        self.payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                       "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+        self.payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
+                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
+        self.user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
+                          "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
 
-    env_used = "Local"
-    state_chosen = None
-    date_chosen = None
-    user_name = None
-    producer_selected = None
-    create_type = None
-    browser_chosen = None
-    line_of_business = None
-    user_chosen = None
-    verified = False
-    number_of_addresses = 1
-    pay_plan = None
-    user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
-                 "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
-    thread_name = None
-    userList = []
-    dwelling_program = None
+        self.env_used = "Local"
+        self.state_chosen = None
+        self.date_chosen = None
+        self.user_name = None
+        self.producer_selected = None
+        self.create_type = None
+        self.browser_chosen = None
+        self.line_of_business = None
+        self.user_chosen = None
+        self.verified = False
+        self.number_of_addresses = 1
+        self.pay_plan = None
+        self.thread_name = None
+        self.userList = []
+        self.dwelling_program = None
+        self.custom_address = False
+        self.city = None
+        self.state = None
+        self.address1 = None
+        self.address2 = None
+        self.address_validate = False
 
-    application = Application()
+        self.application = Application()
+
+    def check_for_errors(self, selectedUser, selectedEnviron, producer, browser_chose, date_selected, doc_type, subType, address_validate):
+        self.address_validate = Address.verify_address()
+
+        self.submit_errors = {"User": selectedUser, "Environment": selectedEnviron, "Producer": producer,
+                              "Browser": browser_chose, "Date": date_selected, "State": self.state, "Application Type": doc_type, "Subtype": subType, "Address Validation": address_validate}
+        self.submit_message = []
+
+        err_text = ""
+        for error_key, error_value in self.submit_errors.items():
+            if error_value == "":
+                err_text += f"{error_key} \n"
+                self.submit_message.append(error_value)
+
+        sg.popup_notify("Fields Below must be filled in to Submit \n--------------------------------------------------\n" +
+                        err_text, display_duration_in_ms=5000, location=(800, 394))
 
     # Function for making the GUI
     def make_window(self):
@@ -186,11 +209,12 @@ class Interface:
             producer = values["-PRODUCER-"]
             doc_type = values["-CREATE-"]
             city = values["-CITY-"]
-            addr = values["-CADD1-"]
-            addr2 = values["-CADD2-"]
+            self.address1 = values["-CADD1-"]
+            self.address2 = values["-CADD2-"]
             browser_chose = values["BROWSER"]
             cust_addr = values["ADD_CHECK"]
-            state = values["-STATE-"]
+            self.custom_address = values["ADD_CHECK"]
+            self.state = values["-STATE-"]
             lob = values["-LOB-"]
             subType = SUBTYPE[values["-SUBTYPE-"]]
             multi = values["-MULTI-"]
@@ -205,6 +229,9 @@ class Interface:
             log_val = values["-LOG-"]
             dwelling_program = values["-DP-"]
             custom_name = values["-NAME_CHECK-"]
+
+            if self.address2 == "":
+                self.address2 = None
 
             if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name and browser_chose:
                 self.browser_chosen = browser_chose
@@ -234,8 +261,8 @@ class Interface:
             else:
                 MultiLog.log_data = False
 
-            if (event == "-LOB-" and state != "") or (event == "-STATE-" and lob != ""):
-                if STATES[state] == "NY":
+            if (event == "-LOB-" and self.address1 != "") or (event == "-STATE-" and lob != ""):
+                if STATES[self.state] == "NY":
                     all_items = list(CARRIER.keys())
                     current_list = []
                     if lob == "Homeowners":
@@ -249,7 +276,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-                if STATES[state] == "MA":
+                if STATES[self.state] == "MA":
                     all_items = list(CARRIER.keys())
                     current_list = []
                     if lob == "Homeowners":
@@ -263,7 +290,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-                if STATES[state] == "CT":
+                if STATES[self.state] == "CT":
                     all_items = list(CARRIER.keys())
                     current_list = []
                     if lob == "Homeowners":
@@ -277,7 +304,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-                if STATES[state] == "IL":
+                if STATES[self.state] == "IL":
                     all_items = list(CARRIER.keys())
                     current_list = []
                     if (lob == "Homeowners" or lob == "Dwelling Property"):
@@ -286,7 +313,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-                if STATES[state] == "NH":
+                if STATES[self.state] == "NH":
                     all_items = list(CARRIER.keys())
                     current_list = []
                     if lob == "Homeowners":
@@ -300,7 +327,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-                if STATES[state] == "NJ":
+                if STATES[self.state] == "NJ":
                     all_items = list(CARRIER.keys())
                     current_list = []
                     if lob == "Homeowners":
@@ -314,7 +341,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-                if STATES[state] == "ME":
+                if STATES[self.state] == "ME":
                     all_items = list(CARRIER.keys())
                     current_list = []
                     if lob == "Homeowners":
@@ -328,7 +355,7 @@ class Interface:
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-                if STATES[state] == "RI":
+                if STATES[self.state] == "RI":
                     all_items = list(CARRIER.keys())
                     current_list = []
                     if (lob == "Homeowners" or lob == "Dwelling Property"):
@@ -363,8 +390,13 @@ class Interface:
                 window["-ULIST-"].update(values=self.userList)
                 window.refresh()
 
+            """
             if event == "BTN_VERIFY" and city and addr and state:
-                verified = Address.verify_address(city, STATES[state], addr)
+
+                if addr != "":
+                    verified = Address.verify_address(city, STATES[state], addr)
+                else:
+                    verified = Address.verify_address(city, STATES[state], addr,address2=addr2)
 
                 if verified:
                     sg.popup_auto_close(
@@ -378,6 +410,7 @@ class Interface:
                     window["-VERIFY_BUTTON-"].update(visible=False)
                     sg.popup_auto_close(
                         'This Address Has Not been Verified. Check the address and enter it again.')
+            """
 
             if custom_name:
                 window['-FIRST_TEXT-'].update(visible=True)
@@ -397,7 +430,7 @@ class Interface:
                 window["-CADD2-"].update(visible=True)
                 window["-CityText-"].update(visible=True)
                 window["-CITY-"].update(visible=True)
-                window["BTN_VERIFY"].update(visible=True)
+                # window["BTN_VERIFY"].update(visible=True)
                 window.refresh()
             else:
                 window["-AddText1-"].update(visible=False)
@@ -407,7 +440,7 @@ class Interface:
                 window["-CityText-"].update(visible=False)
                 window["-CITY-"].update(visible=False)
                 window["BTN_VERIFY"].update(visible=False)
-                window["-VERIFY_BUTTON-"].update(visible=False)
+                # window["-VERIFY_BUTTON-"].update(visible=False)
                 window.refresh()
 
             if event == "-LOB-":
@@ -488,27 +521,57 @@ class Interface:
                 window.refresh()
 
             if event == "-ADDRESS-":
-                Address.custom_address["Address"] = addr
-                Address.custom_address["Address2"] = addr2
-                Address.custom_address["City"] = city
-                window["ADD_DISP"].update(value=addr)
-                window["CITY_DISP"].update(value=city)
+                Address.custom_address["Address"] = self.address1
+                Address.custom_address["Address2"] = self.address2
+                Address.custom_address["City"] = self.city
+                window["ADD_DISP"].update(value=self.address1)
+                window["CITY_DISP"].update(value=self.city)
                 window.refresh()
 
-            if (event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and state
-                    and date_selected and (Address.custom_address["Flag"] or cust_addr == False)):
+            if self.address1 != "" and self.address2 == None:
+                self.verified = Address.verify_address(
+                    city, STATES[self.state], self.address1)
+            elif self.address1 != "" and self.address2 is not None:
+                self.verified = Address.verify_address(
+                    city, STATES[self.state], self.address1, address2=self.address2)
+
+            if event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and self.state and date_selected and self.verified:
 
                 self.application.line_of_business = lob
                 self.application.browser_chosen = browser_chose
-                self.application.state_chosen = STATES[state]
+                self.application.state_chosen = STATES[self.state]
                 self.application.date_chosen = date_selected
                 self.application.producer_selected = producer
                 self.application.create_type = doc_type
                 self.application.user_chosen = selectedUser
 
+                if self.custom_address:
+                    if self.address1 != "":
+                        self.verified = Address.verify_address(
+                            city, STATES[self.state], self.address)
+                    elif self.address1 != "" and self.address2 is not None:
+                        self.verified = Address.verify_address(
+                            city, STATES[self.state], self.address1, address2=self.address2)
+
+                    if self.verified:
+                        sg.popup_auto_close(
+                            'Custom Address Has been Verified Successfully!')
+                        # window["-VERIFY_BUTTON-"].update(visible=True)
+                        Address.custom_address["Address"] = self.address1
+                        Address.custom_address["City"] = city
+                        Address.custom_address["Address2"] = self.address2
+                        Address.custom_address["Flag"] = True
+                    else:
+                        sg.popup_auto_close(
+                            'This Address Has Not been Verified. Check the address and enter it again.')
+                        break
+
                 if custom_name:
                     self.application.first_name = values["-FIRST-"]
                     self.application.last_name = values["-LAST-"]
+                else:
+                    self.application.first_name = self.application.state_chosen
+                    self.application.last_name = self.application.line_of_business
 
                 if self.application.line_of_business == "Dwelling Property":
                     self.application.dwelling_program = dwelling_program
@@ -532,21 +595,24 @@ class Interface:
 
                 app_thread = threading.Thread(target=self.application.startApplication, args=(
                     self.application.multiAdd, subType, carrier))
+
                 app_thread.start()
+
                 if not app_thread.is_alive():
                     del self.application
 
             elif event == "Submit":
-                submit_errors = {"User": selectedUser, "Environment": selectedEnviron, "Producer": producer,
-                                 "Browser": browser_chose, "Date": date_selected, "State": state, "Application Type": doc_type, "Subtype": subType}
-                submit_message = []
+                self.check_for_errors(selectedUser, selectedEnviron, producer, browser_chose,
+                                      date_selected, doc_type, subType)
+                """
                 err_text = ""
-                for error_key, error_value in submit_errors.items():
+                for error_key, error_value in self.submit_errors.items():
                     if error_value == "":
                         err_text += f"{error_key} \n"
-                        submit_message.append(error_value)
+                        self.submit_message.append(error_value)
                         # warning(f"{error_key} was not selected")
 
                 sg.popup_notify("Fields Below must be filled in to Submit \n--------------------------------------------------\n" +
-                                err_text, display_duration_in_ms=10000, location=(800, 394))
+                                err_text, display_duration_in_ms=5000, location=(800, 394))
+                """
         window.close()
