@@ -8,7 +8,7 @@ from SupportFiles.MultiLog import MultiLog
 
 
 class Interface:
-    VERSION = "1.1"
+    VERSION = "0.1.1"
     TEXTLEN = 25
     THEME = "TanBlue"
 
@@ -65,7 +65,7 @@ class Interface:
 
         err_text = ""
         for error_key, error_value in self.submit_errors.items():
-            if error_value == "":
+            if error_value == "" or error_value == False:
                 err_text += f"{error_key} \n"
                 self.submit_message.append(error_value)
 
@@ -116,6 +116,9 @@ class Interface:
             [sg.Text("First Name", visible=False, justification="left",  enable_events=True, key="-FIRST_TEXT-",),
              sg.Text("   "),
              sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-FIRST-")],
+            [sg.Text("Mid Name ", visible=False, justification="left",  enable_events=True, key="-MID_TEXT-",),
+             sg.Text("   "),
+             sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-MID-")],
             [sg.Text("Last Name", visible=False, justification="left",  enable_events=True, key="-LAST_TEXT-"),
              sg.Text("   "), sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-LAST-")],
             [sg.Text("Select State"), sg.DropDown(list(STATES.keys()), key="-STATE-", readonly=True, enable_events=True),
@@ -203,7 +206,7 @@ class Interface:
         layout += [tabs_layout]
 
         # Create the Window
-        window = sg.Window(f"Automation for Andover                                       Version: {
+        window = sg.Window(f"Automation for Andover                                  Version: {
                            self.VERSION}", layout)
         # Event Loop to process "events" and get the "values" of the inputs
         while True:
@@ -217,11 +220,10 @@ class Interface:
             selectedEnviron = values["-ENVLIST-"]
             producer = values["-PRODUCER-"]
             doc_type = values["-CREATE-"]
-            city = values["-CITY-"]
+            self.city = values["-CITY-"]
             self.address1 = values["-CADD1-"]
             self.address2 = values["-CADD2-"]
             browser_chose = values["BROWSER"]
-            # cust_addr = values["ADD_CHECK"]
             self.custom_address = values["ADD_CHECK"]
             self.state = values["-STATE-"]
             lob = values["-LOB-"]
@@ -399,36 +401,18 @@ class Interface:
                 window["-ULIST-"].update(values=self.userList)
                 window.refresh()
 
-            """
-            if event == "BTN_VERIFY" and city and addr and state:
-
-                if addr != "":
-                    verified = Address.verify_address(city, STATES[state], addr)
-                else:
-                    verified = Address.verify_address(city, STATES[state], addr,address2=addr2)
-
-                if verified:
-                    sg.popup_auto_close(
-                        'Custom Address Has been Verified Successfully!')
-                    window["-VERIFY_BUTTON-"].update(visible=True)
-                    Address.custom_address["Address"] = addr
-                    Address.custom_address["City"] = city
-                    Address.custom_address["Address2"] = addr2
-                    Address.custom_address["Flag"] = True
-                else:
-                    window["-VERIFY_BUTTON-"].update(visible=False)
-                    sg.popup_auto_close(
-                        'This Address Has Not been Verified. Check the address and enter it again.')
-            """
-
             if custom_name:
                 window['-FIRST_TEXT-'].update(visible=True)
                 window['-FIRST-'].update(visible=True)
+                window['-MID_TEXT-'].update(visible=True)
+                window['-MID-'].update(visible=True)
                 window['-LAST_TEXT-'].update(visible=True)
                 window['-LAST-'].update(visible=True)
             else:
                 window['-FIRST_TEXT-'].update(visible=False)
                 window['-FIRST-'].update(visible=False)
+                window['-MID_TEXT-'].update(visible=False)
+                window['-MID-'].update(visible=False)
                 window['-LAST_TEXT-'].update(visible=False)
                 window['-LAST-'].update(visible=False)
 
@@ -537,14 +521,18 @@ class Interface:
                 window["CITY_DISP"].update(value=self.city)
                 window.refresh()
 
-            if self.address1 != "" and self.address2 == None:
-                self.verified = Address.verify_address(
-                    city, STATES[self.state], self.address1)
-            elif self.address1 != "" and self.address2 is not None:
-                self.verified = Address.verify_address(
-                    city, STATES[self.state], self.address1, address2=self.address2)
+            if event == "Submit" and self.custom_address:
+                if self.address1 != "" and self.address2 == None:
+                    self.verified = Address.verify_address(
+                        self.city, STATES[self.state], self.address1)
+                elif self.address1 != "" and self.address2 is not None:
+                    self.verified = Address.verify_address(
+                        self.city, STATES[self.state], self.address1, address2=self.address2)
+                    
+            if not self.custom_address:
+                self.verified = True
 
-            if event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and self.state and date_selected and (not self.custom_address or self.custom_address and self.address_validate):
+            if event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and self.state and date_selected and self.verified:
 
                 self.application.line_of_business = lob
                 self.application.browser_chosen = browser_chose
@@ -555,28 +543,14 @@ class Interface:
                 self.application.user_chosen = selectedUser
 
                 if self.custom_address:
-                    if self.address1 != "":
-                        self.verified = Address.verify_address(
-                            city, STATES[self.state], self.address1)
-                    elif self.address1 != "" and self.address2 is not None:
-                        self.verified = Address.verify_address(
-                            city, STATES[self.state], self.address1, address2=self.address2)
-
-                    if self.verified:
-                        sg.popup_auto_close(
-                            'Custom Address Has been Verified Successfully!')
-                        # window["-VERIFY_BUTTON-"].update(visible=True)
-                        Address.custom_address["Address"] = self.address1
-                        Address.custom_address["City"] = city
-                        Address.custom_address["Address2"] = self.address2
-                        Address.custom_address["Flag"] = True
-                    else:
-                        sg.popup_auto_close(
-                            'This Address Has Not been Verified. Check the address and enter it again.')
-                        break
-
+                    Address.custom_address["Address"] = self.address1
+                    Address.custom_address["City"] = self.city
+                    Address.custom_address["Address2"] = self.address2
+                    Address.custom_address["Flag"] = True
+                
                 if custom_name:
                     self.application.first_name = values["-FIRST-"]
+                    self.application.mid_name = values["-MID-"]
                     self.application.last_name = values["-LAST-"]
                 else:
                     self.application.first_name = self.application.state_chosen
@@ -619,15 +593,8 @@ class Interface:
             elif event == "Submit":
                 self.check_for_errors(selectedUser, selectedEnviron, producer, browser_chose,
                                       date_selected, doc_type, subType)
-                """
-                err_text = ""
-                for error_key, error_value in self.submit_errors.items():
-                    if error_value == "":
-                        err_text += f"{error_key} \n"
-                        self.submit_message.append(error_value)
-                        # warning(f"{error_key} was not selected")
-
-                sg.popup_notify("Fields Below must be filled in to Submit \n--------------------------------------------------\n" +
-                                err_text, display_duration_in_ms=5000, location=(800, 394))
-                """
+                
+                sg.popup_auto_close(
+                        'This Address Has Not been Verified. Check the address and enter it again.')
+    
         window.close()

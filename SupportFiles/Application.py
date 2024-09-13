@@ -56,8 +56,10 @@ class Application:
         self.pay_plan = None
         self.dwelling_program = None
         self.first_name = None
+        self.mid_name = None
         self.last_name = None
         self.custom_address = False
+        self.custom_name = False
         self.address1 = None
         self.address2 = None
         self.city = None
