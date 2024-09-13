@@ -23,21 +23,6 @@ class Application:
     TEST = False
     COMPANY = "ADVR"
 
-    # gw_environment =
-
-    # user_chosen = None
-    # verified = False
-    # payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-    #                     "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
-    # payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-    #                    "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-    # payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-    #                          "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-    # payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
-    #                     "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
-    # user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
-    #             "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
-
     def __init__(self) -> None:
         self.billing = None
         self.underwriting = None
@@ -298,6 +283,9 @@ class Application:
 
         self.browser.execute_script(
             'document.getElementById("InsuredName.GivenName").value = "' + first_name + '"')
+        if (self.mid_name is not None) and (self.mid_name != ""):
+            self.browser.execute_script(
+                'document.getElementById("InsuredName.OtherGivenName").value = "' + self.mid_name + '"')
         self.browser.execute_script(
             'document.getElementById("InsuredName.Surname").value = "' + last_name + '"')
 
@@ -367,14 +355,15 @@ class Application:
 
         if self.line_of_business != "Businessowners" and self.line_of_business != "Commercial Umbrella":
             self.copy_to_property()
+            Actions.waitPageLoad(self.browser)
             self.copy_to_mailing()
             Actions.waitPageLoad(self.browser)
 
         # *First and Last names copied to input fields here
-        Actions.find_Element(self.browser, "InsuredName.MailtoName").send_keys(
-            f"{first_name} {last_name}")
-        Actions.find_Element(self.browser, "Insured.InspectionContact").send_keys(
-            f"{first_name} {last_name}")
+        Actions.check_for_value(self.browser, "ResetMailtoName", keys="click")
+        Actions.waitPageLoad(self.browser)
+        Actions.check_for_value(self.browser, "ResetCommercialName", keys="click")
+        Actions.waitPageLoad(self.browser)
 
         # *Phone Type, Phone number, and email entered here
         Select(Actions.find_Element(self.browser, "InsuredPhonePrimary.PhoneName")
