@@ -51,11 +51,16 @@ class Interface:
 
         self.application = Application()
 
-    def check_for_errors(self, selectedUser, selectedEnviron, producer, browser_chose, date_selected, doc_type, subType, address_validate):
-        self.address_validate = Address.verify_address()
+    def check_for_errors(self, selectedUser, selectedEnviron, producer, browser_chose, date_selected, doc_type, subType):
+        if self.address2 == None:
+            self.address_validate = Address.verify_address(
+                self.city, self.state_chosen, self.address1)
+        else:
+            self.address_validate = Address.verify_address(
+                self.city, self.state_chosen, self.address1, self.address2)
 
         self.submit_errors = {"User": selectedUser, "Environment": selectedEnviron, "Producer": producer,
-                              "Browser": browser_chose, "Date": date_selected, "State": self.state, "Application Type": doc_type, "Subtype": subType, "Address Validation": address_validate}
+                              "Browser": browser_chose, "Date": date_selected, "State": self.state, "Application Type": doc_type, "Subtype": subType, "Address Validation": self.address_validate}
         self.submit_message = []
 
         err_text = ""
@@ -94,16 +99,17 @@ class Interface:
 
         all_tabs_info = [
             [sg.Text('Select Local or QA Environment'), sg.DropDown(
-                list(self.gw_environment.keys()), enable_events=True, key="-ENVLIST-")],
-            [sg.Text('Select Browser'), sg.DropDown(browsers, key="BROWSER")],
+                list(self.gw_environment.keys()), readonly=True, enable_events=True, key="-ENVLIST-")],
+            [sg.Text('Select Browser'), sg.DropDown(
+                browsers, readonly=True, key="BROWSER")],
             [sg.Text("Select Producer"), sg.DropDown(list(File.env_files_plus_users[self.env_used]["Producers"]["ProducerNames"]), size=(
-                self.TEXTLEN, 1), key="-PRODUCER-"), sg.Push(), sg.Button("Delete", size=(10, 1), key="-REMPROD-")],
+                self.TEXTLEN, 1), readonly=True, key="-PRODUCER-"), sg.Push(), sg.Button("Delete", size=(10, 1), key="-REMPROD-")],
             [sg.HorizontalSeparator()]
         ]
 
         new_app_layout = [
             [sg.Text('Enter Information for Creating An Application', border_width=3)],
-            [sg.Text('Username'), sg.DropDown(self.userList, key="-ULIST-", size=(20, 1)),
+            [sg.Text('Username'), sg.DropDown(self.userList, readonly=True, key="-ULIST-", size=(20, 1)),
              sg.Push(), sg.Button("Delete User", size=(10, 1), key="-REMU-")],
             [sg.Checkbox(text="Use Custom Name",
                          enable_events=True, key="-NAME_CHECK-")],
@@ -112,7 +118,7 @@ class Interface:
              sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-FIRST-")],
             [sg.Text("Last Name", visible=False, justification="left",  enable_events=True, key="-LAST_TEXT-"),
              sg.Text("   "), sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-LAST-")],
-            [sg.Text("Select State"), sg.DropDown(list(STATES.keys()), key="-STATE-", enable_events=True),
+            [sg.Text("Select State"), sg.DropDown(list(STATES.keys()), key="-STATE-", readonly=True, enable_events=True),
              sg.Checkbox(text="Use Custom Address", enable_events=True, key="ADD_CHECK")],
             [sg.Text("Address 1 (Required)", visible=False, justification="left", key="-AddText1-",),
              sg.Text("   "), sg.InputText(size=(self.TEXTLEN, 1), visible=False, key="-CADD1-")],
@@ -123,28 +129,28 @@ class Interface:
             [sg.Button("Verify Address", visible=False, key="BTN_VERIFY"), sg.Push(), sg.Text(
                 "Verified", text_color="green", visible=False, key="-VERIFY_BUTTON-")],
             [sg.Text("Select Line of Business"), sg.DropDown(
-                LOB, key="-LOB-", enable_events=True)],
+                LOB, key="-LOB-", enable_events=True, readonly=True)],
             [sg.Text("Select Carrier", key="-CARRIERTEXT-"),
-             sg.DropDown(list(CARRIER.keys()), key="-CARRIER-", enable_events=True)],
+             sg.DropDown(list(CARRIER.keys()), key="-CARRIER-", readonly=True, enable_events=True)],
             [sg.Text("Program", key="-DPTEXT-", enable_events=True, visible=False), sg.DropDown(
-                DWELLING_PROGRAM, key="-DP-", default_value="DP1", enable_events=True, visible=False)],
+                DWELLING_PROGRAM, key="-DP-", default_value="DP1", enable_events=True, readonly=True, visible=False)],
             [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"), sg.DropDown(list(
-                SUBTYPE.keys()), key="-SUBTYPE-", default_value="HO5", enable_events=True, visible=False)],
+                SUBTYPE.keys()), key="-SUBTYPE-", default_value="HO5", enable_events=True, readonly=True, visible=False)],
             [sg.Text("Multiple Locations? ", visible=False, key="-MULT-"), sg.DropDown(["Yes",
-                                                                                        "No"], visible=False, default_value="No", enable_events=True, key="-MULTI-")],
+                                                                                        "No"], visible=False, default_value="No", enable_events=True, readonly=True, key="-MULTI-")],
             [sg.Text("Locations ", justification="left", visible=False, key="-NUMMULT-"),
-             sg.DropDown([2, 3, 4, 5], visible=False, default_value="2", key="-NUMLOC-")],
+             sg.DropDown([2, 3, 4, 5], visible=False, default_value="2", readonly=True, key="-NUMLOC-")],
             [sg.Text("Enter Date or Select Date Below")],
             [sg.Input(key='-DATE-', size=(20, 1)), sg.CalendarButton('Date Select', close_when_date_chosen=True,
                                                                      target='-DATE-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
             [sg.Text()],
-            [sg.Text("Payment Plan: ", visible=True), sg.DropDown(list(self.payment_plan_most.keys()), visible=True, default_value="Direct Bill Full Pay", enable_events=True, key="-PAYPLAN-"),
+            [sg.Text("Payment Plan: ", visible=True), sg.DropDown(list(self.payment_plan_most.keys()), visible=True, readonly=True, default_value="Direct Bill Full Pay", enable_events=True, key="-PAYPLAN-"),
              sg.DropDown(list(self.payment_plan_bop.keys()), visible=False,
-                         default_value="Direct Bill Full Pay", enable_events=True, key="-PAYPLANBOP-"),
-             sg.DropDown(list(self.payment_plan_pumb.keys()), visible=False, default_value="Direct Bill Full Pay", enable_events=True, key="-PAYPLANPUMB-")],
+                         default_value="Direct Bill Full Pay", enable_events=True, readonly=True, key="-PAYPLANBOP-"),
+             sg.DropDown(list(self.payment_plan_pumb.keys()), visible=False, default_value="Direct Bill Full Pay", enable_events=True, readonly=True, key="-PAYPLANPUMB-")],
             [sg.Text()],
             [sg.Text("Create Quote, Application or Policy"), sg.DropDown(
-                ["Quote", "Application", "Policy"], default_value="Application", key="-CREATE-")],
+                ["Quote", "Application", "Policy"], default_value="Application", readonly=True, key="-CREATE-")],
             [sg.Text()],
             [sg.Button('Submit'), sg.Button('Cancel'), sg.Push(),
              sg.Checkbox("Enable Logging", key="-LOG-")]
@@ -152,13 +158,14 @@ class Interface:
 
         new_user_layout = [
             [sg.Text()],
-            [sg.Text('Select Login Username'), sg.DropDown(
-                self.userList, key="-CREATE_USERLIST-", size=(20, 1), enable_events=True)],
-            [sg.Text()],
             [sg.Text('Add Producer')],
+            [sg.Text('Select Login Username'), sg.DropDown(
+                self.userList, key="-CREATE_USERLIST-", size=(20, 1), readonly=True, enable_events=True)],
             [sg.Text("Producer Name"), sg.InputText(
                 do_not_clear=False, key="-PROD_IN-")],
             [sg.Button("Add Producer", key="-ADD_PROD-")],
+            [sg.Text()],
+            [sg.HorizontalSeparator()],
             [sg.Text()],
             [sg.Text('Add User')],
             [sg.Text("Username"), sg.InputText(
@@ -167,10 +174,12 @@ class Interface:
                 do_not_clear=False, size=(self.TEXTLEN, 1), key="PASS")],
             [sg.Button("Add", key="-ADDU-")],
             [sg.Text()],
+            [sg.HorizontalSeparator()],
+            [sg.Text()],
             [sg.Text("Create User in Andover (Local Only)",
                      key="-CREATE_TEXT-", enable_events=True, visible=False)],
             [sg.DropDown(list(self.user_dict.keys()), key="UserDrop",
-                         enable_events=True, visible=False)],
+                         enable_events=True, readonly=True, visible=False)],
             [sg.Button("Create", key="-CREATE_USER-",
                        enable_events=True, visible=False)]
         ]
@@ -212,7 +221,7 @@ class Interface:
             self.address1 = values["-CADD1-"]
             self.address2 = values["-CADD2-"]
             browser_chose = values["BROWSER"]
-            cust_addr = values["ADD_CHECK"]
+            # cust_addr = values["ADD_CHECK"]
             self.custom_address = values["ADD_CHECK"]
             self.state = values["-STATE-"]
             lob = values["-LOB-"]
@@ -423,7 +432,7 @@ class Interface:
                 window['-LAST_TEXT-'].update(visible=False)
                 window['-LAST-'].update(visible=False)
 
-            if cust_addr:
+            if self.custom_address:
                 window["-AddText1-"].update(visible=True)
                 window["-CADD1-"].update(visible=True)
                 window["-AddText2-"].update(visible=True)
@@ -535,7 +544,7 @@ class Interface:
                 self.verified = Address.verify_address(
                     city, STATES[self.state], self.address1, address2=self.address2)
 
-            if event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and self.state and date_selected and self.verified:
+            if event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and self.state and date_selected and (not self.custom_address or self.custom_address and self.address_validate):
 
                 self.application.line_of_business = lob
                 self.application.browser_chosen = browser_chose
@@ -548,7 +557,7 @@ class Interface:
                 if self.custom_address:
                     if self.address1 != "":
                         self.verified = Address.verify_address(
-                            city, STATES[self.state], self.address)
+                            city, STATES[self.state], self.address1)
                     elif self.address1 != "" and self.address2 is not None:
                         self.verified = Address.verify_address(
                             city, STATES[self.state], self.address1, address2=self.address2)
@@ -593,10 +602,16 @@ class Interface:
                     self.application.number_of_addresses = 1
                     self.application.multiAdd = False
 
-                app_thread = threading.Thread(target=self.application.startApplication, args=(
-                    self.application.multiAdd, subType, carrier))
+                if self.custom_address and self.address_validate:
+                    app_thread = threading.Thread(target=self.application.startApplication, args=(
+                        self.application.multiAdd, subType, carrier))
 
-                app_thread.start()
+                    app_thread.start()
+                else:
+                    app_thread = threading.Thread(target=self.application.startApplication, args=(
+                        self.application.multiAdd, subType, carrier))
+
+                    app_thread.start()
 
                 if not app_thread.is_alive():
                     del self.application
