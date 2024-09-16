@@ -528,7 +528,7 @@ class Interface:
                 elif self.address1 != "" and self.address2 is not None:
                     self.verified = Address.verify_address(
                         self.city, STATES[self.state], self.address1, address2=self.address2)
-                    
+
             if not self.custom_address:
                 self.verified = True
 
@@ -543,11 +543,12 @@ class Interface:
                 self.application.user_chosen = selectedUser
 
                 if self.custom_address:
+                    self.application.custom_address = True
                     Address.custom_address["Address"] = self.address1
                     Address.custom_address["City"] = self.city
                     Address.custom_address["Address2"] = self.address2
                     Address.custom_address["Flag"] = True
-                
+
                 if custom_name:
                     self.application.first_name = values["-FIRST-"]
                     self.application.mid_name = values["-MID-"]
@@ -576,7 +577,7 @@ class Interface:
                     self.application.number_of_addresses = 1
                     self.application.multiAdd = False
 
-                if self.custom_address and self.address_validate:
+                if self.custom_address:
                     app_thread = threading.Thread(target=self.application.startApplication, args=(
                         self.application.multiAdd, subType, carrier))
 
@@ -593,8 +594,8 @@ class Interface:
             elif event == "Submit":
                 self.check_for_errors(selectedUser, selectedEnviron, producer, browser_chose,
                                       date_selected, doc_type, subType)
-                
+
                 sg.popup_auto_close(
-                        'This Address Has Not been Verified. Check the address and enter it again.')
-    
+                    'This Address Has Not been Verified. Check the address and enter it again.')
+
         window.close()

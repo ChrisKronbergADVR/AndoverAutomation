@@ -197,12 +197,12 @@ class Application:
             first_name = self.first_name
             last_name = self.last_name
 
-        if Address.custom_address["Flag"]:
-            self.create_new_quote(date_chosen, producer_selected, first_name,
-                                  last_name, multiAdd, self.TEST, subType, CARRIER[carrier])
-        else:
-            self.create_new_quote(date_chosen, producer_selected, first_name,
-                                  last_name, multiAdd, self.TEST, subType, CARRIER[carrier])
+        # if Address.custom_address["Flag"]:
+        #    self.create_new_quote(date_chosen, producer_selected, first_name,
+        #                          last_name, multiAdd, self.TEST, subType, CARRIER[carrier])
+        # else:
+        self.create_new_quote(date_chosen, producer_selected, first_name,
+                              last_name, multiAdd, self.TEST, subType, CARRIER[carrier])
 
         if self.TEST:
             sleep(5)
@@ -362,7 +362,8 @@ class Application:
         # *First and Last names copied to input fields here
         Actions.check_for_value(self.browser, "ResetMailtoName", keys="click")
         Actions.waitPageLoad(self.browser)
-        Actions.check_for_value(self.browser, "ResetCommercialName", keys="click")
+        Actions.check_for_value(
+            self.browser, "ResetCommercialName", keys="click")
         Actions.waitPageLoad(self.browser)
 
         # *Phone Type, Phone number, and email entered here
