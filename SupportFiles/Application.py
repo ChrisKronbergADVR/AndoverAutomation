@@ -367,8 +367,12 @@ class Application:
         Actions.waitPageLoad(self.browser)
 
         # *Phone Type, Phone number, and email entered here
-        Select(Actions.find_Element(self.browser, "InsuredPhonePrimary.PhoneName")
-               ).select_by_value("Mobile")
+        Actions.check_for_value(
+            self.browser, "Insured.InspectionContact", keys="None")
+        Actions.check_for_value(
+            self.browser, "InsuredPhonePrimary.PhoneName", "Mobile")
+        # Select(Actions.find_Element(self.browser, "InsuredPhonePrimary.PhoneName")
+        #       ).select_by_value("Mobile")
         Actions.find_Element(
             self.browser, "InsuredPhonePrimary.PhoneNumber").send_keys(5558675309)
         Actions.check_for_value(
@@ -410,7 +414,7 @@ class Application:
             Actions.find_Element(self.browser, "Bind").click()
 
             if self.line_of_business == "Businessowners" or self.line_of_business == "Commercial Umbrella":
-                self.core_coverages(self.browser)
+                self.core_coverages.start_coverages()
 
             Actions.waitPageLoad(self.browser)
             if (self.state_chosen == "NJ" and (self.line_of_business == "Homeowners" or self.line_of_business == "Personal Umbrella")):

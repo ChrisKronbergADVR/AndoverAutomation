@@ -13,7 +13,7 @@ class Interface:
     THEME = "TanBlue"
 
     def __init__(self) -> None:
-        self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/",  "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+        self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
                                "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
 
         self.payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
@@ -193,10 +193,16 @@ class Interface:
              sg.InputText(size=(self.TEXTLEN, 1))]
         ]
 
+        core_coverages_layout = [
+            [sg.Text('Core Coverages Info Here')],
+
+        ]
+
         tabs_layout = [
             [sg.TabGroup([
                 [sg.Tab('Creating New Applications', new_app_layout),
                  sg.Tab('Add Users and Producers', new_user_layout),
+                 # sg.Tab('Core Coverages Options', core_coverages_layout)
                  ]],
                 key="-TABGROUP-", expand_x=True, expand_y=True)]
         ]
@@ -225,6 +231,7 @@ class Interface:
             self.address2 = values["-CADD2-"]
             browser_chose = values["BROWSER"]
             self.custom_address = values["ADD_CHECK"]
+            self.application.custom_address = values["ADD_CHECK"]
             self.state = values["-STATE-"]
             lob = values["-LOB-"]
             subType = SUBTYPE[values["-SUBTYPE-"]]
@@ -281,8 +288,13 @@ class Interface:
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
-                    if lob == "Dwelling Property":
+                    if lob == "Dwelling Property" or lob == "Businessowners":
                         current_list = [all_items[0]]
+                        window["-CARRIER-"].update(values=current_list)
+                        window["-CARRIER-"].update(value=current_list[0])
+                        window.refresh()
+                    if lob == "Businessowners":
+                        current_list = [all_items[0], all_items[2]]
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
@@ -290,7 +302,7 @@ class Interface:
                 if STATES[self.state] == "MA":
                     all_items = list(CARRIER.keys())
                     current_list = []
-                    if lob == "Homeowners":
+                    if lob == "Homeowners" or lob == "Businessowners":
                         current_list = all_items
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
@@ -309,7 +321,7 @@ class Interface:
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
-                    if lob == "Dwelling Property":
+                    if lob == "Dwelling Property" or lob == "Businessowners":
                         current_list = [all_items[0]]
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
@@ -318,7 +330,7 @@ class Interface:
                 if STATES[self.state] == "IL":
                     all_items = list(CARRIER.keys())
                     current_list = []
-                    if (lob == "Homeowners" or lob == "Dwelling Property"):
+                    if (lob == "Homeowners" or lob == "Dwelling Property" or lob == "Businessowners"):
                         current_list = [all_items[0], all_items[1]]
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
@@ -327,7 +339,7 @@ class Interface:
                 if STATES[self.state] == "NH":
                     all_items = list(CARRIER.keys())
                     current_list = []
-                    if lob == "Homeowners":
+                    if lob == "Homeowners" or lob == "Businessowners":
                         current_list = [all_items[0], all_items[1]]
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
@@ -346,7 +358,7 @@ class Interface:
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
-                    if lob == "Dwelling Property":
+                    if lob == "Dwelling Property" or lob == "Businessowners":
                         current_list = [all_items[0]]
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
@@ -360,7 +372,7 @@ class Interface:
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
-                    if lob == "Dwelling Property":
+                    if lob == "Dwelling Property" or lob == "Businessowners":
                         current_list = [all_items[0]]
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
@@ -369,13 +381,13 @@ class Interface:
                 if STATES[self.state] == "RI":
                     all_items = list(CARRIER.keys())
                     current_list = []
-                    if (lob == "Homeowners" or lob == "Dwelling Property"):
+                    if lob == "Homeowners" or lob == "Dwelling Property" or lob == "Businessowners":
                         current_list = [all_items[0]]
                         window["-CARRIER-"].update(values=current_list)
                         window["-CARRIER-"].update(value=current_list[0])
                         window.refresh()
 
-            if event == "-ENVLIST-" and selectedEnviron != '' and (selectedEnviron == "QA" or selectedEnviron == "GWCP QA" or selectedEnviron == "GWCP QA2" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4' or selectedEnviron == 'QA2' or selectedEnviron == 'Model' or selectedEnviron == 'Model 2' or selectedEnviron == 'Model 3'):
+            if event == "-ENVLIST-" and selectedEnviron != '' and (selectedEnviron == "QA" or selectedEnviron == "GWCP QA" or selectedEnviron == "GWCP QA2" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4' or selectedEnviron == 'QA2'):
                 self.env_used = selectedEnviron
                 File.env_used = self.env_used
                 self.application.env_used = self.env_used
@@ -472,6 +484,12 @@ class Interface:
                 window["-CARRIERTEXT-"].update(visible=True)
                 window["-CARRIER-"].update(visible=True)
                 window.refresh()
+            elif lob == "Businessowners":
+                window["-CARRIERTEXT-"].update(visible=True)
+                window["-SUBTYPELABEL-"].update(visible=False)
+                window["-SUBTYPE-"].update(visible=False)
+                window["-CARRIER-"].update(visible=True)
+                window.refresh()
             else:
                 window["-SUBTYPELABEL-"].update(visible=False)
                 window["-SUBTYPE-"].update(visible=False)
@@ -479,10 +497,9 @@ class Interface:
                 window["-CARRIER-"].update(visible=False)
                 window.refresh()
 
-            if lob == "Homeowners" or lob == "Personal Umbrella" or lob == "Dwelling Property":
+            if lob == "Homeowners" or lob == "Personal Umbrella" or lob == "Dwelling Property" or lob == "Businessowners":
                 window["-CARRIERTEXT-"].update(visible=True)
                 window["-CARRIER-"].update(visible=True)
-
                 window.refresh()
             else:
                 window["-CARRIERTEXT-"].update(visible=False)
@@ -543,7 +560,6 @@ class Interface:
                 self.application.user_chosen = selectedUser
 
                 if self.custom_address:
-                    self.application.custom_address = True
                     Address.custom_address["Address"] = self.address1
                     Address.custom_address["City"] = self.city
                     Address.custom_address["Address2"] = self.address2
