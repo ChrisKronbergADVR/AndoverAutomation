@@ -211,7 +211,7 @@ class Interface:
         core_coverages_layout = [
             [sg.Text("Select Line of Business"), sg.DropDown(
                 LOB, key="-LOB-", enable_events=True, readonly=True)],
-            [sg.TabGroup([
+            [sg.Push(),sg.TabGroup([
                 [sg.Tab('Covre Coverages 1', [
                     #Dwelling Property
                     [sg.Text('Occupancy:',key="OCC_TEXT",enable_events=True),sg.DropDown(self.occupancy["dwelling"],default_value= self.occupancy["dwelling"][1],key="OCC",enable_events=True,readonly=True)],
@@ -254,7 +254,7 @@ class Interface:
                     [sg.Checkbox(text="Home Systems Protection With Service Line Coverage",key="HOME_PROTECT",enable_events=True)],
                     [sg.Checkbox(text="Landlord Savings Credit",key="LAND_SAVE_CRED",enable_events=True)],
                 ])],
-            ])],
+            ]),sg.Push()],
         ]
 
         tabs_layout = [
