@@ -4,7 +4,6 @@ from SupportFiles.File import File
 
 LOG_PATH = "Logs/"
 
-
 def main():
     interface = Interface()
     if (not os.path.exists(LOG_PATH)):
@@ -13,7 +12,6 @@ def main():
     File.create_files()
     interface.make_window()
     del interface
-
 
 if __name__ == '__main__':
     main()

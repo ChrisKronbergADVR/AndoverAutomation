@@ -8,7 +8,7 @@ from SupportFiles.MultiLog import MultiLog
 
 
 class Interface:
-    VERSION = "0.1.1"
+    VERSION = "0.2.0"
     TEXTLEN = 25
     THEME = "TanBlue"
 
@@ -26,6 +26,21 @@ class Interface:
                                   "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
         self.user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
                           "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
+
+        self.occupancy = {"dwelling":["Tenant occupied dwelling","Owner occupied dwelling","Owner occupied condo/coop unit", "Tenant occupied condo/coop unit"],"homeowners":["Primary Residence","Secondary Residence"]}
+
+        self.construction = ["Frame","Aluminum siding over frame","Asbestos siding","Brick","Brick veneer","Superior/non combustible","Superior/fire resistive","Log"]
+        self.family_members = [str(x) for x in range(1,6)]
+        self.hydrant_distance = {"<= 1000 Feet": "1000", "> 1000 Feet":"1001"}
+        self.fire_alarm = ["None","Local","Central station","Fire department reporting"]
+        self.sprinkler_system = ["None","Complete","Partial"]
+        self.standard_deductible = ["100","250","500","1000","2500"]
+        self.optional_deductible_type = ["Wind","Hurricane"]
+        self.optional_deductible = {"1%":".01","2%":".02","5%":".05","$1000 Fixed Wind":"1000", "$2000 Fixed Wind":"2000","$5000 Fixed Wind":"5000"}
+        self.premises_liability = {"None":"0","$100,000":"100000","$300,000":"300000","$500,000":"500000","$1,000,000":"1000000","$2,000,000":"2000000","$3,000,000":"3000000","$4,000,000":"4000000","$5,000,000":"5000000"}
+        self.medical_payments = {"$1000":"1000","$2000":"2000","$3000":"3000","$4000":"4000","$5000":"5000"}
+        self.inspection_survey = ["Yes","No"]
+        self.inspection_type = {"Personal - Vacancy Check":"PL_Vacancy-Check","Personal - Exterior Only":"PL_Exterior-Only","Personal - Correction of Recs":"PL_Correction-of-Recs","Personal - Interior/Exterior High Value - Full Survey":"PL_High Value Interior-Exterior","Personal - Interior/Exteriror - Ful Survey":"PL_Interior-Exterior - Full Survey"}
 
         self.env_used = "Local"
         self.state_chosen = None
@@ -194,18 +209,63 @@ class Interface:
         ]
 
         core_coverages_layout = [
-            [sg.Text('Core Coverages Info Here')],
+            [sg.Text("Select Line of Business"), sg.DropDown(
+                LOB, key="-LOB-", enable_events=True, readonly=True)],
+            [sg.TabGroup([
+                [sg.Tab('Covre Coverages 1', [
+                    #Dwelling Property
+                    [sg.Text('Occupancy:',key="OCC_TEXT",enable_events=True),sg.DropDown(self.occupancy["dwelling"],default_value= self.occupancy["dwelling"][1],key="OCC",enable_events=True,readonly=True)],
+                    [sg.Text('Seasonal:',key="SEAS_TEXT",enable_events=True),sg.DropDown(["Yes","No"],default_value="No",key="SEAS",enable_events=True,readonly=True)],
+                    [sg.Text('Rented Weekly:',key="RENT_TEXT",enable_events=True),sg.DropDown(["Yes","No"],default_value="No",key="RENT",enable_events=True,readonly=True)],
+                    [sg.Text('# of Weeks Rented:',key="WEEK_TEXT",enable_events=True),sg.InputText(key="WEEK",size=(5, 1),enable_events=True)],
+                    [sg.Checkbox(text="New Home Under Construction",key="NEW_H",enable_events=True)],
+                    [sg.Checkbox(text="Home was purchased in the last 12 months",key="NEW_PUR",enable_events=True)],
+                    [sg.Text('Construction:',key="CONST_TEXT",enable_events=True),sg.DropDown(self.construction,default_value=self.construction[0], key="CONST",readonly=True,enable_events=True)],
+                    [sg.Text('Year Built:',key="YEAR_BUILT_TEXT",enable_events=True),sg.InputText(key="YEAR_BUILT",default_text="2020",size=(5, 1),enable_events=True)],
+                    [sg.Text('Number of Stories:',key="STORIES_TEXT",enable_events=True),sg.InputText(key="STORIES",size=(5, 1),enable_events=True)],
+                    [sg.Text('Square Footage:',key="SQ_FT_TEXT",enable_events=True),sg.InputText(key="SQ_FT",size=(8, 1),enable_events=True)],
+                    [sg.Text('Total Number of Families in Building:',key="FAM_TEXT",enable_events=True),sg.DropDown(self.family_members,default_value=self.family_members[0], key="FAM",readonly=True,enable_events=True)],
+                    [sg.Text('Distance To Hydrant:',key="HYD_TEXT",enable_events=True),sg.DropDown(list(self.hydrant_distance.keys()),default_value=list(self.hydrant_distance.keys())[0], key="HYD",readonly=True,enable_events=True)],
+                    [sg.Text('ISO Protection Class:',key="ISO_TEXT",enable_events=True),sg.InputText(key="ISO",size=(5, 1),enable_events=True)],
+                    [sg.Text('Building or Effectiveness Grade',key="B_EFF_TEXT",enable_events=True),sg.InputText(key="B_EFF",size=(5, 1),enable_events=True)],
+                    [sg.Checkbox(text="Town House or Row house",key="T_HOUSE",enable_events=True)],
+                    [sg.Text('Fire Alarm',key="F_ALARM_TEXT",enable_events=True),sg.DropDown(list(self.fire_alarm),default_value=self.fire_alarm[0], key="F_ALARM",readonly=True,enable_events=True)],
+                    [sg.Text('Sprinkler System',key="SPRINKLER_TEXT",enable_events=True),sg.DropDown(list(self.sprinkler_system),default_value=self.sprinkler_system[0], key="SPRINKLER",readonly=True,enable_events=True)],
+                    [sg.Checkbox(text="Mobile Home",key="MOBILE",enable_events=True)],
+                    [sg.Checkbox(text="Installed Generator Credit",key="GEN",enable_events=True)],
+                ])],
 
+                [sg.Tab('Core Coverages 2', [
+                    #Dwelling Property
+                    [sg.Text('Building Limit',key="B_LIM_TEXT",enable_events=True),sg.InputText(key="B_LIM",size=(10, 1),enable_events=True)],
+                    [sg.Checkbox(text="Elite Package ",key="ELITE",enable_events=True)],
+                    [sg.Text('Contents Limit',key="CON_LIM_TEXT",enable_events=True),sg.InputText(key="CON_LIM",size=(10, 1),enable_events=True)],
+                    [sg.Text('Rental Value Increased Limit',key="RENT_LIM_TEXT",enable_events=True),sg.InputText(key="RENT_LIM",size=(10, 1),enable_events=True)],
+                    [sg.Text('Additional Living Expense Limit',key="ADD_LIVING_LIM_TEXT",enable_events=True),sg.InputText(key="ADD_LIVING_LIM",size=(10, 1),enable_events=True)],
+                    [sg.Text('Loss Assessment Limit',key="LOSS_LIM_TEXT",enable_events=True),sg.InputText(key="LOSS_LIM",size=(10, 1),enable_events=True)],
+                    [sg.Text('Standard Deductible',key="ST_DED_TEXT",enable_events=True),sg.DropDown(self.standard_deductible,default_value=self.standard_deductible[0], key="ST_DED",readonly=True,enable_events=True)],
+                    [sg.Checkbox(text="Override Optional Deductible",key="OVRD",enable_events=True)],
+                    [sg.Text('Optional Deductible Type',key="OPT_DED_TYPE_TEXT",enable_events=True),sg.DropDown(self.optional_deductible_type, key="OPT_DED_TYPE",readonly=True,enable_events=True)],
+                    [sg.Text('Optional Deductible',key="OPT_DED_TEXT",enable_events=True),sg.DropDown(list(self.optional_deductible.keys()),default_value=list(self.optional_deductible.keys())[0], key="OPT_DED",readonly=True,enable_events=True)],
+                    [sg.Text('Premises Liability',key="PREM_LIAB_TEXT",enable_events=True),sg.DropDown(list(self.premises_liability.keys()), key="PREM_LIAB",readonly=True,enable_events=True)],
+                    [sg.Text('Medical Payments',key="MED_PAY_TEXT",enable_events=True),sg.DropDown(list(self.medical_payments.keys()), key="MED_PAY",readonly=True,enable_events=True)],
+                    [sg.Checkbox(text="Additional Coverage",key="ADDL_COV",enable_events=True)],
+                    [sg.Checkbox(text="Personal Injury Liability",key="PIL",enable_events=True)],
+                    [sg.Checkbox(text="Home Systems Protection With Service Line Coverage",key="HOME_PROTECT",enable_events=True)],
+                    [sg.Checkbox(text="Landlord Savings Credit",key="LAND_SAVE_CRED",enable_events=True)],
+                ])],
+            ])],
         ]
 
         tabs_layout = [
             [sg.TabGroup([
                 [sg.Tab('Creating New Applications', new_app_layout),
                  sg.Tab('Add Users and Producers', new_user_layout),
-                 # sg.Tab('Core Coverages Options', core_coverages_layout)
-                 ]],
-                key="-TABGROUP-", expand_x=True, expand_y=True)]
+                 sg.Tab('Core Coverages Options', core_coverages_layout),
+                ]
+            ],key="-TABGROUP-", expand_x=True, expand_y=True)]
         ]
+
 
         layout = [top_layout]
         layout += [all_tabs_info]
