@@ -66,6 +66,19 @@ class Interface:
 
         self.application = Application()
 
+    def custom_name_check(first,last,custom_name):
+        if first == "" or last == "" and custom_name:
+            return False
+        else:
+            return True
+        
+    def custom_address_check(address,city,custom_address):
+        if address == "" or city == "" and custom_address:
+            return False
+        else:
+            return True
+
+
     def check_for_errors(self, selectedUser, selectedEnviron, producer, browser_chose, date_selected, doc_type, subType):
         if self.address2 == None:
             self.address_validate = Address.verify_address(
@@ -80,7 +93,7 @@ class Interface:
 
         err_text = ""
         for error_key, error_value in self.submit_errors.items():
-            if error_value == "" or error_value == False:
+            if error_value == "" or error_value == False or error_value == None:
                 err_text += f"{error_key} \n"
                 self.submit_message.append(error_value)
 
@@ -209,8 +222,8 @@ class Interface:
         ]
 
         core_coverages_layout = [
-            [sg.Text("Select Line of Business"), sg.DropDown(
-                LOB, key="-LOB-", enable_events=True, readonly=True)],
+            [sg.Text("Select Line of Business"), sg.DropDown(LOB, key="-LOB-", enable_events=True, readonly=True)],
+
             [sg.Push(),sg.TabGroup([
                 [sg.Tab('Covre Coverages 1', [
                     #Dwelling Property
@@ -627,7 +640,8 @@ class Interface:
 
                 if custom_name:
                     self.application.first_name = values["-FIRST-"]
-                    self.application.mid_name = values["-MID-"]
+                    if values['-MID-'] != "":
+                        self.application.mid_name = values["-MID-"]
                     self.application.last_name = values["-LAST-"]
                 else:
                     self.application.first_name = self.application.state_chosen
