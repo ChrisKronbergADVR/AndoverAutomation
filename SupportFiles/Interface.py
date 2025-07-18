@@ -260,8 +260,7 @@ class Interface:
 
             if event == "-CREATE_USER-" and add_user_value != "" and selectedEnviron and producer_user_name and browser_chose:
                 self.browser_chosen = browser_chose
-                user_thread = threading.Thread(
-                    target=self.application.create_user, args=(add_user_value, producer_user_name))
+                user_thread = threading.Thread(target=self.application.create_user, args=(add_user_value, producer_user_name))
                 user_thread.start()
 
             if selectedEnviron == "Local":

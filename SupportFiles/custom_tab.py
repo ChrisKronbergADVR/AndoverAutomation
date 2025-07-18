@@ -367,7 +367,7 @@ class MyTabView(ctk.CTkTabview):
 
         # Label and Entry for Producer Name)
         ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Add User To List of Users", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=4, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
-
+  
         # Label and Entry for User Name
         ctk.CTkLabel(master=self.tab(self.tabs[1]), text="User Name").grid(row=5, column=0, padx=10, pady=5)
         self.user_name_value = ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="User Name", width=200)
@@ -384,16 +384,21 @@ class MyTabView(ctk.CTkTabview):
 
 
         # Create a label for the users to create
-        ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Create User in Andover (Local ONLY)", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+        self.users_to_create_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Create User in Andover (Local ONLY)", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+        
         # Create combo box for users to create
         self.users_to_create_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=self.users_to_create, command=lambda x: print(f"Selected user to create: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.users_to_create_value.grid(row=8, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
-        self.create_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Create User", command=lambda: print(f"User Created: {self.users_to_create_value.get()}"), width=100)
+        self.create_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Create User",command=lambda: self.start_user_create(self.users_to_create_value.get()), width=100)
         self.create_user_button.grid(row=8, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+        
 
         ################### Third Tab Start ###################
         ctk.CTkLabel(master=self.tab(self.tabs[2]),text="Coming soon...").grid(row=0, column=0, padx=10, pady=20)
 
+    def start_user_create(self,user):
+        user_thread = threading.Thread(target=application.create_user, args=(user, self.producer_value.get()))
+        user_thread.start()
 
 class App(ctk.CTk):
     VERSION = "0.2.0"
@@ -421,7 +426,7 @@ class App(ctk.CTk):
 
         #Select Local or QA Environment Here 
         ctk.CTkLabel(self, text="Select Local or QA Environment: ", corner_radius=10).grid(row=0, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
-        self.environment = ctk.CTkOptionMenu(self,values=list(self.gw_environment.keys()), command=lambda x: print(f"Selected environment: {x}"),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.environment = ctk.CTkOptionMenu(self,values=list(self.gw_environment.keys()), command=lambda x: self.check_environment(x),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.environment.grid(row=0, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
       
         #Select Browser Here
@@ -456,7 +461,31 @@ class App(ctk.CTk):
             self.producer.set("Select Producer")
         else:
             self.producer.set("Add Producer")
+    
+    def check_environment(self, env):
+            File.env_used = env
+            application.env_used = env
+
+            try:
+                if env != "Local":
+                    self.tab_view.users_to_create_label = ctk.CTkLabel(master=self.tab_view.tab(self.tab_view.tabs[1]), text="")
+                    self.tab_view.users_to_create_label.grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+                    self.tab_view.users_to_create_value.destroy()
+                    self.tab_view.create_user_button.destroy()
+                else:
+                    self.tab_view.users_to_create_label = ctk.CTkLabel(master=self.tab_view.tab(self.tab_view.tabs[1]), text="Create User in Andover (Local ONLY)", font=ctk.CTkFont(family=self.tab_view.font_family, size=self.tab_view.producer_font_size, weight="bold"))
+                    self.tab_view.users_to_create_label.grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+                    self.tab_view.users_to_create_value = ctk.CTkOptionMenu(master=self.tab_view.tab(self.tab_view.tabs[1]), values=self.tab_view.users_to_create, command=lambda x: print(f"Selected user to create: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+                    self.tab_view.users_to_create_value.grid(row=8, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+                    self.tab_view.create_user_button = ctk.CTkButton(master=self.tab_view.tab(self.tab_view.tabs[1]), text="Create User", command=lambda: print(f"User Created: {self.tab_view.users_to_create_value.get()}"), width=100)
+                    self.tab_view.create_user_button.grid(row=8, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+            except AttributeError:
+                pass        
+
 
 app = App()
+application = Application()
 app.wm_protocol(func = app.destroy) 
 app.mainloop()
+del application  # Clear the Application instance to avoid memory leaks
+#del app  # Clear the App instance to avoid memory leaks
