@@ -6,14 +6,15 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
-from datetime import datetime
-from SupportFiles.MultiLog import MultiLog
-from SupportFiles.Address import Address
-from SupportFiles.File import File
-from SupportFiles.Timing import Timing
 from selenium.webdriver.support import expected_conditions as EC
 
-from SupportFiles.Actions import Actions
+from datetime import datetime
+from .MultiLog import MultiLog
+from .Address import Address
+from .File import File
+from .Timing import Timing
+
+from .Actions import Actions
 from SupportFiles.MenuItems.Billing import Billing
 from SupportFiles.MenuItems.CoreCoverages import CoreCoverages
 from SupportFiles.MenuItems.Underwriting import Underwriting

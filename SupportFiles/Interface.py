@@ -6,11 +6,11 @@ from SupportFiles.Application import Application
 from SupportFiles.File import File
 from SupportFiles.MultiLog import MultiLog
 
-
 class Interface:
     VERSION = "0.1.1"
     TEXTLEN = 25
     THEME = "TanBlue"
+
 
     def __init__(self) -> None:
         self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
@@ -76,6 +76,7 @@ class Interface:
     def make_window(self):
 
         sg.theme(self.THEME)
+        
         LOB = ["Dwelling Property", "Homeowners", "Businessowners",
                "Personal Umbrella", "Commercial Umbrella"]
         SUBTYPE = {"HO3": "HO3", "HO4": "HO4", "HO5": "HO5T4",

@@ -1,0 +1,462 @@
+import customtkinter as ctk
+from datetime import date
+from tkcalendar import DateEntry
+from PIL import Image, ImageTk
+import threading
+from .MultiLog import MultiLog
+from .Address import Address
+from .Application import Application
+from .File import File
+
+class ScrollableTabView(ctk.CTkScrollableFrame):
+    states = {"Connecticut": "CT", "Illinois":"IL","Maine": "ME","Massachusetts": "MA", "New Hampshire": "NH", "New Jersey": "NJ","New York": "NY", "Rhode Island": "RI"}
+    users = ["Admin","Underwriter","Agent"]
+    line_of_business = ["Dwelling Property", "Homeowners", "Businessowners","Personal Umbrella", "Commercial Umbrella"]
+    carriers = {"Merrimack Mutual Fire Insurance": "MMFI",
+                   "Cambrige Mutual Fire Insurance": "CMFI", "Bay State Insurance Company": "BSIC"}
+    payment_methods = ["Credit Card", "Check", "ACH"]
+
+    payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
+    payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                 "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+    payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                       "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+    payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
+                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
+    submit_error = 0
+    custom_name = 0
+    custom_address = 0
+
+    carrier_keys = list(carriers.keys())
+    carrier_list = {"Dwelling Property":{"CT":[carrier_keys[0]],
+                                "IL":[carrier_keys[0],carrier_keys[1]],
+                                "ME":[carrier_keys[0]],
+                                "MA":[carrier_keys[0]],
+                                "NH":[carrier_keys[1]],
+                                "NJ":[carrier_keys[0]],
+                                "NY":[carrier_keys[0]],
+                                "RI":[carrier_keys[0]]
+                                },
+                    "Homeowners":{"CT":[carrier_keys[0],carrier_keys[1]],
+                                  "IL":[carrier_keys[0],carrier_keys[1]],
+                                  "ME":[carrier_keys[0],carrier_keys[1]],
+                                  "MA":[carrier_keys[0],carrier_keys[1],carrier_keys[2]],
+                                  "NH":[carrier_keys[0],carrier_keys[1]],
+                                  "NJ":[carrier_keys[0],carrier_keys[1],carrier_keys[2]],
+                                  "NY":[carrier_keys[0],carrier_keys[1]],
+                                  "RI":[carrier_keys[0]]
+                                  },
+                    "Businessowners":{"CT":[carrier_keys[0]],
+                                      "IL":[carrier_keys[0],carrier_keys[1]],
+                                      "ME":[carrier_keys[0]],
+                                      "MA":[carrier_keys[0],carrier_keys[1],carrier_keys[2]],
+                                      "NH":[carrier_keys[0],carrier_keys[1]],
+                                      "NJ":[carrier_keys[0]],
+                                      "NY":[carrier_keys[0],carrier_keys[2]],
+                                      "RI":[carrier_keys[0]]
+                                      },
+                    "Personal Umbrella":{"CT":[carrier_keys[0]],
+                                         "IL":[carrier_keys[0]],
+                                         "ME":[carrier_keys[0]],
+                                         "MA":[carrier_keys[0]],
+                                         "NH":[carrier_keys[0]],
+                                         "NJ":[carrier_keys[0]],
+                                         "NY":[carrier_keys[0]],
+                                         "RI":[carrier_keys[0]]
+                                         }
+                    }
+
+    check_width = 17
+    check_height = 17
+
+    # Used to track if clicked multiple times
+    repeat = False # Used to track if the program label and option menu have been created
+    program_repeat = False # Used to track if the subtype label and option menu have been created
+    loc_repeat = False # Used to track if the multiple locations label and option menu have been created
+
+    # Custom Name and Address Variables
+    first_name = None
+    mid_name = None
+    last_name = None
+    address1 = None
+    address2 = None
+    city = None
+
+    # Text for showing required fields still needed when clicking submit
+    required_info_text = "* Required Information"
+
+    #dropdown menu background and hover colors
+    drop_back_color = "#144870"
+    drop_hover_color = "#073972"
+
+    def __init__(self, master,title,**kwargs):
+        super().__init__(master, label_text=title,**kwargs)
+        self.grid_columnconfigure(0, weight=1)  # Make the first column expandable
+        self.grid_rowconfigure(0, weight=1)     # Make the first row expandable
+        self.configure(fg_color="transparent")  # Set background color to transparent
+
+         ################### First Tab Start ###################
+        # Username Label
+        ctk.CTkLabel(master=self,text=f"Username").grid(row=0, column=0, padx=10, pady=20)
+        # Username Value Selection
+        self.user_val = ctk.CTkOptionMenu(master=self,values=self.users, command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.user_val.grid(row=0, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+
+        # User Delete Button
+        self.producer_delete_button = ctk.CTkButton(master=self, text="Delete", command=lambda: self.delete_user(),width=50)
+        self.producer_delete_button.grid(row=0, column=2, padx=60, pady=5, sticky="ew")
+
+        self.custom_name = ctk.CTkCheckBox(master=self, text="Use Custom Name", command=lambda:self.toggle_custom_name(),checkbox_width=self.check_width,checkbox_height=self.check_height)
+        self.custom_name.grid(row=1, column=0, padx=(40,0), pady=5, sticky="w", columnspan=3)
+
+        # Username Label
+        ctk.CTkLabel(master=self,text="State").grid(row=5, column=0, padx=10, pady=20)
+                     
+        # Username Value Selection
+        self.state_val = ctk.CTkOptionMenu(master=self,values=list(self.states.keys()), command=lambda state: self.state_selected(state),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.state_val.grid(row=5, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+
+        # Custom Address Checkbox
+        self.custom_address = ctk.CTkCheckBox(master=self, text="Custom Address", command=lambda:self.toggle_custom_address(),checkbox_width=self.check_width,checkbox_height=self.check_height)
+        self.custom_address.grid(row=5, column=2, padx=10, pady=5, sticky="w", columnspan=3)
+
+        # Line of Business Label
+        ctk.CTkLabel(master=self, text="Line of Business").grid(row=9, column=0, padx=10, pady=10)
+        # Line of Business Value Selection
+        self.lob_val = ctk.CTkOptionMenu(master=self, values=self.line_of_business, command=lambda x: self.toggle_program(x), dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.lob_val.grid(row=9, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+        self.lob_val.set("Select Value")  # Set default value
+
+        # Line of Business Label
+        ctk.CTkLabel(master=self, text="Carrier").grid(row=14, column=0, padx=10, pady=10)
+        # Line of Business Value Selection
+        self.carrier_val = ctk.CTkOptionMenu(master=self, values=list(self.carriers.keys()), command=lambda x: print(f"Selected Carrier: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.carrier_val.grid(row=14, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+
+        # Date Label
+        ctk.CTkLabel(master=self, text="Date",width=80).grid(row=15, column=0, padx=10, pady=10)
+
+        # Date Input in MM/DD/YYYY format
+        self.dateInput = DateEntry(master=self, background='darkblue', foreground='white', borderwidth=1,date_pattern='MM/dd/yyyy')
+        self.dateInput.grid(row=15, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Payment Method Label and Option Menu
+        ctk.CTkLabel(master=self, text="Payment Method").grid(row=16, column=0, padx=10, pady=10)
+        self.payment_method = ctk.CTkOptionMenu(master=self, values=list(self.payment_plan_most.keys()), command=lambda x: print(f"Selected Payment Method: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.payment_method.grid(row=16, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+        
+        # Create Quote, Application, or Policy Label and Option Menu
+        ctk.CTkLabel(master=self, text="Product").grid(row=17, column=0, padx=10, pady=10)
+        self.application_type = ctk.CTkOptionMenu(master=self, values=["Quote", "Application", "Policy"], command=lambda x: print(f"Selected Application Type: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.application_type.grid(row=17, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+
+        ## Logging Checkbox
+        self.logging_checkbox = ctk.CTkCheckBox(master=self, text="Enable Logging", checkbox_width=self.check_width, checkbox_height=self.check_height)
+        self.logging_checkbox.grid(row=18, column=0, padx=(40,0), pady=(20,0), sticky="w", columnspan=2)
+
+        self.submit = ctk.CTkButton(self, text="Submit", command=lambda: self.submit_values(),width=100)
+        self.submit.grid(row=19, column=2, padx=30, pady=(20,0), sticky="w")
+
+        self.required_info = ctk.CTkLabel(master=self, text="", text_color="red")
+        self.required_info.grid(row=19, column=1, padx=10, pady=(10,0), sticky="w", columnspan=1)
+
+    def submit_values(self):
+        address_stuff = Address()
+        
+        if self.custom_address.get() == 0:
+            self.address1 = "Address1"
+        
+        print(f"Custom Name {self.custom_name.get()}")
+        print(f"First Name = {self.first_name}")
+        print(f"Username: {self.user_val.get()}")
+        print(f"Environment: {app.environment.get()}")
+        print(f"Browser: {app.browser.get()}")
+        print(f"Producer: {app.producer.get() if app.producer else 'N/A'}")
+        
+        if self.custom_name.get() == 1 and first_name != '' and last_name != '':
+            self.submit_error = 1
+        elif self.custom_name.get() == 1:
+            first_name = self.first_name.get()
+            last_name = self.last_name.get()
+
+        if self.custom_address.get() == 1:
+            print(f"Address 1: {self.address1.get() if self.address1.get() != '' else 'N/A'}")
+            print(f"Address 2: {self.address2.get() if self.address2.get() != '' else 'N/A'}")
+            print(f"City: {self.city.get() if self.city.get() != '' else 'N/A'}")
+        else:
+            print(f"Address 1: {self.address1}")
+        print(f"State: {self.state_val.get()}")
+
+        #Use try-except to handle potential errors with the LOB value
+        try:
+            print(f"LOB: {self.lob_val.get()}")
+        except:
+            print(f"LOB: {self.lob_val}")
+        
+        print(f"Date: {self.dateInput.get()}")
+        print(f"Payment Method: {self.payment_method.get()}")
+        print(f"Product Type: {self.application_type.get()}")
+
+        if self.logging_checkbox.get() == 1:
+            print("Logging is enabled")
+            MultiLog.log_data = True
+        else:
+            print("Logging is disabled")
+            MultiLog.log_data = False
+
+        # if required fields are not filled, show an error message
+        if self.submit_error != 0:
+            self.required_info.configure(text=self.required_info_text)  # Reset the required info text
+
+    def toggle_custom_name(self):
+        # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name
+        # Otherwise remove these entries
+        if self.custom_name.get() == 1:
+            self.first_name = ctk.CTkEntry(master=self, placeholder_text="First Name", width=200)
+            self.first_name.grid(row=2, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+            self.mid_name = ctk.CTkEntry(master=self, placeholder_text="Middle Name", width=200)
+            self.mid_name.grid(row=3, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+            self.last_name = ctk.CTkEntry(master=self, placeholder_text="Last Name", width=200)
+            self.last_name.grid(row=4, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        else:
+            try:
+                self.first_name.destroy()
+                self.mid_name.destroy()
+                self.last_name.destroy()
+            except AttributeError:
+                pass        
+
+    def toggle_custom_address(self):
+        # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name
+        # Otherwise remove these entries
+        if self.custom_address.get() == 1:
+            self.address1 = ctk.CTkEntry(master=self, placeholder_text="Address1 (Required)", width=200)
+            self.address1.grid(row=6, column=0, padx=10, pady=5, sticky="ew", columnspan=3)
+            self.address2 = ctk.CTkEntry(master=self, placeholder_text="Address 2", width=200)
+            self.address2.grid(row=7, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+            self.city = ctk.CTkEntry(master=self, placeholder_text="City (Required)", width=200)
+            self.city.grid(row=8, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        else:
+            try:
+                self.address1.destroy()
+                self.address2.destroy()
+                self.city.destroy()
+            except AttributeError:
+                pass        
+
+    def toggle_program(self,lob_val):
+        self.lob_val = lob_val  # Store the selected line of business value
+        if lob_val == self.line_of_business[0]:  # If Dwelling Property is selected
+            if not self.program_repeat:
+                    self.program_label = ctk.CTkLabel(master=self, text="Program")
+                    self.program_label.grid(row=10, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+                    self.program = ctk.CTkOptionMenu(master=self, values=["DP1", "DP2", "DP3"], command=lambda x: print(f"Selected Program: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+                    self.program.grid(row=10, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+                    self.multiple_locations = ctk.CTkCheckBox(master=self, text="Multiple Locations", checkbox_width=self.check_width, checkbox_height=self.check_height,command=lambda: self.toggle_multiple_locations(self.multiple_locations.get()))
+                    self.multiple_locations.grid(row=11, column=2, padx=5, pady=5, sticky="w", columnspan=1)
+                    self.program_repeat = True
+        else:
+            try:
+                self.program.destroy()
+                self.program_label.destroy()
+                self.multiple_locations.destroy()
+                self.num_locations.destroy()
+                self.num_locations_label.destroy()
+                self.program_repeat = False
+            except AttributeError:
+                pass
+
+        if lob_val == self.line_of_business[1] or lob_val == self.line_of_business[3]:  # If Homeowners or Personal Umbrella is selected
+            if not self.repeat:
+                    self.subtype_label = ctk.CTkLabel(master=self, text="Subtype")
+                    self.subtype_label.grid(row=12, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+                    self.subtype = ctk.CTkOptionMenu(master=self, values=["HO3", "HO4", "HO5","HO5 Superior","HO6"], command=lambda x: print(f"Selected Subtype: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+                    self.subtype.grid(row=12, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+                    self.repeat = True
+        else:
+            try:
+                self.subtype.destroy()
+                self.subtype_label.destroy()
+                self.repeat = False
+            except AttributeError:
+                pass
+
+        self.state_selected(self.state_val.get())  # Update the carrier options based on the selected state
+
+    def toggle_multiple_locations(self, loc_val):
+        if loc_val == True:
+            self.num_locations_label = ctk.CTkLabel(master=self, text="Locations")
+            self.num_locations_label.grid(row=11, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+            self.num_locations = ctk.CTkOptionMenu(master=self, values=["2", "3", "4", "5"], command=lambda x: print(f"Selected Number of Locations: {x}"), dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+            self.num_locations.grid(row=11, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+        else:
+            try:
+                self.num_locations.destroy()
+                self.num_locations_label.destroy()
+            except AttributeError:
+                pass
+
+    def set_date_to_today(self):
+        self.dateInput.delete(0, 'end')  # Clear the current input
+        # Set the date input to today's date in MM/DD/YYYY format
+        self.dateInput.insert(0,date.today().strftime("%m/%d/%Y"))
+
+    def delete_user(self):
+        self.users.remove(self.user_val.get())
+        self.user_val.configure(values=self.users)
+        self.user_val.update()
+        if len(self.users) > 0:
+            self.user_val.set("Select User")
+            
+        else:
+            self.user_val.set("Add User")
+
+    def state_selected(self,state):
+        # Update the carrier options based on the selected state and line of business
+        if self.lob_val in self.line_of_business and self.states[state] in list(self.states.values()):
+            carriers = self.carrier_list[self.lob_val][self.states[state]]
+            self.carrier_val.configure(values=carriers)
+            if carriers:
+                self.carrier_val.set(carriers[0])
+
+
+class MyTabView(ctk.CTkTabview):
+
+    tabs = ["Creating New Applications", "Add Users and Producers","Core Coverages"]
+
+    # Font settings
+    producer_font_size = 15
+    font_family = "TimesNewRoman"
+    users_to_create = ["Admin","Underwriter","Agent","AgentAdmin"]
+
+    #dropdown menu background and hover colors
+    drop_back_color = "#144870"
+    drop_hover_color = "#073972"
+  
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+        # Create Tabs
+        for tab in self.tabs:
+            self.add(tab)
+    
+        ################### First Tab Start ###################
+        #Add Scrollable Frame to the first tab 
+        self.scrollable_checkbox_frame = ScrollableTabView(master=self.tab(self.tabs[0]), title="Application Options", width=550, height=500)
+        self.scrollable_checkbox_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
+
+        ################### Second Tab Start ###################
+
+        # Add Font to second tab that says Add Producer
+        ctk.CTkLabel(master=self.tab(self.tabs[1]),text="Add Producer",font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(padx=0, pady=10,sticky="ew",columnspan=3)
+
+        # Label and Entry for User Name To Create a Producer
+        ctk.CTkLabel(master=self.tab(self.tabs[1]),text="Select Login User").grid(row=1, column=0, padx=10, pady=5)
+        self.user_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=["user1","user2"], command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.user_value.grid(row=1, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Label and Entry for Producer Name
+        ctk.CTkLabel(master=self.tab(self.tabs[1]),text="Producer Name").grid(row=2, column=0, padx=10, pady=5)
+        self.producer_value =ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="Producer Name", width=200)
+        self.producer_value.grid(row=2, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        #Button to Add Producer
+        self.add_producer_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Add Producer", command=lambda: print(f"Producer Added: {self.producer_value.get()}"), width=100)
+        self.add_producer_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Label and Entry for Producer Name)
+        ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Add User To List of Users", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=4, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+
+        # Label and Entry for User Name
+        ctk.CTkLabel(master=self.tab(self.tabs[1]), text="User Name").grid(row=5, column=0, padx=10, pady=5)
+        self.user_name_value = ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="User Name", width=200)
+        self.user_name_value.grid(row=5, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Label and Entry for User Password
+        ctk.CTkLabel(master=self.tab(self.tabs[1]), text="User Password").grid(row=6, column=0, padx=10, pady=5)
+        self.user_password_value = ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="User Password", width=200)
+        self.user_password_value.grid(row=6, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Button to add user
+        self.add_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Add User", command=lambda: print(f"User Added: {self.user_name_value.get()} Password: {self.user_password_value.get()}"), width=100)
+        self.add_user_button.grid(row=6, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+
+
+        # Create a label for the users to create
+        ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Create User in Andover (Local ONLY)", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+        # Create combo box for users to create
+        self.users_to_create_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=self.users_to_create, command=lambda x: print(f"Selected user to create: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.users_to_create_value.grid(row=8, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+        self.create_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Create User", command=lambda: print(f"User Created: {self.users_to_create_value.get()}"), width=100)
+        self.create_user_button.grid(row=8, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        ################### Third Tab Start ###################
+        ctk.CTkLabel(master=self.tab(self.tabs[2]),text="Coming soon...").grid(row=0, column=0, padx=10, pady=20)
+
+
+class App(ctk.CTk):
+    VERSION = "0.2.0"
+
+    producer = None
+    environment = None
+    producers = ["DEF"]
+    browsers = ["Chrome", "Edge"]
+    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", 
+                               "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off", "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
+    
+    #dropdown menu background and hover colors
+    drop_back_color = "#144870"
+    drop_hover_color = "#073972"
+
+    def __init__(self):
+        environment = None
+        browser = None
+        producer = None
+
+        super().__init__()
+
+        self.title("Andover Automation")
+        self.geometry("630x750")
+
+        #Select Local or QA Environment Here 
+        ctk.CTkLabel(self, text="Select Local or QA Environment: ", corner_radius=10).grid(row=0, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+        self.environment = ctk.CTkOptionMenu(self,values=list(self.gw_environment.keys()), command=lambda x: print(f"Selected environment: {x}"),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.environment.grid(row=0, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+      
+        #Select Browser Here
+        ctk.CTkLabel(self, text="Select Browser: ", corner_radius=10).grid(row=1, column=0, padx=5, pady=5, sticky="ew",columnspan=1)
+        self.browser = ctk.CTkOptionMenu(self, values=self.browsers, command=lambda x: print(f"Selected browser: {x}"),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.browser.grid(row=1, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+
+        #Select Producer Here
+        ctk.CTkLabel(self, text="Select Producer: ", text_color="white", corner_radius=10).grid(row=2, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+        self.producer = ctk.CTkOptionMenu(self, values=self.producers, command=lambda x: print(f"Selected producer: {x}"),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.producer.grid(row=2, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+
+        #Producer Delete Button
+        self.producer_delete_button = ctk.CTkButton(self, text="Delete", command=lambda: self.delete_producer(), width=50)
+        self.producer_delete_button.grid(row=2, column=2, padx=50, pady=5, sticky="ew")
+
+        #Tabs setup here
+        self.tab_view = MyTabView(master=self,width=600)
+        self.tab_view.grid(row=3, column=0, padx=10, pady=5,columnspan=3, sticky="nsew")
+
+        my_font = ctk.CTkFont(family="TimesNewRoman",size=15, weight="bold")
+
+        # Configure the segmented button's font
+        for button in self.tab_view._segmented_button._buttons_dict.values():
+            button.configure(font=my_font)
+        
+    def delete_producer(self):
+        self.producers.remove(self.producer.get())
+        self.producer.configure(values=self.producers)
+        self.producer.update()
+        if len(self.producers) > 0:
+            self.producer.set("Select Producer")
+        else:
+            self.producer.set("Add Producer")
+
+app = App()
+app.wm_protocol(func = app.destroy) 
+app.mainloop()
