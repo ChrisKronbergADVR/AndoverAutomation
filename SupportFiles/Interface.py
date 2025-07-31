@@ -408,8 +408,7 @@ class Interface:
             if event == "-ADDU-" and selectedEnviron != '':
                 File.env_used = selectedEnviron
                 File.add_user(user_name, password)
-                self.userList = list(
-                    File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())
+                self.userList = list(File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())
                 window["-ULIST-"].update(values=self.userList)
                 window.refresh()
 

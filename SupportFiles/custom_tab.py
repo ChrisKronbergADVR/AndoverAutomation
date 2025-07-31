@@ -162,7 +162,9 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.required_info.grid(row=19, column=1, padx=10, pady=(10,0), sticky="w", columnspan=1)
 
     def submit_values(self):
-        address_stuff = Address()
+        submit_values = {"Cust_Name":0,"Cust_Address":0}  
+
+        address_info = Address()
         
         if self.custom_address.get() == 0:
             self.address1 = "Address1"
@@ -174,18 +176,25 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         print(f"Browser: {app.browser.get()}")
         print(f"Producer: {app.producer.get() if app.producer else 'N/A'}")
         
-        if self.custom_name.get() == 1 and first_name != '' and last_name != '':
-            self.submit_error = 1
-        elif self.custom_name.get() == 1:
-            first_name = self.first_name.get()
-            last_name = self.last_name.get()
+        if self.custom_name.get() == 1:
+            if self.first_name.get() and self.last_name.get():
+                print(f"First Name: {self.first_name.get()}")
+                print(f"Last Name: {self.last_name.get()}")
+                submit_values["Cust_Name"] = 1
+            else:
+                print("Error with Name")
+                submit_values["Cust_Name"] = 0
 
         if self.custom_address.get() == 1:
             print(f"Address 1: {self.address1.get() if self.address1.get() != '' else 'N/A'}")
             print(f"Address 2: {self.address2.get() if self.address2.get() != '' else 'N/A'}")
             print(f"City: {self.city.get() if self.city.get() != '' else 'N/A'}")
+            address_info.custom_address["Address"] = self.address1.get() if self.address1.get() != '' else None
+            address_info.custom_address["Address2"] = self.address2.get() if self.address2.get() != '' else None
+            address_info.custom_address["City"] = self.city.get() if self.city.get() != '' else None
         else:
             print(f"Address 1: {self.address1}")
+
         print(f"State: {self.state_val.get()}")
 
         #Use try-except to handle potential errors with the LOB value
@@ -369,19 +378,20 @@ class MyTabView(ctk.CTkTabview):
         ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Add User To List of Users", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=4, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
   
         # Label and Entry for User Name
-        ctk.CTkLabel(master=self.tab(self.tabs[1]), text="User Name").grid(row=5, column=0, padx=10, pady=5)
-        self.user_name_value = ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="User Name", width=200)
+        self.username_add_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Username")
+        self.username_add_label.grid(row=5, column=0, padx=10, pady=5)
+        self.user_name_value = ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="Username", width=200)
         self.user_name_value.grid(row=5, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
 
         # Label and Entry for User Password
-        ctk.CTkLabel(master=self.tab(self.tabs[1]), text="User Password").grid(row=6, column=0, padx=10, pady=5)
+        self.password_add_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="User Password")
+        self.password_add_label.grid(row=6, column=0, padx=10, pady=5)
         self.user_password_value = ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="User Password", width=200)
         self.user_password_value.grid(row=6, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
 
         # Button to add user
-        self.add_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Add User", command=lambda: print(f"User Added: {self.user_name_value.get()} Password: {self.user_password_value.get()}"), width=100)
+        self.add_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Add User", command= lambda: self.add_user(), width=100)
         self.add_user_button.grid(row=6, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
-
 
         # Create a label for the users to create
         self.users_to_create_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Create User in Andover (Local ONLY)", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
@@ -400,10 +410,32 @@ class MyTabView(ctk.CTkTabview):
         user_thread = threading.Thread(target=application.create_user, args=(user, self.producer_value.get()))
         user_thread.start()
 
+    def add_user(self):
+        if len(self.user_name_value.get()) != 0 and len(self.user_password_value.get()) != 0:
+            self.username_add_label.configure(text="Username", text_color="white")
+            self.password_add_label.configure(text="User Password", text_color="white")
+            print("Hello") # replace with the actual function to add user
+            File.env_used = app.environment.get()
+            File.add_user(self.user_name_value.get(), self.user_password_value.get())
+            
+        else:
+            if len(self.user_name_value.get()) == 0:
+                self.username_add_label.configure(text="*Username", text_color="red")
+                print("Username is required") # replace with making the text red for username label
+            else:
+                self.username_add_label.configure(text="Username", text_color="white")
+            if len(self.user_password_value.get()) == 0:
+                self.password_add_label.configure(text="*User Password",text_color="red")
+                print("Password is required") #replace with making the text red for password label
+            else:
+                self.password_add_label.configure(text="User Password", text_color="white")
+
+
 class App(ctk.CTk):
     VERSION = "0.2.0"
 
     producer = None
+    browser = None
     environment = None
     producers = ["DEF"]
     browsers = ["Chrome", "Edge"]
@@ -415,10 +447,6 @@ class App(ctk.CTk):
     drop_hover_color = "#073972"
 
     def __init__(self):
-        environment = None
-        browser = None
-        producer = None
-
         super().__init__()
 
         self.title("Andover Automation")
@@ -485,7 +513,7 @@ class App(ctk.CTk):
 
 app = App()
 application = Application()
+scrollview = ScrollableTabView()
 app.wm_protocol(func = app.destroy) 
 app.mainloop()
 del application  # Clear the Application instance to avoid memory leaks
-#del app  # Clear the App instance to avoid memory leaks
