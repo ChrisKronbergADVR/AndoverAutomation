@@ -121,6 +121,7 @@ class File:
                             ['file'], File.env_files_plus_users[File.env_used]['Producers']['ProducerNames'])
 
     # Add producer to file
+    @staticmethod
     def write_producer(fileName, prod_list):
         with open(fileName, 'w', newline='') as csvfile:
             fieldnames = ['Producer']

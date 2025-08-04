@@ -7,6 +7,7 @@ from .MultiLog import MultiLog
 from .Address import Address
 from .Application import Application
 from .File import File
+from tkinter import PhotoImage
 
 class ScrollableTabView(ctk.CTkScrollableFrame):
     states = {"Connecticut": "CT", "Illinois":"IL","Maine": "ME","Massachusetts": "MA", "New Hampshire": "NH", "New Jersey": "NJ","New York": "NY", "Rhode Island": "RI"}
@@ -96,9 +97,10 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.grid_rowconfigure(0, weight=1)     # Make the first row expandable
         self.configure(fg_color="transparent")  # Set background color to transparent
 
-         ################### First Tab Start ###################
+        ################### First Tab Start ###################
         # Username Label
         ctk.CTkLabel(master=self,text=f"Username").grid(row=0, column=0, padx=10, pady=20)
+
         # Username Value Selection
         self.user_val = ctk.CTkOptionMenu(master=self,values=self.users, command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.user_val.grid(row=0, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
@@ -163,8 +165,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
 
     def submit_values(self):
         submit_values = {"Cust_Name":0,"Cust_Address":0}  
-
-        address_info = Address()
         
         if self.custom_address.get() == 0:
             self.address1 = "Address1"
@@ -189,9 +189,9 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             print(f"Address 1: {self.address1.get() if self.address1.get() != '' else 'N/A'}")
             print(f"Address 2: {self.address2.get() if self.address2.get() != '' else 'N/A'}")
             print(f"City: {self.city.get() if self.city.get() != '' else 'N/A'}")
-            address_info.custom_address["Address"] = self.address1.get() if self.address1.get() != '' else None
-            address_info.custom_address["Address2"] = self.address2.get() if self.address2.get() != '' else None
-            address_info.custom_address["City"] = self.city.get() if self.city.get() != '' else None
+            address.custom_address["Address"] = self.address1.get() if self.address1.get() != '' else None
+            address.custom_address["Address2"] = self.address2.get() if self.address2.get() != '' else None
+            address.custom_address["City"] = self.city.get() if self.city.get() != '' else None
         else:
             print(f"Address 1: {self.address1}")
 
@@ -402,7 +402,6 @@ class MyTabView(ctk.CTkTabview):
         self.create_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Create User",command=lambda: self.start_user_create(self.users_to_create_value.get()), width=100)
         self.create_user_button.grid(row=8, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
         
-
         ################### Third Tab Start ###################
         ctk.CTkLabel(master=self.tab(self.tabs[2]),text="Coming soon...").grid(row=0, column=0, padx=10, pady=20)
 
@@ -417,6 +416,7 @@ class MyTabView(ctk.CTkTabview):
             print("Hello") # replace with the actual function to add user
             File.env_used = app.environment.get()
             File.add_user(self.user_name_value.get(), self.user_password_value.get())
+            self.scrollable_checkbox_frame.user_val.configure(values=File.get_users())
             
         else:
             if len(self.user_name_value.get()) == 0:
@@ -429,8 +429,7 @@ class MyTabView(ctk.CTkTabview):
                 print("Password is required") #replace with making the text red for password label
             else:
                 self.password_add_label.configure(text="User Password", text_color="white")
-
-
+    
 class App(ctk.CTk):
     VERSION = "0.2.0"
 
@@ -445,10 +444,12 @@ class App(ctk.CTk):
     #dropdown menu background and hover colors
     drop_back_color = "#144870"
     drop_hover_color = "#073972"
+    #icon_image = PhotoImage(file="Andover-Cambridge-Mutual.png",format="png")  # Load the icon image
+    
 
     def __init__(self):
+        #self.iconphoto(default=False, icon_image)  # Set the icon for the application
         super().__init__()
-
         self.title("Andover Automation")
         self.geometry("630x750")
 
@@ -511,9 +512,11 @@ class App(ctk.CTk):
                 pass        
 
 
-app = App()
 application = Application()
-scrollview = ScrollableTabView()
+address = Address()
+app = App()
 app.wm_protocol(func = app.destroy) 
 app.mainloop()
 del application  # Clear the Application instance to avoid memory leaks
+del address
+#del app
