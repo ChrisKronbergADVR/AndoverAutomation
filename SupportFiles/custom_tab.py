@@ -7,7 +7,7 @@ from .MultiLog import MultiLog
 from .Address import Address
 from .Application import Application
 from .File import File
-from tkinter import PhotoImage
+
 
 class ScrollableTabView(ctk.CTkScrollableFrame):
     states = {"Connecticut": "CT", "Illinois":"IL","Maine": "ME","Massachusetts": "MA", "New Hampshire": "NH", "New Jersey": "NJ","New York": "NY", "Rhode Island": "RI"}
@@ -444,15 +444,13 @@ class App(ctk.CTk):
     #dropdown menu background and hover colors
     drop_back_color = "#144870"
     drop_hover_color = "#073972"
-    #icon_image = PhotoImage(file="Andover-Cambridge-Mutual.png",format="png")  # Load the icon image
-    
 
     def __init__(self):
-        #self.iconphoto(default=False, icon_image)  # Set the icon for the application
         super().__init__()
+
         self.title("Andover Automation")
         self.geometry("630x750")
-
+    
         #Select Local or QA Environment Here 
         ctk.CTkLabel(self, text="Select Local or QA Environment: ", corner_radius=10).grid(row=0, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
         self.environment = ctk.CTkOptionMenu(self,values=list(self.gw_environment.keys()), command=lambda x: self.check_environment(x),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
@@ -516,7 +514,13 @@ application = Application()
 address = Address()
 app = App()
 app.wm_protocol(func = app.destroy) 
+
+#Added Andover Image as Icon
+advr_image1 = ImageTk.PhotoImage(Image.open("SupportFiles/Andover-Cambridge-Mutual.png").resize((64, 64)))  # Resize the image to fit the icon size
+app.iconphoto(False, advr_image1)  # Set the icon for the application
+app.after(100, lambda: app.iconphoto(False, advr_image1))  # Ensure the icon is set after the main loop starts
+
 app.mainloop()
 del application  # Clear the Application instance to avoid memory leaks
 del address
-#del app
+del app
