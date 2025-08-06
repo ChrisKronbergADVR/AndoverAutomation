@@ -11,7 +11,6 @@ class Interface:
     TEXTLEN = 25
     THEME = "TanBlue"
 
-
     def __init__(self) -> None:
         self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
                                "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}

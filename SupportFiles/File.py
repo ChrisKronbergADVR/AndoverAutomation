@@ -2,7 +2,6 @@ import os
 from csv import DictReader, DictWriter
 from datetime import datetime
 
-
 class File:
     env_used = None
     folder = "csvFiles/"
@@ -21,7 +20,7 @@ class File:
         "UAT4": {"Users": {"file": "uat4_user.csv", "Usernames": {}},
                  "Producers": {"file": "uat4_prod.csv", "ProducerNames": [""]}},
     }
-
+    
     filePath = "Logs/"
     log_path = datetime.now()
     year = log_path.year
@@ -41,8 +40,7 @@ class File:
         if (not os.path.exists(File.day_path)):
             os.mkdir(File.day_path)
 
-    # Functions for creating, reading and writing to files
-
+    # Functions for creating, reading and writing to file
     @staticmethod
     def create_files():
         folder = File.folder

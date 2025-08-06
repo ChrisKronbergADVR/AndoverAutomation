@@ -170,39 +170,49 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             self.address1 = "Address1"
         
         print(f"Custom Name {self.custom_name.get()}")
-        print(f"First Name = {self.first_name}")
         print(f"Username: {self.user_val.get()}")
         print(f"Environment: {app.environment.get()}")
         print(f"Browser: {app.browser.get()}")
         print(f"Producer: {app.producer.get() if app.producer else 'N/A'}")
         
+        # Change custom name to red if not filled out when checked
         if self.custom_name.get() == 1:
             if self.first_name.get() and self.last_name.get():
-                print(f"First Name: {self.first_name.get()}")
-                print(f"Last Name: {self.last_name.get()}")
                 submit_values["Cust_Name"] = 1
-            else:
-                print("Error with Name")
+            if not self.first_name.get():
+                self.first_name.configure(placeholder_text_color ="red")
                 submit_values["Cust_Name"] = 0
-
-        if self.custom_address.get() == 1:
-            print(f"Address 1: {self.address1.get() if self.address1.get() != '' else 'N/A'}")
-            print(f"Address 2: {self.address2.get() if self.address2.get() != '' else 'N/A'}")
-            print(f"City: {self.city.get() if self.city.get() != '' else 'N/A'}")
-            address.custom_address["Address"] = self.address1.get() if self.address1.get() != '' else None
-            address.custom_address["Address2"] = self.address2.get() if self.address2.get() != '' else None
-            address.custom_address["City"] = self.city.get() if self.city.get() != '' else None
+            else:
+                self.first_name.configure(placeholder_text_color ="white")
+            if not self.last_name.get():
+                self.last_name.configure(placeholder_text_color ="red")
+                submit_values["Cust_Name"] = 0
+            else:
+                self.last_name.configure(placeholder_text_color ="white")
         else:
-            print(f"Address 1: {self.address1}")
-
-        print(f"State: {self.state_val.get()}")
-
-        #Use try-except to handle potential errors with the LOB value
-        try:
-            print(f"LOB: {self.lob_val.get()}")
-        except:
-            print(f"LOB: {self.lob_val}")
+            pass #Add code here to handle automation name for not having a custom name
         
+        # Change custom address to red if not filled out when checked
+        if self.custom_address.get() == 1:
+            if self.address1.get() and self.city.get():
+                submit_values["Cust_Address"] = 1
+                address.custom_address["Address"] = self.address1.get()
+                address.custom_address["Address2"] = self.address2.get() if self.address2.get() != '' else None
+                address.custom_address["City"] = self.city.get()
+            if not self.address1.get():
+                self.address1.configure(placeholder_text_color ="red")
+                submit_values["Cust_Address"] = 0
+            else:
+                self.address1.configure(placeholder_text_color ="white")
+            if not self.city.get():
+                self.city.configure(placeholder_text_color ="red")
+                submit_values["Cust_Address"] = 0
+            else:
+                self.city.configure(placeholder_text_color ="white")
+        else:
+            pass #Add code here to handle automation address for not having a custom address
+              
+        print(f"State: {self.state_val.get()}")
         print(f"Date: {self.dateInput.get()}")
         print(f"Payment Method: {self.payment_method.get()}")
         print(f"Product Type: {self.application_type.get()}")
@@ -219,14 +229,13 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             self.required_info.configure(text=self.required_info_text)  # Reset the required info text
 
     def toggle_custom_name(self):
-        # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name
-        # Otherwise remove these entries
+        # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
         if self.custom_name.get() == 1:
-            self.first_name = ctk.CTkEntry(master=self, placeholder_text="First Name", width=200)
+            self.first_name = ctk.CTkEntry(master=self, placeholder_text="First Name (Required)", width=200)
             self.first_name.grid(row=2, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
             self.mid_name = ctk.CTkEntry(master=self, placeholder_text="Middle Name", width=200)
             self.mid_name.grid(row=3, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
-            self.last_name = ctk.CTkEntry(master=self, placeholder_text="Last Name", width=200)
+            self.last_name = ctk.CTkEntry(master=self, placeholder_text="Last Name (Required)", width=200)
             self.last_name.grid(row=4, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
         else:
             try:
@@ -237,8 +246,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                 pass        
 
     def toggle_custom_address(self):
-        # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name
-        # Otherwise remove these entries
+        # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
         if self.custom_address.get() == 1:
             self.address1 = ctk.CTkEntry(master=self, placeholder_text="Address1 (Required)", width=200)
             self.address1.grid(row=6, column=0, padx=10, pady=5, sticky="ew", columnspan=3)
@@ -312,6 +320,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.dateInput.insert(0,date.today().strftime("%m/%d/%Y"))
 
     def delete_user(self):
+
         self.users.remove(self.user_val.get())
         self.user_val.configure(values=self.users)
         self.user_val.update()
@@ -337,12 +346,12 @@ class MyTabView(ctk.CTkTabview):
     # Font settings
     producer_font_size = 15
     font_family = "TimesNewRoman"
-    users_to_create = ["Admin","Underwriter","Agent","AgentAdmin"]
+    users_to_create = None
 
     #dropdown menu background and hover colors
     drop_back_color = "#144870"
-    drop_hover_color = "#073972"
-  
+    drop_hover_color = "#2C4664"
+
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
@@ -413,11 +422,16 @@ class MyTabView(ctk.CTkTabview):
         if len(self.user_name_value.get()) != 0 and len(self.user_password_value.get()) != 0:
             self.username_add_label.configure(text="Username", text_color="white")
             self.password_add_label.configure(text="User Password", text_color="white")
-            print("Hello") # replace with the actual function to add user
             File.env_used = app.environment.get()
             File.add_user(self.user_name_value.get(), self.user_password_value.get())
-            self.scrollable_checkbox_frame.user_val.configure(values=File.get_users())
-            
+            File.read_username_password()
+            usernames = File.env_files_plus_users[File.env_used]["Users"]["Usernames"]
+            print(f"Usernames: {usernames}")
+            self.scrollable_checkbox_frame.user_val.configure(values=usernames)
+            self.scrollable_checkbox_frame.update()
+            admin_usernames = [x for x in usernames if x.lower().__contains__("admin")]
+            self.user_value.configure(values=admin_usernames)
+            self.user_value.update()
         else:
             if len(self.user_name_value.get()) == 0:
                 self.username_add_label.configure(text="*Username", text_color="red")
@@ -435,7 +449,7 @@ class App(ctk.CTk):
 
     producer = None
     browser = None
-    environment = None
+    environment = "Local"
     producers = ["DEF"]
     browsers = ["Chrome", "Edge"]
     gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", 
@@ -450,6 +464,10 @@ class App(ctk.CTk):
 
         self.title("Andover Automation")
         self.geometry("630x750")
+
+        #default to local environment
+        File.env_used = self.environment
+        application.env_used = self.environment
     
         #Select Local or QA Environment Here 
         ctk.CTkLabel(self, text="Select Local or QA Environment: ", corner_radius=10).grid(row=0, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
