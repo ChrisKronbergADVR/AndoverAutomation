@@ -52,7 +52,7 @@ class Application:
 
         self.verified = False
         self.user_chosen = None
-        self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
+        self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
                                "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
         self.payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
                                   "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
@@ -71,7 +71,6 @@ class Application:
         Actions.find_Element(self.browser, "dialogOK").click()
 
     # * This function is used to decide whether to use chrome or edge browser
-
     def load_page(self):
         MultiLog.add_log(f"Browser Used: {self.browser_chosen}", logging.INFO)
         if (self.browser_chosen == "Chrome"):
