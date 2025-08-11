@@ -8,10 +8,8 @@ from .Address import Address
 from .Application import Application
 from .File import File
 
-
 class ScrollableTabView(ctk.CTkScrollableFrame):
     states = {"Connecticut": "CT", "Illinois":"IL","Maine": "ME","Massachusetts": "MA", "New Hampshire": "NH", "New Jersey": "NJ","New York": "NY", "Rhode Island": "RI"}
-    users = ["Admin","Underwriter","Agent"]
     line_of_business = ["Dwelling Property", "Homeowners", "Businessowners","Personal Umbrella", "Commercial Umbrella"]
     carriers = {"Merrimack Mutual Fire Insurance": "MMFI",
                    "Cambrige Mutual Fire Insurance": "CMFI", "Bay State Insurance Company": "BSIC"}
@@ -28,6 +26,9 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
     submit_error = 0
     custom_name = 0
     custom_address = 0
+    usernames = []
+    application = Application()
+    address = Address()
 
     carrier_keys = list(carriers.keys())
     carrier_list = {"Dwelling Property":{"CT":[carrier_keys[0]],
@@ -101,10 +102,9 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         # Username Label
         ctk.CTkLabel(master=self,text=f"Username").grid(row=0, column=0, padx=10, pady=20)
 
-        # Username Value Selection
-        self.user_val = ctk.CTkOptionMenu(master=self,values=self.users, command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.user_val = ctk.CTkOptionMenu(master=self,values=list(File.get_users()) if len(list(File.get_users())) > 0 else ["Add User"], command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.user_val.grid(row=0, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
-
+    
         # User Delete Button
         self.producer_delete_button = ctk.CTkButton(master=self, text="Delete", command=lambda: self.delete_user(),width=50)
         self.producer_delete_button.grid(row=0, column=2, padx=60, pady=5, sticky="ew")
@@ -320,15 +320,16 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.dateInput.insert(0,date.today().strftime("%m/%d/%Y"))
 
     def delete_user(self):
+        print(self.user_val.get())
+        users = File.remove_users(self.user_val.get())
 
-        self.users.remove(self.user_val.get())
-        self.user_val.configure(values=self.users)
-        self.user_val.update()
-        if len(self.users) > 0:
-            self.user_val.set("Select User")
-            
+        if len(users) > 0:
+            self.user_val.configure(values=users)
+            self.user_val.set(users[0])
         else:
+            self.user_val.configure(values=["Add User"])
             self.user_val.set("Add User")
+
 
     def state_selected(self,state):
         # Update the carrier options based on the selected state and line of business
@@ -346,7 +347,8 @@ class MyTabView(ctk.CTkTabview):
     # Font settings
     producer_font_size = 15
     font_family = "TimesNewRoman"
-    users_to_create = None
+    users_to_create = ["Admin","Underwriter","Agent"]
+    
 
     #dropdown menu background and hover colors
     drop_back_color = "#144870"
@@ -354,6 +356,7 @@ class MyTabView(ctk.CTkTabview):
 
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        File.__init__()
 
         # Create Tabs
         for tab in self.tabs:
@@ -371,7 +374,7 @@ class MyTabView(ctk.CTkTabview):
 
         # Label and Entry for User Name To Create a Producer
         ctk.CTkLabel(master=self.tab(self.tabs[1]),text="Select Login User").grid(row=1, column=0, padx=10, pady=5)
-        self.user_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=["user1","user2"], command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.user_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=list(File.get_admin_users()), command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.user_value.grid(row=1, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
 
         # Label and Entry for Producer Name
@@ -406,13 +409,13 @@ class MyTabView(ctk.CTkTabview):
         self.users_to_create_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Create User in Andover (Local ONLY)", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
         
         # Create combo box for users to create
-        self.users_to_create_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=self.users_to_create, command=lambda x: print(f"Selected user to create: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.users_to_create_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=list(self.scrollable_checkbox_frame.application.user_dict.keys()), command=lambda x: print(f"Selected user to create: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.users_to_create_value.grid(row=8, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
         self.create_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Create User",command=lambda: self.start_user_create(self.users_to_create_value.get()), width=100)
         self.create_user_button.grid(row=8, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
         
         ################### Third Tab Start ###################
-        ctk.CTkLabel(master=self.tab(self.tabs[2]),text="Coming soon...").grid(row=0, column=0, padx=10, pady=20)
+        ctk.CTkLabel(master=self.tab(self.tabs[2]),text="Core Coverages Feature Will be added soon").grid(row=0, column=0, padx=10, pady=20)
 
     def start_user_create(self,user):
         user_thread = threading.Thread(target=application.create_user, args=(user, self.producer_value.get()))
@@ -426,12 +429,15 @@ class MyTabView(ctk.CTkTabview):
             File.add_user(self.user_name_value.get(), self.user_password_value.get())
             File.read_username_password()
             usernames = File.env_files_plus_users[File.env_used]["Users"]["Usernames"]
-            print(f"Usernames: {usernames}")
-            self.scrollable_checkbox_frame.user_val.configure(values=usernames)
-            self.scrollable_checkbox_frame.update()
-            admin_usernames = [x for x in usernames if x.lower().__contains__("admin")]
-            self.user_value.configure(values=admin_usernames)
-            self.user_value.update()
+            self.scrollable_checkbox_frame.user_val.set(list(usernames.keys())[0])
+            self.scrollable_checkbox_frame.user_val.configure(values=usernames.keys())
+            #[x for x in usernames if x.lower().__contains__("admin")]
+            admin_usernames = File.get_admin_users()
+            if len(admin_usernames) > 0:
+                self.user_value.configure(values=admin_usernames)
+                self.user_value.set(admin_usernames[0])
+            else:
+                self.user_value.set("Add Admin User")
         else:
             if len(self.user_name_value.get()) == 0:
                 self.username_add_label.configure(text="*Username", text_color="red")
@@ -444,6 +450,14 @@ class MyTabView(ctk.CTkTabview):
             else:
                 self.password_add_label.configure(text="User Password", text_color="white")
     
+    def check_admin_users(self):
+        admin_users = File.get_admin_users()
+        if len(admin_users) > 0:
+            self.user_value.configure(values=admin_users)
+            self.user_value.set(admin_users[0])
+        else:
+            self.user_value.set("Add Admin User")
+
 class App(ctk.CTk):
     VERSION = "0.2.0"
 
@@ -467,7 +481,6 @@ class App(ctk.CTk):
 
         #default to local environment
         File.env_used = self.environment
-        application.env_used = self.environment
     
         #Select Local or QA Environment Here 
         ctk.CTkLabel(self, text="Select Local or QA Environment: ", corner_radius=10).grid(row=0, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
@@ -511,6 +524,19 @@ class App(ctk.CTk):
             File.env_used = env
             application.env_used = env
 
+            users = File.get_users()
+            if len(users) > 0:
+                self.tab_view.scrollable_checkbox_frame.user_val.configure(values=list(users))
+                self.tab_view.scrollable_checkbox_frame.user_val.set(list(users)[0])
+            else:
+                self.tab_view.scrollable_checkbox_frame.user_val.configure(values=["Add User"])
+                self.tab_view.scrollable_checkbox_frame.user_val.set("Add User")
+
+            admin_users = File.get_admin_users()
+    
+            self.tab_view.user_value.configure(values=list(admin_users))
+            self.tab_view.user_value.set(list(admin_users)[0])
+
             try:
                 if env != "Local":
                     self.tab_view.users_to_create_label = ctk.CTkLabel(master=self.tab_view.tab(self.tab_view.tabs[1]), text="")
@@ -527,9 +553,6 @@ class App(ctk.CTk):
             except AttributeError:
                 pass        
 
-
-application = Application()
-address = Address()
 app = App()
 app.wm_protocol(func = app.destroy) 
 
@@ -539,6 +562,4 @@ app.iconphoto(False, advr_image1)  # Set the icon for the application
 app.after(100, lambda: app.iconphoto(False, advr_image1))  # Ensure the icon is set after the main loop starts
 
 app.mainloop()
-del application  # Clear the Application instance to avoid memory leaks
-del address
 del app

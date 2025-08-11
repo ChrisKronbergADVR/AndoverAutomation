@@ -32,6 +32,14 @@ class File:
     year_path = f"{filePath}{year}"
 
     @staticmethod
+    def __init__():
+        for val in File.env_files_plus_users:
+            File.env_used = val
+            File.read_username_password()
+            File.read_producers()
+        File.env_used = "Local"
+
+    @staticmethod
     def create_folders():
         if (not os.path.exists(File.year_path)):
             os.mkdir(File.year_path)
@@ -52,21 +60,10 @@ class File:
             if not (os.path.exists(folder+file_user)):
                 with open(folder+file_user, "w") as file_users:
                     File.write_username_password(
-                        folder+file_user, File.env_files_plus_users[env_name]["Users"]["Usernames"])
+                        file_user, File.env_files_plus_users[env_name]["Users"]["Usernames"])
                 with open(folder+file_prod, "w") as file_prods:
                     File.write_producer(
                         folder+file_prod, File.env_files_plus_users[env_name]["Producers"]["ProducerNames"])
-
-    # This function takes a file and user dictionary and writes the username and password to a csv file
-    @staticmethod
-    def write_username_password(file, user_dict):
-        with open(file, 'w', newline='') as csvfile:
-            fieldnames = ['Username', 'Password']
-            writer = DictWriter(csvfile, fieldnames=fieldnames)
-            if os.path.getsize(file) == 0:
-                writer.writeheader()
-            for user, password in user_dict.items():
-                writer.writerow({'Username': user, 'Password': password})
 
     @staticmethod
     def get_password(user):
@@ -76,21 +73,24 @@ class File:
     # This function takes a file and user dictionary and writes the username and password to a csv file
     @staticmethod
     def write_username_password(file, user_dict):
-        with open(file, 'w', newline='') as csvfile:
+        user_file = File.folder+file
+        with open(user_file, 'w', newline='') as csvfile:
             fieldnames = ['Username', 'Password']
             writer = DictWriter(csvfile, fieldnames=fieldnames)
-            if os.path.getsize(file) == 0:
+            if os.path.getsize(user_file) == 0:
                 writer.writeheader()
             for user, password in user_dict.items():
                 writer.writerow({'Username': user, 'Password': password})
 
     @staticmethod
     def read_username_password():
+        user_dict = {}
         with open(File.folder+File.env_files_plus_users[File.env_used]['Users']['file'], newline='') as csvfile:
             reader = DictReader(csvfile)
             for row in reader:
                 File.env_files_plus_users[File.env_used]['Users']['Usernames'][row['Username']
                                                                                ] = row["Password"]
+
 
     # Add a user to the file and GUI
     @staticmethod
@@ -98,7 +98,7 @@ class File:
         File.env_files_plus_users[File.env_used]['Users']['Usernames'][user_name] = password
         file_name = File.env_files_plus_users[File.env_used]['Users']['file']
         user_dict = File.env_files_plus_users[File.env_used]['Users']['Usernames']
-        File.write_username_password(File.folder+file_name, user_dict)
+        File.write_username_password(file_name, user_dict)
 
    # Read producers from file
     @staticmethod
@@ -128,3 +128,27 @@ class File:
                 writer.writeheader()
             for producer in prod_list:
                 writer.writerow({'Producer': producer})
+
+    @staticmethod
+    def get_users():
+        env = File.env_used
+        return list(File.env_files_plus_users[env]["Users"]["Usernames"])
+
+    @staticmethod
+    def remove_users(user):
+        env = File.env_used
+        file = File.env_files_plus_users[env]["Users"]["file"]
+        del File.env_files_plus_users[env]["Users"]["Usernames"][user]
+        values = File.env_files_plus_users[env]["Users"]["Usernames"]
+        File.write_username_password(file,values)
+        File.read_username_password()
+        return list(values)
+
+    @staticmethod
+    def get_admin_users():
+        File.read_username_password()
+        userVals = File.get_users()
+        if len(userVals) > 0:
+            return [x for x in userVals if x.lower().__contains__("admin")]
+        else:
+            return ["Add Admin User"]
