@@ -3,7 +3,7 @@ from csv import DictReader, DictWriter
 from datetime import datetime
 
 class File:
-    env_used = None
+    env_used = "Local"
     folder = "csvFiles/"
 
     gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off","UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
@@ -83,7 +83,7 @@ class File:
                 writer.writerow({'Username': user, 'Password': password})
 
     @staticmethod
-    def read_username_password():
+    def read_username_password(): 
         user_dict = {}
         with open(File.folder+File.env_files_plus_users[File.env_used]['Users']['file'], newline='') as csvfile:
             reader = DictReader(csvfile)

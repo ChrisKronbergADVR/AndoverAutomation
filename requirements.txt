@@ -1,3 +1,6 @@
 ﻿selenium
 PySimpleGUI
 requests
+pillow
+customtkinter
+tkcalendar

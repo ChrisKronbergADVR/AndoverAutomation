@@ -1,6 +1,5 @@
 import time
 
-
 class Timing():
     start_time = None
     end_time = None

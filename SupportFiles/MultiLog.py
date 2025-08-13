@@ -3,7 +3,6 @@ from datetime import datetime
 import threading
 import os
 
-
 class MultiLog:
     filePath = "Logs/"
     log_data = False

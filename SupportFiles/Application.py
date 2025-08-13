@@ -7,18 +7,17 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
-
 from datetime import datetime
+from selenium.webdriver import FirefoxOptions
+
 from .MultiLog import MultiLog
 from .Address import Address
 from .File import File
 from .Timing import Timing
-
 from .Actions import Actions
 from SupportFiles.MenuItems.Billing import Billing
 from SupportFiles.MenuItems.CoreCoverages import CoreCoverages
 from SupportFiles.MenuItems.Underwriting import Underwriting
-
 
 class Application:
     TEST = False
@@ -62,8 +61,7 @@ class Application:
                                        "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
         self.payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
                                   "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
-        self.user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
-                          "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
+        #self.user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything", "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
 
     def delete_quote(self):
         # delete created Quote
@@ -73,14 +71,15 @@ class Application:
     # * This function is used to decide whether to use chrome or edge browser
     def load_page(self):
         MultiLog.add_log(f"Browser Used: {self.browser_chosen}", logging.INFO)
-        if (self.browser_chosen == "Chrome"):
+        
+        if (self.browser_chosen == "Chrome" or self.browser_chosen == None):
             chrome_options = Options()
             chrome_options.add_experimental_option("detach", True)
             self.browser = webdriver.Chrome(options=chrome_options)
         else:
-            edge_options = webdriver.edge.options.Options()
-            edge_options.add_experimental_option("detach", True)
-            self.browser = webdriver.Edge(options=edge_options)
+            firefox_options = FirefoxOptions()
+            self.browser = webdriver.Firefox(options=firefox_options)
+
         self.browser.get(self.gw_environment[self.env_used])
 
         Actions.check_for_value(self.browser, "details-button", keys="click")
@@ -142,7 +141,6 @@ class Application:
             Actions.waitPageLoad(self.browser)
 
     # Start application creation
-
     def startApplication(self, multiAdd, subType, carrier):
         user_chosen = self.user_chosen
         create_type = self.create_type
@@ -197,10 +195,6 @@ class Application:
             first_name = self.first_name
             last_name = self.last_name
 
-        # if Address.custom_address["Flag"]:
-        #    self.create_new_quote(date_chosen, producer_selected, first_name,
-        #                          last_name, multiAdd, self.TEST, subType, CARRIER[carrier])
-        # else:
         self.create_new_quote(date_chosen, producer_selected, first_name,
                               last_name, multiAdd, self.TEST, subType, CARRIER[carrier])
 

@@ -11,6 +11,7 @@ class Actions:
     @staticmethod
     def save(browser):
         browser.execute_script('document.getElementById("Save").click();')
+        Actions.waitPageLoad(browser)
         Actions.remove_javascript(browser)
 
     @staticmethod
@@ -68,6 +69,9 @@ class Actions:
                     Select(element1).select_by_visible_text(value)
                 else:
                     Select(element1).select_by_value(value)
+            if keys == "click":
+                Actions.waitPageLoad(browser)
+                Actions.remove_javascript(browser)
         except:
             MultiLog.add_log(f"Element Not Found with id {element} value:{
                              value} keys:{keys}", logging.DEBUG)
