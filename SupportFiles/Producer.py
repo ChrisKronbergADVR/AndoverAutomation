@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver import FirefoxOptions
+from selenium.webdriver import FirefoxOptions,FirefoxProfile
 
 from .Actions import Actions
 from .File import File
@@ -17,6 +17,7 @@ class Producer:
     browser = None
     browser_chosen = "Chrome"
     env_used = "Local"
+    File.env_used = env_used
     gw_environment = {"Local": "https://localhost:9443", 
                       "QA": "https://qa-advr.iscs.com/", 
                       "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", 
@@ -47,17 +48,22 @@ class Producer:
             self.browser = webdriver.Chrome(options=chrome_options)
         else:
             firefox_options = FirefoxOptions()
+            firefox_profile = FirefoxProfile()
+            firefox_profile.set_preference("javascript.enabled", True)
             self.browser = webdriver.Firefox(options=firefox_options)
         
         self.browser.get(self.gw_environment[self.env_used])
-
-        Actions.check_for_value(self.browser, "details-button", keys="click")
-        Actions.check_for_value(self.browser, "proceed-link", keys="click")
+        if self.browser_chosen == "Chrome" or self.browser_chosen == None:
+            self.browser.execute_script('document.getElementById("details-button").click();')
+            self.browser.execute_script('document.getElementById("proceed-link").click();')
         Actions.waitPageLoad(self.browser)
+        Actions.check_for_value(self.browser, "proceed-link", keys="click")
 
         assert "Guidewire InsuranceNow™ Login" in self.browser.title
 
     def get_password(self, user):
+        if self.env_used == None:
+            self.env_used = "Local"
         password = File.env_files_plus_users[self.env_used]["Users"]["Usernames"][user]
         return password
 
@@ -138,82 +144,56 @@ class Producer:
             browser_handles = self.browser.window_handles
             Actions.check_for_value(self.browser, "NewProducer", keys="click")
             Actions.waitPageLoad(self.browser)
-            Actions.check_for_value(
-                self.browser, "Provider.ProviderNumber", keys=agency_name)
-            Actions.check_for_value(
-                self.browser, "ProducerTypeCd", value="Agency")
-            Actions.check_for_value(
-                self.browser, "Provider.StatusDt", keys=default_date)
-            Actions.check_for_value(
-                self.browser, "AppointedDt", keys="01/01/1900")
+            Actions.check_for_value(self.browser, "Provider.ProviderNumber", keys=agency_name)
+            Actions.check_for_value(self.browser, "ProducerTypeCd", value="Agency")
+            Actions.check_for_value(self.browser, "Provider.StatusDt", keys=default_date)
+            Actions.check_for_value(self.browser, "AppointedDt", keys="01/01/1900")
             Actions.check_for_value(self.browser, "CombinedGroup", value="No")
-            Actions.check_for_value(
-                self.browser, "ProviderName.CommercialName", keys="The White House")
-            Actions.check_for_value(
-                self.browser, "ProviderStreetAddr.Addr1", keys="1600 Pennsylvania Ave NW")
-            Actions.check_for_value(
-                self.browser, "ProviderStreetAddr.City", keys="Washington")
-            Actions.check_for_value(
-                self.browser, "ProviderStreetAddr.StateProvCd", value="DC")
+            Actions.check_for_value(self.browser, "ProviderName.CommercialName", keys="The White House")
+            Actions.check_for_value(self.browser, "ProviderStreetAddr.Addr1", keys="1600 Pennsylvania Ave NW")
+            Actions.check_for_value(self.browser, "ProviderStreetAddr.City", keys="Washington")
+            Actions.check_for_value(self.browser, "ProviderStreetAddr.StateProvCd", value="DC")
             Actions.waitPageLoad(self.browser)
             if EC.new_window_is_opened(browser_handles):
                 self.browser.switch_to.window(self.browser.window_handles[1])
-                Actions.check_for_value(
-                    self.browser, "addressGroupValue_0", keys="click")
+                Actions.check_for_value(self.browser, "addressGroupValue_0", keys="click")
                 Actions.check_for_value(self.browser, "Select", keys="click")
                 self.browser.switch_to.window(self.browser.window_handles[0])
             Actions.waitPageLoad(self.browser)
             Actions.check_for_value(self.browser, "CopyAddress", keys="click")
-            Actions.waitPageLoad(self.browser)
-            Actions.check_for_value(
-                self.browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
-            Actions.check_for_value(
-                self.browser, "AcctName.CommercialName", keys="White House")
+            Actions.check_for_value(self.browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
+            Actions.check_for_value(self.browser, "AcctName.CommercialName", keys="White House")
             Actions.check_for_value(self.browser, "PayToCd", value="Agency")
-            Actions.check_for_value(
-                self.browser, "Provider.CombinePaymentInd", value="No")
-            Actions.check_for_value(
-                self.browser, "Provider.PaymentPreferenceCd", value="Check")
-            Actions.check_for_value(
-                self.browser, "CopyBillingAddress", keys="click")
-            Actions.waitPageLoad(self.browser)
+            Actions.check_for_value(self.browser, "Provider.CombinePaymentInd", value="No")
+            Actions.check_for_value(self.browser, "Provider.PaymentPreferenceCd", value="Check")
+            Actions.check_for_value(self.browser, "CopyBillingAddress", keys="click")
             Actions.save(self.browser)
             Actions.check_for_value(self.browser, "Return", keys="click")
-            Actions.waitPageLoad(self.browser)
 
         Actions.check_for_value(self.browser, "NewProducer", keys="click")
-        Actions.check_for_value(
-            self.browser, "Provider.ProviderNumber", keys=producerName)
-        Actions.check_for_value(
-            self.browser, "ProducerTypeCd", value="Producer")
-        Actions.check_for_value(
-            self.browser, "ProducerAgency", keys=agency_name)
-        Actions.check_for_value(
-            self.browser, "Provider.StatusDt", keys=default_date)
+        Actions.check_for_value(self.browser, "Provider.ProviderNumber", keys=producerName)
+        Actions.check_for_value(self.browser, "ProducerTypeCd", value="Producer")
+        Actions.check_for_value(self.browser, "ProducerAgency", keys=agency_name)
+        Actions.check_for_value(self.browser, "Provider.StatusDt", keys=default_date)
         Actions.check_for_value(self.browser, "AppointedDt", keys="01/01/1900")
         Actions.check_for_value(self.browser, "CombinedGroup", value="No")
-        Actions.check_for_value(
-            self.browser, "ProviderName.CommercialName", keys="Starbucks")
-        Actions.check_for_value(
-            self.browser, "ProviderStreetAddr.Addr1", keys="43 Crossing Way")
-        Actions.check_for_value(
-            self.browser, "ProviderStreetAddr.City", keys="Augusta")
-        Actions.check_for_value(
-            self.browser, "ProviderStreetAddr.StateProvCd", value="ME")
+        Actions.check_for_value(self.browser, "ProviderName.CommercialName", keys="Starbucks")
+        Actions.waitPageLoad(self.browser)
+        Actions.check_for_value(self.browser, "ProviderStreetAddr.Addr1", keys="43 Crossing Way")
+        Actions.check_for_value(self.browser, "ProviderStreetAddr.City", keys="Augusta")
+        Actions.check_for_value(self.browser, "ProviderStreetAddr.StateProvCd", value="ME")
+        Actions.waitPageLoad(self.browser)
+        Actions.check_for_value(self.browser, "ProviderStreetAddr.addrVerifyImg", keys="click")
         Actions.waitPageLoad(self.browser)
         Actions.check_for_value(self.browser, "CopyAddress", keys="click")
         Actions.waitPageLoad(self.browser)
-        Actions.check_for_value(
-            self.browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
-        Actions.check_for_value(
-            self.browser, "AcctName.CommercialName", keys="White House")
+        Actions.check_for_value(self.browser, "ProviderEmail.EmailAddr", keys="test@mail.com")
+        Actions.check_for_value(self.browser, "AcctName.CommercialName", keys="White House")
+        Actions.waitPageLoad(self.browser)
         Actions.check_for_value(self.browser, "PayToCd", value="Agency")
-        Actions.check_for_value(
-            self.browser, "Provider.CombinePaymentInd", value="No")
-        Actions.check_for_value(
-            self.browser, "Provider.PaymentPreferenceCd", value="Check")
-        Actions.check_for_value(
-            self.browser, "CopyBillingAddress", keys="click")
+        Actions.check_for_value(self.browser, "Provider.CombinePaymentInd", value="No")
+        Actions.check_for_value(self.browser, "Provider.PaymentPreferenceCd", value="Check")
+        Actions.check_for_value(self.browser, "CopyBillingAddress", keys="click")
         Actions.waitPageLoad(self.browser)
         Actions.save(self.browser)
         Actions.waitPageLoad(self.browser)
@@ -223,22 +203,14 @@ class Producer:
         Actions.waitPageLoad(self.browser)
         for state in states:
             Actions.check_for_value(self.browser, "AddState", keys="click")
-            Actions.check_for_value(
-                self.browser, "StateInfo.StateCd", value=state)
-            Actions.check_for_value(
-                self.browser, "StateInfo.AppointedDt", keys="01/01/1900")
-            Actions.check_for_value(
-                self.browser, "StateInfo.MerrimackAppointedDt", keys="01/01/1900")
-            Actions.check_for_value(
-                self.browser, "StateInfo.CambridgeAppointedDt", keys="01/01/1900")
-            Actions.check_for_value(
-                self.browser, "StateInfo.BayStateAppointedDt", keys="01/01/1900")
-            Actions.check_for_value(
-                self.browser, "StateInfo.MerrimackLicensedDt", keys="01/01/2999")
-            Actions.check_for_value(
-                self.browser, "StateInfo.CambridgeLicensedDt", keys="01/01/2999")
-            Actions.check_for_value(
-                self.browser, "StateInfo.BayStateLicensedDt", keys="01/01/2999")
+            Actions.check_for_value(self.browser, "StateInfo.StateCd", value=state)
+            Actions.check_for_value(self.browser, "StateInfo.AppointedDt", keys="01/01/1900")
+            Actions.check_for_value(self.browser, "StateInfo.MerrimackAppointedDt", keys="01/01/1900")
+            Actions.check_for_value(self.browser, "StateInfo.CambridgeAppointedDt", keys="01/01/1900")
+            Actions.check_for_value(self.browser, "StateInfo.BayStateAppointedDt", keys="01/01/1900")
+            Actions.check_for_value(self.browser, "StateInfo.MerrimackLicensedDt", keys="01/01/2999")
+            Actions.check_for_value(self.browser, "StateInfo.CambridgeLicensedDt", keys="01/01/2999")
+            Actions.check_for_value(self.browser, "StateInfo.BayStateLicensedDt", keys="01/01/2999")
             Actions.save(self.browser)
             Actions.waitPageLoad(self.browser)
 
@@ -246,18 +218,12 @@ class Producer:
         Actions.waitPageLoad(self.browser)
         for state in states:
             for bus in LOB:
-                Actions.check_for_value(
-                    self.browser, "AddProduct", keys="click")
-                Actions.check_for_value(
-                    self.browser, "LicensedProduct.LicenseClassCd", value=bus)
-                Actions.check_for_value(
-                    self.browser, "LicensedProduct.StateProvCd", value=state)
-                Actions.check_for_value(
-                    self.browser, "LicensedProduct.EffectiveDt", keys="01/01/1900")
-                Actions.check_for_value(
-                    self.browser, "LicensedProduct.CommissionNewPct", keys="5")
-                Actions.check_for_value(
-                    self.browser, "LicensedProduct.CommissionRenewalPct", keys="5")
+                Actions.check_for_value(self.browser, "AddProduct", keys="click")
+                Actions.check_for_value(self.browser, "LicensedProduct.LicenseClassCd", value=bus)
+                Actions.check_for_value(self.browser, "LicensedProduct.StateProvCd", value=state)
+                Actions.check_for_value(self.browser, "LicensedProduct.EffectiveDt", keys="01/01/1900")
+                Actions.check_for_value(self.browser, "LicensedProduct.CommissionNewPct", keys="5")
+                Actions.check_for_value(self.browser, "LicensedProduct.CommissionRenewalPct", keys="5")
                 Actions.save(self.browser)
                 Actions.waitPageLoad(self.browser)
         Actions.check_for_value(self.browser, "IvansCommissionInd", value="No")

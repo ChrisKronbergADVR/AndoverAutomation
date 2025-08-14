@@ -202,9 +202,9 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         if self.custom_address.get() == 1:
             if self.address1.get() and self.city.get():
                 submit_values["Cust_Address"] = 1
-                address.custom_address["Address"] = self.address1.get()
-                address.custom_address["Address2"] = self.address2.get() if self.address2.get() != '' else None
-                address.custom_address["City"] = self.city.get()
+                self.address.custom_address["Address"] = self.address1.get()
+                self.address.custom_address["Address2"] = self.address2.get() if self.address2.get() != '' else None
+                self.address.custom_address["City"] = self.city.get()
             if not self.address1.get():
                 self.address1.configure(placeholder_text_color ="red")
                 submit_values["Cust_Address"] = 0
@@ -354,11 +354,11 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             self.user_val.set("Add User")
 
 class MyTabView(ctk.CTkTabview):
-
     tabs = ["Creating New Applications", "Add Users and Producers","Core Coverages"]
     browser= None
     producer = None
     environment = None
+    producers = None
 
     # Font settings
     producer_font_size = 15
@@ -367,7 +367,7 @@ class MyTabView(ctk.CTkTabview):
     producer = Producer()
     user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
                           "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
-
+    
     #dropdown menu background and hover colors
     drop_back_color = "#144870"
     drop_hover_color = "#2C4664"
@@ -375,6 +375,8 @@ class MyTabView(ctk.CTkTabview):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         File.__init__()
+
+        self.super().producers
 
         # Create Tabs
         for tab in self.tabs:
@@ -451,6 +453,7 @@ class MyTabView(ctk.CTkTabview):
             prod_thread = threading.Thread(target=self.producer.create_producer, args=(
                 producer_name, self.user_value.get()))
             prod_thread.start()
+           
         else:
             print("Please add an admin user first before creating other users.")
 

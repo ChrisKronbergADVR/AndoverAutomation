@@ -50,6 +50,7 @@ class Actions:
     def check_for_value(browser, element, value=None, visible_text: bool = False, keys=None):
         try:
             element1 = Actions.find_Element(browser, element)
+            browser.execute_script('arguments[0].scrollIntoView(true);', element1)
             if element1.is_displayed():
                 if (keys != None):
                     if (keys == "click"):

@@ -47,13 +47,18 @@ class User:
 
         self.browser.get(self.gw_environment)
 
-        Actions.check_for_value(self.browser, "details-button", keys="click")
-        Actions.check_for_value(self.browser, "proceed-link", keys="click")
+        if self.browser_chosen == "Chrome" or self.browser_chosen == None:
+            self.browser.execute_script('document.getElementById("details-button").click();')
+            self.browser.execute_script('document.getElementById("proceed-link").click();')
+        #Actions.check_for_value(self.browser, "details-button", keys="click")
+        #Actions.check_for_value(self.browser, "proceed-link", keys="click")
         Actions.waitPageLoad(self.browser)
 
         assert "Guidewire InsuranceNow™ Login" in self.browser.title
 
     def get_password(self, user):
+        if self.env_used == None:
+            self.env_used = "Local"
         password = File.env_files_plus_users[self.env_used]["Users"]["Usernames"][user]
         return password
 
