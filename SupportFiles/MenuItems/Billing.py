@@ -34,8 +34,7 @@ class Billing:
                     value = val1.index(" "+state)
                     val2 = val1[:value]
                     if (val2 == self.pay_plan):
-                        script = f"document.getElementById(\"{
-                            id_value}\").checked = true"
+                        script = f"document.getElementById(\"{id_value}\").checked = true"
                         try:
                             t = Actions.find_Element(
                                 self.browser, id_value).is_displayed()
@@ -47,8 +46,7 @@ class Billing:
                         break
             except:
                 if (val1 == self.pay_plan):
-                    script = f"document.getElementById(\"{
-                        id_value}\").checked = true"
+                    script = f"document.getElementById(\"{id_value}\").checked = true"
                     try:
                         t = Actions.find_Element(
                             self.browser, id_value).is_displayed()

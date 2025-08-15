@@ -80,7 +80,7 @@ class File:
             if os.path.getsize(user_file) == 0:
                 writer.writeheader()
             for user, password in user_dict.items():
-                writer.writerow({'Username': user, 'Password': password})
+                writer.writerow({'Username': user, ' Password': password})
 
     @staticmethod
     def read_username_password(): 
@@ -121,10 +121,11 @@ class File:
     # Add producer to file
     @staticmethod
     def write_producer(fileName, prod_list):
-        with open(fileName, 'w', newline='') as csvfile:
+        user_file = File.folder + fileName
+        with open(user_file, 'w', newline='') as csvfile:
             fieldnames = ['Producer']
             writer = DictWriter(csvfile, fieldnames=fieldnames)
-            if os.path.getsize(fileName) == 0:
+            if os.path.getsize(user_file) == 0:
                 writer.writeheader()
             for producer in prod_list:
                 writer.writerow({'Producer': producer})
@@ -143,6 +144,15 @@ class File:
         File.write_username_password(file,values)
         File.read_username_password()
         return list(values)
+    
+    @staticmethod
+    def remove_producer(producer):
+        env = File.env_used
+        file = File.env_files_plus_users[env]["Producers"]["file"]
+        File.env_files_plus_users[env]["Producers"]["ProducerNames"].remove(producer)
+        values = File.env_files_plus_users[env]["Producers"]["ProducerNames"]
+        File.write_producer(file,values)
+        return list(values)
 
     @staticmethod
     def get_admin_users():
@@ -152,3 +162,11 @@ class File:
             return [x for x in userVals if x.lower().__contains__("admin")]
         else:
             return ["Add Admin User"]
+        
+    @staticmethod
+    def get_producers(env):
+        producers = File.env_files_plus_users[env]['Producers']['ProducerNames']
+        if len(producers) > 0:
+            return producers
+        else:
+            return ["Add Producer"]

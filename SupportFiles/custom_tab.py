@@ -170,12 +170,16 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.required_info.grid(row=19, column=1, padx=10, pady=(10,0), sticky="w", columnspan=1)
 
     def submit_values(self):
-        submit_values = {"Cust_Name":0,"Cust_Address":0}  
+        submit_values = {"Cust_Name":0,"Cust_Address":0}   
         
         if self.custom_address.get() == 0:
             self.address1 = "Address1"
         
         print(f"Custom Name {self.custom_name.get()}")
+        if self.custom_name.get() == 1:
+            if self.first_name.get() and self.last_name.get():
+                print(f"First Name: {self.first_name.get()}")
+                print(f"Last Name: {self.last_name.get()}")
         print(f"Username: {self.user_val.get()}")
         print(f"Environment: {app.environment.get()}")
         print(f"Browser: {app.browser.get()}")
@@ -233,6 +237,8 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         # if required fields are not filled, show an error message
         if self.submit_error != 0:
             self.required_info.configure(text=self.required_info_text)  # Reset the required info text
+        else:
+            pass
 
     def toggle_custom_name(self):
         # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
@@ -376,8 +382,6 @@ class MyTabView(ctk.CTkTabview):
         super().__init__(master, **kwargs)
         File.__init__()
 
-        self.super().producers
-
         # Create Tabs
         for tab in self.tabs:
             self.add(tab)
@@ -518,15 +522,15 @@ class MyTabView(ctk.CTkTabview):
             pass    
 
 class App(ctk.CTk):
-    VERSION = "0.2.0"
-    producer = None
+    VERSION = "0.5.0"
     browser = None
     environment = "Local"
-    producers = ["DEF"]
+    producers = None
     browsers = ["Chrome", "Firefox"]
     gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", 
                                "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off", "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
-    
+    selected_producer = None
+
     #dropdown menu background and hover colors
     drop_back_color = "#144870"
     drop_hover_color = "#073972"
@@ -536,6 +540,7 @@ class App(ctk.CTk):
 
         self.title("Andover Automation")
         self.geometry("630x750")
+        File.read_producers()
 
         #default to local environment
         File.env_used = self.environment
@@ -552,7 +557,7 @@ class App(ctk.CTk):
 
         #Select Producer Here
         ctk.CTkLabel(self, text="Select Producer: ", text_color="white", corner_radius=10).grid(row=2, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
-        self.producer = ctk.CTkOptionMenu(self, values=self.producers, command=lambda x: self.set_producer(x),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.producer = ctk.CTkOptionMenu(self, values=File.get_producers("Local"), command=lambda x: self.set_producer(x),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.producer.grid(row=2, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
 
         #Producer Delete Button
@@ -570,9 +575,10 @@ class App(ctk.CTk):
             button.configure(font=my_font)
         
     def delete_producer(self):
-        self.producers.remove(self.producer.get())
+        print(self.producer.get())
+        self.producers = File.remove_producer(self.selected_producer)
         self.producer.configure(values=self.producers)
-        self.producer.update()
+        self.producer.set(self.producers[0] if len(self.producers) > 0 else "Add Producer")
         if len(self.producers) > 0:
             self.producer.set("Select Producer")
         else:
@@ -583,6 +589,13 @@ class App(ctk.CTk):
             self.environment = env
             self.tab_view.environment = env
             self.tab_view.scrollable_checkbox_frame.environment = env
+            self.producers = File.get_producers(env)
+            self.producer.configure(values=self.producers)
+
+            if len(self.producers) != 0:
+                self.producer.set(self.producers[0])
+            else:
+                self.producer.set("Add Producer")
 
             self.tab_view.scrollable_checkbox_frame.set_users()
             self.tab_view.env_change()  # Update the environment in the tab view
@@ -593,10 +606,10 @@ class App(ctk.CTk):
         self.tab_view.scrollable_checkbox_frame.browser = browser
     
     def set_producer(self, producer):
-        self.producer = producer
+        self.selected_producer = producer
         self.tab_view.producer = producer
         self.tab_view.scrollable_checkbox_frame.producer = producer
-        
+
 app = App()
 app.wm_protocol(func = app.destroy) 
 
