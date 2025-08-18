@@ -548,7 +548,6 @@ class Interface:
                 self.verified = True
 
             if event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and self.state and date_selected and self.verified:
-
                 self.application.line_of_business = lob
                 self.application.browser_chosen = browser_chose
                 self.application.state_chosen = STATES[self.state]

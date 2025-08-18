@@ -1,6 +1,5 @@
 import requests
 
-
 class Address:
     number_of_addresses = 1
     city = None
