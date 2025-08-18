@@ -34,7 +34,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
     producer = None
     application = Application()
     address = Address()
-    environment = None
 
     carrier_keys = list(carriers.keys())
     carrier_list = {"Dwelling Property":{"CT":[carrier_keys[0]],
@@ -170,25 +169,25 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.required_info.grid(row=19, column=1, padx=10, pady=(10,0), sticky="w", columnspan=1)
 
     def submit_values(self):
-        submit_values = {"Cust_Name":0,"Cust_Address":0}   
+        submit_values = {"Cust_Name":0,"Cust_Address":0, "LOB":0}   
+
+        #Browser, Environment and Producer
+        print(f"Environment: {app.environment.get()}")
+        print(f"Browser: {app.browser.get()}")
+        print(f"Producer: {app.producer.get() if app.producer else 'N/A'}")
         
         if self.custom_address.get() == 0:
             self.address1 = "Address1"
         
         print(f"Custom Name {self.custom_name.get()}")
-        if self.custom_name.get() == 1:
-            if self.first_name.get() and self.last_name.get():
-                print(f"First Name: {self.first_name.get()}")
-                print(f"Last Name: {self.last_name.get()}")
         print(f"Username: {self.user_val.get()}")
-        print(f"Environment: {app.environment.get()}")
-        print(f"Browser: {app.browser.get()}")
-        print(f"Producer: {app.producer.get() if app.producer else 'N/A'}")
         
         # Change custom name to red if not filled out when checked
         if self.custom_name.get() == 1:
             if self.first_name.get() and self.last_name.get():
                 submit_values["Cust_Name"] = 1
+                print(f"First Name: {self.first_name.get()}")
+                print(f"Last Name: {self.last_name.get()}")
             if not self.first_name.get():
                 self.first_name.configure(placeholder_text_color ="red")
                 submit_values["Cust_Name"] = 0
@@ -220,8 +219,8 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             else:
                 self.city.configure(placeholder_text_color ="white")
         else:
-            pass #Add code here to handle automation address for not having a custom address
-              
+            pass
+
         print(f"State: {self.state_val.get()}")
         print(f"Date: {self.dateInput.get()}")
         print(f"Payment Method: {self.payment_method.get()}")

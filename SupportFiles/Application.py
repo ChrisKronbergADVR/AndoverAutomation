@@ -579,8 +579,10 @@ class Application:
     def get_created_application(self, applicaiton_number: str):
         pass
 
-    # Create a producer
 
+    """
+    # Create a producer
+    
     def create_producer(self, producerName, user_name):
         agency_name = "All_States_All_LOB"
         agent_name = None
@@ -789,6 +791,7 @@ class Application:
 
         if producerName not in prod_values:
             File.add_producer(producerName)
+    
 
     # Create a user
     def create_user(self, user_type, user_name):
@@ -904,3 +907,4 @@ class Application:
 
         if user_type not in list(user_values):
             File.add_user(user_type, new_user_password)
+    """
