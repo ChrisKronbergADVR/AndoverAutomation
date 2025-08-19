@@ -137,8 +137,6 @@ class Producer:
         except:
             pass
 
-        #Actions.waitPageLoad(self.browser)
-
         if agent_name is None:
             ################ Create Agency #################################
             browser_handles = self.browser.window_handles

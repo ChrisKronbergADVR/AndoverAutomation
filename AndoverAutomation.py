@@ -1,4 +1,4 @@
-from SupportFiles.custom_tab import App
+from SupportFiles.Interface import App
 
 def main():
   pass

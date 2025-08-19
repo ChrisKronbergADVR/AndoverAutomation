@@ -1,614 +1,666 @@
-import PySimpleGUI as sg
-from datetime import datetime, timedelta
+import customtkinter as ctk
+from datetime import date
+from tkcalendar import DateEntry
+from PIL import Image, ImageTk
 import threading
-from SupportFiles.Address import Address
-from SupportFiles.Application import Application
-from SupportFiles.File import File
-from SupportFiles.MultiLog import MultiLog
+import os
 
-class Interface:
-    VERSION = "0.1.1"
-    TEXTLEN = 25
-    THEME = "TanBlue"
+from .MultiLog import MultiLog
+from .Address import Address
+from .Application import Application
+from .File import File
+from .Producer import Producer
+from .User import User
 
-    def __init__(self) -> None:
-        self.gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "GWCP QA": "https://advr-qa.mu-1-andromeda.guidewire.net/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", "GWCP QA2": "https://advr-qa2.mu-1-andromeda.guidewire.net/", "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off",
-                               "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
-
-        self.payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
-        self.payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                                 "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-        self.payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                                       "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-        self.payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
-                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
-        self.user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
-                          "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
-
-        self.env_used = "Local"
-        self.state_chosen = None
-        self.date_chosen = None
-        self.user_name = None
-        self.producer_selected = None
-        self.create_type = None
-        self.browser_chosen = None
-        self.line_of_business = None
-        self.user_chosen = None
-        self.verified = False
-        self.number_of_addresses = 1
-        self.pay_plan = None
-        self.thread_name = None
-        self.userList = []
-        self.dwelling_program = None
-        self.custom_address = False
-        self.city = None
-        self.state = None
-        self.address1 = None
-        self.address2 = None
-        self.address_validate = False
-
-        self.application = Application()
-
-    def check_for_errors(self, selectedUser, selectedEnviron, producer, browser_chose, date_selected, doc_type, subType):
-        if self.address2 == None:
-            self.address_validate = Address.verify_address(
-                self.city, self.state_chosen, self.address1)
-        else:
-            self.address_validate = Address.verify_address(
-                self.city, self.state_chosen, self.address1, self.address2)
-
-        self.submit_errors = {"User": selectedUser, "Environment": selectedEnviron, "Producer": producer,
-                              "Browser": browser_chose, "Date": date_selected, "State": self.state, "Application Type": doc_type, "Subtype": subType, "Address Validation": self.address_validate}
-        self.submit_message = []
-
-        err_text = ""
-        for error_key, error_value in self.submit_errors.items():
-            if error_value == "" or error_value == False:
-                err_text += f"{error_key} \n"
-                self.submit_message.append(error_value)
-
-        sg.popup_notify("Fields Below must be filled in to Submit \n--------------------------------------------------\n" +
-                        err_text, display_duration_in_ms=5000, location=(800, 394))
-
-    # Function for making the GUI
-    def make_window(self):
-
-        sg.theme(self.THEME)
-        
-        LOB = ["Dwelling Property", "Homeowners", "Businessowners",
-               "Personal Umbrella", "Commercial Umbrella"]
-        SUBTYPE = {"HO3": "HO3", "HO4": "HO4", "HO5": "HO5T4",
-                   "HO5 Superior": "HO5", "HO6": "HO6"}
-        STATES = {"Connecticut": "CT", "Illinois": "IL", "Maine": "ME", "Massechusetts": "MA",
-                  "New Hampshire": "NH", "New Jersey": "NJ", "New York": "NY", "Rhode Island": "RI"}
-        CARRIER = {"Merrimack Mutual Fire Insurance": "MMFI",
+class ScrollableTabView(ctk.CTkScrollableFrame):
+    states = {"Connecticut": "CT", "Illinois":"IL","Maine": "ME","Massachusetts": "MA", "New Hampshire": "NH", "New Jersey": "NJ","New York": "NY", "Rhode Island": "RI"}
+    line_of_business = ["Dwelling Property", "Homeowners", "Businessowners","Personal Umbrella", "Commercial Umbrella"]
+    carriers = {"Merrimack Mutual Fire Insurance": "MMFI",
                    "Cambrige Mutual Fire Insurance": "CMFI", "Bay State Insurance Company": "BSIC"}
-        DWELLING_PROGRAM = ["DP1", "DP2", "DP3"]
+    payment_methods = ["Credit Card", "Check", "ACH"]
 
-        browsers = ["Chrome", "Edge"]
-        y = datetime.today()+timedelta(days=65)
-        default_date = y.strftime("%m/%d/%Y").split("/")
-        default_date = (int(default_date[0]), int(
-            default_date[1]), int(default_date[2]))
+    payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
+    payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
+                                 "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
+    payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
+                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
+    submit_error = 0
+    custom_name = 0
+    custom_address = 0
+    usernames = []
+    browser = None
+    producer = None
+    application = Application()
+    address = Address()
 
-        top_layout = [
-            [sg.Text('Andover Automation', size=(38, 1), justification='center',
-                     relief=sg.RELIEF_RIDGE, font=("Helvetica", 16), key='-TEXTHEADING-')]
-        ]
+    carrier_keys = list(carriers.keys())
+    carrier_list = {"Dwelling Property":{"CT":[carrier_keys[0]],
+                                "IL":[carrier_keys[0],carrier_keys[1]],
+                                "ME":[carrier_keys[0]],
+                                "MA":[carrier_keys[0]],
+                                "NH":[carrier_keys[1]],
+                                "NJ":[carrier_keys[0]],
+                                "NY":[carrier_keys[0]],
+                                "RI":[carrier_keys[0]]
+                                },
+                    "Homeowners":{"CT":[carrier_keys[0],carrier_keys[1]],
+                                  "IL":[carrier_keys[0],carrier_keys[1]],
+                                  "ME":[carrier_keys[0],carrier_keys[1]],
+                                  "MA":[carrier_keys[0],carrier_keys[1],carrier_keys[2]],
+                                  "NH":[carrier_keys[0],carrier_keys[1]],
+                                  "NJ":[carrier_keys[0],carrier_keys[1],carrier_keys[2]],
+                                  "NY":[carrier_keys[0],carrier_keys[1]],
+                                  "RI":[carrier_keys[0]]
+                                  },
+                    "Businessowners":{"CT":[carrier_keys[0]],
+                                      "IL":[carrier_keys[0],carrier_keys[1]],
+                                      "ME":[carrier_keys[0]],
+                                      "MA":[carrier_keys[0],carrier_keys[1],carrier_keys[2]],
+                                      "NH":[carrier_keys[0],carrier_keys[1]],
+                                      "NJ":[carrier_keys[0]],
+                                      "NY":[carrier_keys[0],carrier_keys[2]],
+                                      "RI":[carrier_keys[0]]
+                                      },
+                    "Personal Umbrella":{"CT":[carrier_keys[0]],
+                                         "IL":[carrier_keys[0]],
+                                         "ME":[carrier_keys[0]],
+                                         "MA":[carrier_keys[0]],
+                                         "NH":[carrier_keys[0]],
+                                         "NJ":[carrier_keys[0]],
+                                         "NY":[carrier_keys[0]],
+                                         "RI":[carrier_keys[0]]
+                                         }
+                    }
 
-        all_tabs_info = [
-            [sg.Text('Select Local or QA Environment'), sg.DropDown(
-                list(self.gw_environment.keys()), readonly=True, enable_events=True, key="-ENVLIST-")],
-            [sg.Text('Select Browser'), sg.DropDown(
-                browsers, readonly=True, key="BROWSER")],
-            [sg.Text("Select Producer"), sg.DropDown(list(File.env_files_plus_users[self.env_used]["Producers"]["ProducerNames"]), size=(
-                self.TEXTLEN, 1), readonly=True, key="-PRODUCER-"), sg.Push(), sg.Button("Delete", size=(10, 1), key="-REMPROD-")],
-            [sg.HorizontalSeparator()]
-        ]
+    check_width = 17
+    check_height = 17
 
-        new_app_layout = [
-            [sg.Text('Enter Information for Creating An Application', border_width=3)],
-            [sg.Text('Username'), sg.DropDown(self.userList, readonly=True, key="-ULIST-", size=(20, 1)),
-             sg.Push(), sg.Button("Delete User", size=(10, 1), key="-REMU-")],
-            [sg.Checkbox(text="Use Custom Name",
-                         enable_events=True, key="-NAME_CHECK-")],
-            [sg.Text("First Name", visible=False, justification="left",  enable_events=True, key="-FIRST_TEXT-",),
-             sg.Text("   "),
-             sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-FIRST-")],
-            [sg.Text("Mid Name ", visible=False, justification="left",  enable_events=True, key="-MID_TEXT-",),
-             sg.Text("   "),
-             sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-MID-")],
-            [sg.Text("Last Name", visible=False, justification="left",  enable_events=True, key="-LAST_TEXT-"),
-             sg.Text("   "), sg.InputText(size=(self.TEXTLEN, 1), visible=False,  enable_events=True, key="-LAST-")],
-            [sg.Text("Select State"), sg.DropDown(list(STATES.keys()), key="-STATE-", readonly=True, enable_events=True),
-             sg.Checkbox(text="Use Custom Address", enable_events=True, key="ADD_CHECK")],
-            [sg.Text("Address 1 (Required)", visible=False, justification="left", key="-AddText1-",),
-             sg.Text("   "), sg.InputText(size=(self.TEXTLEN, 1), visible=False, key="-CADD1-")],
-            [sg.Text("                      Address 2", visible=False, justification="left",
-                     key="-AddText2-"), sg.InputText(size=(self.TEXTLEN, 1), visible=False, key="-CADD2-")],
-            [sg.Text("City (Required)", visible=False, justification="left", key="-CityText-"),
-             sg.Text("            "), sg.InputText(size=(self.TEXTLEN, 1), visible=False, key="-CITY-")],
-            [sg.Button("Verify Address", visible=False, key="BTN_VERIFY"), sg.Push(), sg.Text(
-                "Verified", text_color="green", visible=False, key="-VERIFY_BUTTON-")],
-            [sg.Text("Select Line of Business"), sg.DropDown(
-                LOB, key="-LOB-", enable_events=True, readonly=True)],
-            [sg.Text("Select Carrier", key="-CARRIERTEXT-"),
-             sg.DropDown(list(CARRIER.keys()), key="-CARRIER-", readonly=True, enable_events=True)],
-            [sg.Text("Program", key="-DPTEXT-", enable_events=True, visible=False), sg.DropDown(
-                DWELLING_PROGRAM, key="-DP-", default_value="DP1", enable_events=True, readonly=True, visible=False)],
-            [sg.Text("Select SubType", visible=False, key="-SUBTYPELABEL-"), sg.DropDown(list(
-                SUBTYPE.keys()), key="-SUBTYPE-", default_value="HO5", enable_events=True, readonly=True, visible=False)],
-            [sg.Text("Multiple Locations? ", visible=False, key="-MULT-"), sg.DropDown(["Yes",
-                                                                                        "No"], visible=False, default_value="No", enable_events=True, readonly=True, key="-MULTI-")],
-            [sg.Text("Locations ", justification="left", visible=False, key="-NUMMULT-"),
-             sg.DropDown([2, 3, 4, 5], visible=False, default_value="2", readonly=True, key="-NUMLOC-")],
-            [sg.Text("Enter Date or Select Date Below")],
-            [sg.Input(key='-DATE-', size=(20, 1)), sg.CalendarButton('Date Select', close_when_date_chosen=True,
-                                                                     target='-DATE-', format='%m/%d/%Y', default_date_m_d_y=default_date)],
-            [sg.Text()],
-            [sg.Text("Payment Plan: ", visible=True), sg.DropDown(list(self.payment_plan_most.keys()), visible=True, readonly=True, default_value="Direct Bill Full Pay", enable_events=True, key="-PAYPLAN-"),
-             sg.DropDown(list(self.payment_plan_bop.keys()), visible=False,
-                         default_value="Direct Bill Full Pay", enable_events=True, readonly=True, key="-PAYPLANBOP-"),
-             sg.DropDown(list(self.payment_plan_pumb.keys()), visible=False, default_value="Direct Bill Full Pay", enable_events=True, readonly=True, key="-PAYPLANPUMB-")],
-            [sg.Text()],
-            [sg.Text("Create Quote, Application or Policy"), sg.DropDown(
-                ["Quote", "Application", "Policy"], default_value="Application", readonly=True, key="-CREATE-")],
-            [sg.Text()],
-            [sg.Button('Submit'), sg.Button('Cancel'), sg.Push(),
-             sg.Checkbox("Enable Logging", key="-LOG-")]
-        ]
+    # Used to track if clicked multiple times
+    repeat = False # Used to track if the program label and option menu have been created
+    program_repeat = False # Used to track if the subtype label and option menu have been created
+    loc_repeat = False # Used to track if the multiple locations label and option menu have been created
 
-        new_user_layout = [
-            [sg.Text()],
-            [sg.Text('Add Producer')],
-            [sg.Text('Select Login Username'), sg.DropDown(
-                self.userList, key="-CREATE_USERLIST-", size=(20, 1), readonly=True, enable_events=True)],
-            [sg.Text("Producer Name"), sg.InputText(
-                do_not_clear=False, key="-PROD_IN-")],
-            [sg.Button("Add Producer", key="-ADD_PROD-")],
-            [sg.Text()],
-            [sg.HorizontalSeparator()],
-            [sg.Text()],
-            [sg.Text('Add User')],
-            [sg.Text("Username"), sg.InputText(
-                do_not_clear=False, size=(self.TEXTLEN, 1), key="USER")],
-            [sg.Text("Password"), sg.InputText(
-                do_not_clear=False, size=(self.TEXTLEN, 1), key="PASS")],
-            [sg.Button("Add", key="-ADDU-")],
-            [sg.Text()],
-            [sg.HorizontalSeparator()],
-            [sg.Text()],
-            [sg.Text("Create User in Andover (Local Only)",
-                     key="-CREATE_TEXT-", enable_events=True, visible=False)],
-            [sg.DropDown(list(self.user_dict.keys()), key="UserDrop",
-                         enable_events=True, readonly=True, visible=False)],
-            [sg.Button("Create", key="-CREATE_USER-",
-                       enable_events=True, visible=False)]
-        ]
+    # Custom Name and Address Variables
+    first_name = None
+    mid_name = None
+    last_name = None
+    address1 = None
+    address2 = None
+    city = None
 
-        exist_app_layout = [
-            [sg.Text('Enter Information for An Existing Application')],
-            [sg.Text("Application Number"),
-             sg.InputText(size=(self.TEXTLEN, 1))]
-        ]
+    # Text for showing required fields still needed when clicking submit
+    required_info_text = "* Required Information"
 
-        core_coverages_layout = [
-            [sg.Text('Core Coverages Info Here')],
+    #dropdown menu background and hover colors
+    drop_back_color = "#144870"
+    drop_hover_color = "#073972"
 
-        ]
+    def __init__(self, master,title,**kwargs):
+        super().__init__(master, label_text=title,**kwargs)
+        self.grid_columnconfigure(0, weight=1)  # Make the first column expandable
+        self.grid_rowconfigure(0, weight=1)     # Make the first row expandable
+        self.configure(fg_color="transparent")  # Set background color to transparent
 
-        tabs_layout = [
-            [sg.TabGroup([
-                [sg.Tab('Creating New Applications', new_app_layout),
-                 sg.Tab('Add Users and Producers', new_user_layout),
-                 # sg.Tab('Core Coverages Options', core_coverages_layout)
-                 ]],
-                key="-TABGROUP-", expand_x=True, expand_y=True)]
-        ]
+        ################### First Tab Start ###################
+        # Username Label
+        ctk.CTkLabel(master=self,text=f"Username").grid(row=0, column=0, padx=10, pady=20)
 
-        layout = [top_layout]
-        layout += [all_tabs_info]
-        layout += [tabs_layout]
+        self.user_val = ctk.CTkOptionMenu(master=self,values=list(File.get_users()) if len(list(File.get_users())) > 0 else ["Add User"], command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.user_val.grid(row=0, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+    
+        # User Delete Button
+        self.producer_delete_button = ctk.CTkButton(master=self, text="Delete", command=lambda: self.delete_user(),width=50)
+        self.producer_delete_button.grid(row=0, column=2, padx=60, pady=5, sticky="ew")
 
-        # Create the Window
-        window = sg.Window(f"Automation for Andover                                  Version: {
-                           self.VERSION}", layout)
-        # Event Loop to process "events" and get the "values" of the inputs
-        while True:
-            event, values = window.read()
-            if event == sg.WIN_CLOSED or event == 'Cancel':  # if user closes window or clicks cancel or exit
-                break
+        self.custom_name = ctk.CTkCheckBox(master=self, text="Use Custom Name", command=lambda:self.toggle_custom_name(),checkbox_width=self.check_width,checkbox_height=self.check_height)
+        self.custom_name.grid(row=1, column=0, padx=(40,0), pady=5, sticky="w", columnspan=3)
 
-            user_name = values["USER"]
-            password = values["PASS"]
-            selectedUser = values["-ULIST-"]
-            selectedEnviron = values["-ENVLIST-"]
-            producer = values["-PRODUCER-"]
-            doc_type = values["-CREATE-"]
-            self.city = values["-CITY-"]
-            self.address1 = values["-CADD1-"]
-            self.address2 = values["-CADD2-"]
-            browser_chose = values["BROWSER"]
-            self.custom_address = values["ADD_CHECK"]
-            self.application.custom_address = values["ADD_CHECK"]
-            self.state = values["-STATE-"]
-            lob = values["-LOB-"]
-            subType = SUBTYPE[values["-SUBTYPE-"]]
-            multi = values["-MULTI-"]
-            payment_p = values["-PAYPLAN-"]
-            payment_p_bop = values["-PAYPLANBOP-"]
-            payment_p_pumb = values["-PAYPLANPUMB-"]
-            carrier = values["-CARRIER-"]
-            producer_name = values["-PROD_IN-"]
-            producer_user_name = values["-CREATE_USERLIST-"]
-            add_user_value = values["UserDrop"]
-            date_selected = values["-DATE-"]
-            log_val = values["-LOG-"]
-            dwelling_program = values["-DP-"]
-            custom_name = values["-NAME_CHECK-"]
+        # Username Label
+        ctk.CTkLabel(master=self,text="State").grid(row=5, column=0, padx=10, pady=20)
+                     
+        # Username Value Selection
+        self.state_val = ctk.CTkOptionMenu(master=self,values=list(self.states.keys()), command=lambda state: self.state_selected(state),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.state_val.grid(row=5, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
 
-            if self.address2 == "":
-                self.address2 = None
+        # Custom Address Checkbox
+        self.custom_address = ctk.CTkCheckBox(master=self, text="Custom Address", command=lambda:self.toggle_custom_address(),checkbox_width=self.check_width,checkbox_height=self.check_height)
+        self.custom_address.grid(row=5, column=2, padx=10, pady=5, sticky="w", columnspan=3)
 
-            if event == "-ADD_PROD-" and producer_name != "" and selectedEnviron and producer_user_name and browser_chose:
-                self.browser_chosen = browser_chose
-                prod_thread = threading.Thread(target=self.application.create_producer, args=(
-                    producer_name, producer_user_name))
-                prod_thread.start()
+        # Line of Business Label
+        ctk.CTkLabel(master=self, text="Line of Business").grid(row=9, column=0, padx=10, pady=10)
+        # Line of Business Value Selection
+        self.lob_val = ctk.CTkOptionMenu(master=self, values=self.line_of_business, command=lambda x: self.toggle_program(x), dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.lob_val.grid(row=9, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+        self.lob_val.set("Select Value")  # Set default value
 
-            if event == "-CREATE_USER-" and add_user_value != "" and selectedEnviron and producer_user_name and browser_chose:
-                self.browser_chosen = browser_chose
-                user_thread = threading.Thread(target=self.application.create_user, args=(add_user_value, producer_user_name))
-                user_thread.start()
+        # Line of Business Label
+        ctk.CTkLabel(master=self, text="Carrier").grid(row=14, column=0, padx=10, pady=10)
+        # Line of Business Value Selection
+        self.carrier_val = ctk.CTkOptionMenu(master=self, values=list(self.carriers.keys()), command=lambda x: print(f"Selected Carrier: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.carrier_val.grid(row=14, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
 
-            if selectedEnviron == "Local":
-                window['UserDrop'].update(visible=True)
-                window['-CREATE_USER-'].update(visible=True)
-                window['-CREATE_TEXT-'].update(visible=True)
-                window.refresh()
-            else:
-                window['UserDrop'].update(visible=False)
-                window['-CREATE_USER-'].update(visible=False)
-                window['-CREATE_TEXT-'].update(visible=False)
-                window.refresh()
+        # Date Label
+        ctk.CTkLabel(master=self, text="Date",width=80).grid(row=15, column=0, padx=10, pady=10)
 
-            if log_val:
-                MultiLog.log_data = True
-            else:
-                MultiLog.log_data = False
+        # Date Input in MM/DD/YYYY format
+        self.dateInput = DateEntry(master=self, background='darkblue', foreground='white', borderwidth=1,date_pattern='MM/dd/yyyy')
+        self.dateInput.grid(row=15, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
 
-            if (event == "-LOB-" and self.address1 != "") or (event == "-STATE-" and lob != ""):
-                if STATES[self.state] == "NY":
-                    all_items = list(CARRIER.keys())
-                    current_list = []
-                    if lob == "Homeowners":
-                        current_list = [all_items[0], all_items[1]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-                    if lob == "Dwelling Property" or lob == "Businessowners":
-                        current_list = [all_items[0]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-                    if lob == "Businessowners":
-                        current_list = [all_items[0], all_items[2]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
+        # `Payment` Method Label and Option Menu
+        ctk.CTkLabel(master=self, text="Payment Method").grid(row=16, column=0, padx=10, pady=10)
+        self.payment_method = ctk.CTkOptionMenu(master=self, values=list(self.payment_plan_most.keys()), command=lambda x: self.set_payment_value(x),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.payment_method.grid(row=16, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+        
+        # Create Quote, Application, or Policy Label and Option Menu
+        ctk.CTkLabel(master=self, text="Product").grid(row=17, column=0, padx=10, pady=10)
+        self.application_type = ctk.CTkOptionMenu(master=self, values=["Quote", "Application", "Policy"], command=lambda x: print(f"Selected Application Type: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.application_type.grid(row=17, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
 
-                if STATES[self.state] == "MA":
-                    all_items = list(CARRIER.keys())
-                    current_list = []
-                    if lob == "Homeowners" or lob == "Businessowners":
-                        current_list = all_items
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-                    if lob == "Dwelling Property":
-                        current_list = [all_items[0]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
+        ## Logging Checkbox
+        self.logging_checkbox = ctk.CTkCheckBox(master=self, text="Enable Logging", checkbox_width=self.check_width, checkbox_height=self.check_height)
+        self.logging_checkbox.grid(row=18, column=0, padx=(40,0), pady=(20,0), sticky="w", columnspan=2)
 
-                if STATES[self.state] == "CT":
-                    all_items = list(CARRIER.keys())
-                    current_list = []
-                    if lob == "Homeowners":
-                        current_list = [all_items[0], all_items[1]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-                    if lob == "Dwelling Property" or lob == "Businessowners":
-                        current_list = [all_items[0]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
+        self.submit = ctk.CTkButton(self, text="Submit", command=lambda: self.submit_values(),width=100)
+        self.submit.grid(row=19, column=2, padx=30, pady=(20,0), sticky="w")
 
-                if STATES[self.state] == "IL":
-                    all_items = list(CARRIER.keys())
-                    current_list = []
-                    if (lob == "Homeowners" or lob == "Dwelling Property" or lob == "Businessowners"):
-                        current_list = [all_items[0], all_items[1]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
+        self.required_info = ctk.CTkLabel(master=self, text="", text_color="red")
+        self.required_info.grid(row=19, column=1, padx=10, pady=(10,0), sticky="w", columnspan=1)
 
-                if STATES[self.state] == "NH":
-                    all_items = list(CARRIER.keys())
-                    current_list = []
-                    if lob == "Homeowners" or lob == "Businessowners":
-                        current_list = [all_items[0], all_items[1]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-                    if lob == "Dwelling Property":
-                        current_list = [all_items[1]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
+    def submit_values(self):
+        submit_values = {"Cust_Name":False,"Cust_Address":False}
+        self.application.producer_selected = self.producer
+        self.application.state_chosen = self.states[self.state_val.get()]
+        self.application.line_of_business = self.lob_val.get()
+        self.application.date_chosen = self.dateInput.get()
+        self.application.user_chosen = self.user_val.get()
+        self.application.create_type = self.application_type.get()
 
-                if STATES[self.state] == "NJ":
-                    all_items = list(CARRIER.keys())
-                    current_list = []
-                    if lob == "Homeowners":
-                        current_list = all_items
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-                    if lob == "Dwelling Property" or lob == "Businessowners":
-                        current_list = [all_items[0]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-
-                if STATES[self.state] == "ME":
-                    all_items = list(CARRIER.keys())
-                    current_list = []
-                    if lob == "Homeowners":
-                        current_list = [all_items[0], all_items[1]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-                    if lob == "Dwelling Property" or lob == "Businessowners":
-                        current_list = [all_items[0]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-
-                if STATES[self.state] == "RI":
-                    all_items = list(CARRIER.keys())
-                    current_list = []
-                    if lob == "Homeowners" or lob == "Dwelling Property" or lob == "Businessowners":
-                        current_list = [all_items[0]]
-                        window["-CARRIER-"].update(values=current_list)
-                        window["-CARRIER-"].update(value=current_list[0])
-                        window.refresh()
-
-            if event == "-ENVLIST-" and selectedEnviron != '' and (selectedEnviron == "QA" or selectedEnviron == "GWCP QA" or selectedEnviron == "GWCP QA2" or selectedEnviron == 'Local' or selectedEnviron == 'UAT3' or selectedEnviron == 'UAT4' or selectedEnviron == 'QA2'):
-                self.env_used = selectedEnviron
-                File.env_used = self.env_used
-                self.application.env_used = self.env_used
-                File.read_username_password()
-                File.read_producers()
-                prod_user_list = []
-                self.userList = list(
-                    File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())
-                for user in self.userList:
-                    if user.lower().__contains__("admin") and (not user.lower().__contains__("agent")):
-                        prod_user_list.append(user)
-                window["-CREATE_USERLIST-"].update(values=prod_user_list)
-                window["-ULIST-"].update(values=self.userList)
-                window["-PRODUCER-"].update(
-                    values=File.env_files_plus_users[self.env_used]["Producers"]["ProducerNames"])
-                window.refresh()
-
-            if event == "-ADDU-" and selectedEnviron != '':
-                File.env_used = selectedEnviron
-                File.add_user(user_name, password)
-                self.userList = list(File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys())
-                window["-ULIST-"].update(values=self.userList)
-                window.refresh()
-
-            if custom_name:
-                window['-FIRST_TEXT-'].update(visible=True)
-                window['-FIRST-'].update(visible=True)
-                window['-MID_TEXT-'].update(visible=True)
-                window['-MID-'].update(visible=True)
-                window['-LAST_TEXT-'].update(visible=True)
-                window['-LAST-'].update(visible=True)
-            else:
-                window['-FIRST_TEXT-'].update(visible=False)
-                window['-FIRST-'].update(visible=False)
-                window['-MID_TEXT-'].update(visible=False)
-                window['-MID-'].update(visible=False)
-                window['-LAST_TEXT-'].update(visible=False)
-                window['-LAST-'].update(visible=False)
-
-            if self.custom_address:
-                window["-AddText1-"].update(visible=True)
-                window["-CADD1-"].update(visible=True)
-                window["-AddText2-"].update(visible=True)
-                window["-CADD2-"].update(visible=True)
-                window["-CityText-"].update(visible=True)
-                window["-CITY-"].update(visible=True)
-                # window["BTN_VERIFY"].update(visible=True)
-                window.refresh()
-            else:
-                window["-AddText1-"].update(visible=False)
-                window["-CADD1-"].update(visible=False)
-                window["-AddText2-"].update(visible=False)
-                window["-CADD2-"].update(visible=False)
-                window["-CityText-"].update(visible=False)
-                window["-CITY-"].update(visible=False)
-                window["BTN_VERIFY"].update(visible=False)
-                # window["-VERIFY_BUTTON-"].update(visible=False)
-                window.refresh()
-
-            if event == "-LOB-":
-                if lob == "Businessowners":
-                    window["-PAYPLANBOP-"].update(visible=True)
-                    window["-PAYPLAN-"].update(visible=False)
-                    window["-PAYPLANPUMB-"].update(visible=False)
-                    window.refresh()
-                elif lob == "Personal Umbrella" or lob == "Commercial Umbrella":
-                    window["-PAYPLANPUMB-"].update(visible=True)
-                    window["-PAYPLANBOP-"].update(visible=False)
-                    window["-PAYPLAN-"].update(visible=False)
-                    window.refresh()
+        #Address Check
+        if self.custom_address.get() == 1:
+            self.application.custom_address = True
+            if self.address1.get() and self.city.get():
+                self.application.address1 = self.address1.get()
+                self.application.city = self.city.get()
+                if self.address2.get() != "":
+                    self.application.address2 = self.address2.get()
+                    submit_values["Cust_Address"] = self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get(),self.address2.get())
+                    self.address.custom_address["City"] = self.city.get()
+                    self.address.custom_address["State"] = self.state_val.get()
+                    self.address.custom_address["Address"] = self.address1.get()
+                    self.address.custom_address["Address2"] = self.address2.get()
+                
                 else:
-                    window["-PAYPLANBOP-"].update(visible=False)
-                    window["-PAYPLAN-"].update(visible=True)
-                    window["-PAYPLANPUMB-"].update(visible=False)
-                    window.refresh()
-
-            if lob == "Dwelling Property":
-                window["-MULT-"].update(visible=True)
-                window["-MULTI-"].update(visible=True)
-                window["-DPTEXT-"].update(visible=True)
-                window["-DP-"].update(visible=True)
-                window.refresh()
+                    submit_values["Cust_Address"] = self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get())
+                    self.address.custom_address["City"] = self.city.get()
+                    self.address.custom_address["State"] = self.state_val.get()
+                    self.address.custom_address["Address"] = self.address1.get()
+          
+        else:
+            self.application.custom_address = False
+            address_vals = self.address.addresses[self.states[self.state_val.get()]]
+            self.application.state_chosen = address_vals[0]
+            self.application.address1 = address_vals[2]
+        
+        # Change custom name to red if not filled out when checked
+        if self.custom_name.get() == 1:
+            if self.first_name.get() and self.last_name.get():
+                submit_values["Cust_Name"] = 1
+                self.application.first_name = self.first_name.get()
+                self.application.last_name = self.last_name.get()
+            if not self.first_name.get():
+                self.first_name.configure(placeholder_text_color ="red")
+                submit_values["Cust_Name"] = 0
             else:
-                window["-MULT-"].update(visible=False)
-                window["-MULTI-"].update(visible=False)
-                window["-DPTEXT-"].update(visible=False)
-                window["-DP-"].update(visible=False)
-                window.refresh()
-
-            if lob == "Homeowners" or lob == "Personal Umbrella":
-                window["-SUBTYPELABEL-"].update(visible=True)
-                window["-SUBTYPE-"].update(visible=True)
-                window["-CARRIERTEXT-"].update(visible=True)
-                window["-CARRIER-"].update(visible=True)
-                window.refresh()
-            elif lob == "Businessowners":
-                window["-CARRIERTEXT-"].update(visible=True)
-                window["-SUBTYPELABEL-"].update(visible=False)
-                window["-SUBTYPE-"].update(visible=False)
-                window["-CARRIER-"].update(visible=True)
-                window.refresh()
+                self.first_name.configure(placeholder_text_color ="white")
+            if not self.last_name.get():
+                self.last_name.configure(placeholder_text_color ="red")
+                submit_values["Cust_Name"] = 0
             else:
-                window["-SUBTYPELABEL-"].update(visible=False)
-                window["-SUBTYPE-"].update(visible=False)
-                window["-CARRIERTEXT-"].update(visible=False)
-                window["-CARRIER-"].update(visible=False)
-                window.refresh()
+                self.last_name.configure(placeholder_text_color ="white")
 
-            if lob == "Homeowners" or lob == "Personal Umbrella" or lob == "Dwelling Property" or lob == "Businessowners":
-                window["-CARRIERTEXT-"].update(visible=True)
-                window["-CARRIER-"].update(visible=True)
-                window.refresh()
+            if self.mid_name.get() != "":
+                    self.application.mid_name = self.mid_name.get()
+        else:
+            self.application.first_name = self.states[self.state_val.get()]
+            self.application.last_name = self.lob_val.get()
+        
+    
+        if self.logging_checkbox.get() == 1:
+            print("Logging is enabled")
+            MultiLog.log_data = True
+        else:
+            print("Logging is disabled")
+            MultiLog.log_data = False
+
+        if self.custom_name.get() == 1:
+            if submit_values["Cust_Name"] == False:
+                self.submit_error += 1
+        if self.custom_address.get() == 1:
+            if submit_values["Cust_Address"] == False:
+                self.submit_error += 1
+
+        # if required fields are not filled, show an error message
+        if self.submit_error != 0:
+            self.required_info.configure(text=self.required_info_text)  # Reset the required info text
+        else:
+            if self.lob_val.get() == self.line_of_business[1]:
+
+                self.application.startApplication(None,self.subtype.get(),self.carrier_val.get())
             else:
-                window["-CARRIERTEXT-"].update(visible=False)
-                window["-CARRIER-"].update(visible=False)
-                window.refresh()
+                if self.lob_val.get() == self.line_of_business[0]:
+                    print(f"Multiple Locations {self.multiple_locations.get()}")
+                    self.application.startApplication(self.multiple_locations.get(),None,self.carrier_val.get())
+                else:
+                    self.application.startApplication(None,None,self.carrier_val.get())
 
-            if multi == "Yes" and lob == "Dwelling Property":
-                window["-NUMLOC-"].update(visible=True)
-                window["-NUMMULT-"].update(visible=True)
+    def toggle_custom_name(self):
+        # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
+        if self.custom_name.get() == 1:
+            self.first_name = ctk.CTkEntry(master=self, placeholder_text="First Name (Required)", width=200)
+            self.first_name.grid(row=2, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+            self.mid_name = ctk.CTkEntry(master=self, placeholder_text="Middle Name", width=200)
+            self.mid_name.grid(row=3, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+            self.last_name = ctk.CTkEntry(master=self, placeholder_text="Last Name (Required)", width=200)
+            self.last_name.grid(row=4, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        else:
+            try:
+                self.first_name.destroy()
+                self.mid_name.destroy()
+                self.last_name.destroy()
+            except AttributeError:
+                pass        
+
+    def toggle_custom_address(self):
+        # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
+        if self.custom_address.get() == 1:
+            self.address1 = ctk.CTkEntry(master=self, placeholder_text="Address1 (Required)", width=200)
+            self.address1.grid(row=6, column=0, padx=10, pady=5, sticky="ew", columnspan=3)
+            self.address2 = ctk.CTkEntry(master=self, placeholder_text="Address 2", width=200)
+            self.address2.grid(row=7, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+            self.city = ctk.CTkEntry(master=self, placeholder_text="City (Required)", width=200)
+            self.city.grid(row=8, column=0, padx=10, pady=5, sticky="ew", columnspan=2)
+        else:
+            try:
+                self.address1.destroy()
+                self.address2.destroy()
+                self.city.destroy()
+            except AttributeError:
+                pass        
+
+    def toggle_program(self,lob_val):
+        self.lob_val.set(lob_val)
+        #if lob_val == self.line_of_business[0]:  # If Dwelling Property is selected
+        if (not self.program_repeat) and (lob_val == self.line_of_business[0]):
+            self.program_label = ctk.CTkLabel(master=self, text="Program")
+            self.program_label.grid(row=10, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+            self.program = ctk.CTkOptionMenu(master=self, values=["DP1", "DP2", "DP3"], command=lambda x: print(f"Selected Program: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+            self.program.grid(row=10, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+            self.multiple_locations = ctk.CTkCheckBox(master=self, text="Multiple Locations", checkbox_width=self.check_width, checkbox_height=self.check_height,command=lambda: self.toggle_multiple_locations(self.multiple_locations.get()))
+            self.multiple_locations.grid(row=11, column=2, padx=5, pady=5, sticky="w", columnspan=1)
+            self.program_repeat = True
+        elif self.program_repeat and lob_val == self.line_of_business[0]:
+            pass
+        else:
+            try:
+                self.program.destroy()
+                self.program_label.destroy()
+                self.multiple_locations.destroy()
+                self.num_locations.destroy()
+                self.num_locations_label.destroy()
+                self.program_repeat = False
+            except AttributeError:
+                pass
+
+        if lob_val == self.line_of_business[1] or lob_val == self.line_of_business[3]:  # If Homeowners or Personal Umbrella is selected
+            if not self.repeat:
+                    self.subtype_label = ctk.CTkLabel(master=self, text="Subtype")
+                    self.subtype_label.grid(row=12, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+                    self.subtype = ctk.CTkOptionMenu(master=self, values=["HO3", "HO4", "HO5","HO5 Superior","HO6"], command=lambda x:print(f"Subtype Selected: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+                    self.subtype.grid(row=12, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+                    self.repeat = True
+        else:
+            try:
+                self.subtype.destroy()
+                self.subtype_label.destroy()
+                self.repeat = False
+            except AttributeError:
+                pass
+
+        if lob_val == self.line_of_business[2]:  # If Businessowners is selected
+            self.payment_method.configure(values=list(self.payment_plan_bop.keys()))
+        if lob_val == self.line_of_business[4]:  # If Personal Umbrella is selected
+            self.payment_method.configure(values=list(self.payment_plan_pumb.keys()))
+        else:
+            self.payment_method.configure(values=list(self.payment_plan_most.keys()))
+
+        if self.lob_val.get() != self.line_of_business[2]:  # If Dwelling Property is selected
+            self.carrier_val.configure(values=list(self.carrier_list[self.lob_val.get()][self.states[self.state_val.get()]]))
+
+        self.state_selected(self.state_val.get())  # Update the carrier options based on the selected state
+
+    def set_payment_value(self, payment_method):
+        if self.lob_val.get() == self.line_of_business[2]:
+            self.application.payment_method = self.payment_plan_bop[payment_method]
+        elif self.lob_val.get() == self.line_of_business[4]:
+            self.application.payment_method = self.payment_plan_pumb[payment_method]
+        else:
+            self.application.payment_method = self.payment_plan_most[payment_method]
+
+    def toggle_multiple_locations(self, loc_val):
+        if loc_val == True:
+            self.num_locations_label = ctk.CTkLabel(master=self, text="Locations")
+            self.num_locations_label.grid(row=11, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+            self.num_locations = ctk.CTkOptionMenu(master=self, values=["2", "3", "4", "5"], command=lambda x: print(f"Selected Number of Locations: {x}"), dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+            self.num_locations.grid(row=11, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+        else:
+            try:
+                self.num_locations.destroy()
+                self.num_locations_label.destroy()
+            except AttributeError:
+                pass
+
+    def set_date_to_today(self):
+        self.dateInput.delete(0, 'end')  # Clear the current input
+        # Set the date input to today's date in MM/DD/YYYY format
+        self.dateInput.insert(0,date.today().strftime("%m/%d/%Y"))
+
+    def delete_user(self):
+        print(self.user_val.get())
+        users = File.remove_users(self.user_val.get())
+
+        if len(users) > 0:
+            self.user_val.configure(values=users)
+            self.user_val.set(users[0])
+        else:
+            self.user_val.configure(values=["Add User"])
+            self.user_val.set("Add User")
+
+    def state_selected(self,state):
+        # Update the carrier options based on the selected state and line of business
+        if self.lob_val in self.line_of_business and self.states[state] in list(self.states.values()):
+            carriers = self.carrier_list[self.lob_val][self.states[state]]
+            self.carrier_val.configure(values=carriers)
+            if carriers:
+                self.carrier_val.set(carriers[0])
+
+    def set_users(self):
+        users = File.get_users()
+        if len(users) > 0:
+            self.user_val.configure(values=list(users))
+            self.user_val.set(list(users)[0])
+        else:
+            self.user_val.configure(values=["Add User"])
+            self.user_val.set("Add User")
+
+class MyTabView(ctk.CTkTabview):
+    tabs = ["Creating New Applications", "Add Users and Producers"]
+    browser= None
+    producer = None
+    environment = None
+    producers = None
+
+    # Font settings
+    producer_font_size = 15
+    font_family = "TimesNewRoman"
+    user = User()
+    producer = Producer()
+    user_dict = {"AgentAdmin": "AgentAdmin", "Admin": "Everything",
+                          "Underwriter": "PolicyUnderwriter", "Agent": "PolicyAgent"}
+    
+    #dropdown menu background and hover colors
+    drop_back_color = "#144870"
+    drop_hover_color = "#2C4664"
+
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        File.__init__()
+
+        # Create Tabs
+        for tab in self.tabs:
+            self.add(tab)
+    
+        ################### First Tab Start ###################
+        #Add Scrollable Frame to the first tab 
+        self.scrollable_checkbox_frame = ScrollableTabView(master=self.tab(self.tabs[0]), title="Application Options", width=550, height=500)
+        self.scrollable_checkbox_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
+
+        ################### Second Tab Start ###################
+        # Add Font to second tab that says Add Producer
+        ctk.CTkLabel(master=self.tab(self.tabs[1]),text="Add Producer",font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(padx=0, pady=10,sticky="ew",columnspan=3)
+
+        # Label and Entry for User Name To Create a Producer
+        ctk.CTkLabel(master=self.tab(self.tabs[1]),text="Select Login User").grid(row=1, column=0, padx=10, pady=5)
+        self.user_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=list(File.get_admin_users()), command=lambda x: print(f"Selected user: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.user_value.grid(row=1, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Label and Entry for Producer Name
+        ctk.CTkLabel(master=self.tab(self.tabs[1]),text="Producer Name").grid(row=2, column=0, padx=10, pady=5)
+        self.producer_value =ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="Producer Name", width=200)
+        self.producer_value.grid(row=2, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        #Button to Add Producer
+        self.add_producer_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Add Producer", command=lambda:  self.start_producer_create(self.producer_value.get()), width=100)
+        self.add_producer_button.grid(row=2, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Label and Entry for Producer Name)
+        ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Add User To List of Users", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=4, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+  
+        # Label and Entry for User Name
+        self.username_add_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Username")
+        self.username_add_label.grid(row=5, column=0, padx=10, pady=5)
+        self.user_name_value = ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="Username", width=200)
+        self.user_name_value.grid(row=5, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Label and Entry for User Password
+        self.password_add_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="User Password")
+        self.password_add_label.grid(row=6, column=0, padx=10, pady=5)
+        self.user_password_value = ctk.CTkEntry(master=self.tab(self.tabs[1]), placeholder_text="User Password", width=200)
+        self.user_password_value.grid(row=6, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Button to add user
+        self.add_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Add User", command= lambda: self.add_user(), width=100)
+        self.add_user_button.grid(row=6, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+
+        # Create a label for the users to create
+        self.users_to_create_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Create User in Andover (Local ONLY)", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+        
+        # Create combo box for users to create
+        self.users_to_create_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=list(self.user_dict.keys()), command=lambda x: print(f"Selected user to create: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.users_to_create_value.grid(row=8, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+        self.create_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Create User",command=lambda: self.start_user_create(self.users_to_create_value.get()), width=100)
+        self.create_user_button.grid(row=8, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+        
+        ################### Third Tab Start ###################
+        #ctk.CTkLabel(master=self.tab(self.tabs[2]),text="Core Coverages Feature Will be added soon").grid(row=0, column=0, padx=10, pady=20)
+
+    def start_user_create(self,user_selected):
+        if self.user_value != "Add Admin User":
+            self.user.browser_chosen = self.browser
+            self.user.producer_selected = self.producer
+            user_thread = threading.Thread(target=self.user.create_user, args=(user_selected,self.user_value.get()))
+            user_thread.start()
+        else:
+            print("Please add an admin user first before creating other users.")
+
+    def start_producer_create(self,producer_name):
+        self.producer.env_used = self.environment
+        if self.user_value != "Add Admin User" and self.producer_value.get() != "" and self.producer_value.get() != None:
+            self.producer.browser_chosen = self.browser
+            prod_thread = threading.Thread(target=self.producer.create_producer, args=(
+                producer_name, self.user_value.get()))
+            prod_thread.start()
+           
+        else:
+            print("Please add an admin user first before creating other users.")
+
+    def add_user(self):
+        if len(self.user_name_value.get()) != 0 and len(self.user_password_value.get()) != 0:
+            self.username_add_label.configure(text="Username", text_color="white")
+            self.password_add_label.configure(text="User Password", text_color="white")
+            File.env_used = app.environment.get()
+            File.add_user(self.user_name_value.get(), self.user_password_value.get())
+            File.read_username_password()
+            usernames = File.env_files_plus_users[File.env_used]["Users"]["Usernames"]
+            self.scrollable_checkbox_frame.user_val.set(list(usernames.keys())[0])
+            self.scrollable_checkbox_frame.user_val.configure(values=usernames.keys())
+            admin_usernames = File.get_admin_users()
+            if len(admin_usernames) > 0:
+                self.user_value.configure(values=admin_usernames)
+                self.user_value.set(admin_usernames[0])
             else:
-                window["-NUMLOC-"].update(visible=False)
-                window["-NUMMULT-"].update(visible=False)
+                self.user_value.set("Add Admin User")
+        else:
+            if len(self.user_name_value.get()) == 0:
+                self.username_add_label.configure(text="*Username", text_color="red")
+                print("Username is required") # replace with making the text red for username label
+            else:
+                self.username_add_label.configure(text="Username", text_color="white")
+            if len(self.user_password_value.get()) == 0:
+                self.password_add_label.configure(text="*User Password",text_color="red")
+                print("Password is required") #replace with making the text red for password label
+            else:
+                self.password_add_label.configure(text="User Password", text_color="white")
+    
+    def check_admin_users(self):
+        admin_users = File.get_admin_users()
+        if len(admin_users) > 0:
+            self.user_value.configure(values=admin_users)
+            self.user_value.set(admin_users[0])
+        else:
+            self.user_value.set("Add Admin User")
 
-            if event == "-REMU-" and len(File.env_files_plus_users[self.env_used]["Users"]["Usernames"].keys()) > 0 and selectedUser != "":
-                del File.env_files_plus_users[self.env_used]["Users"]["Usernames"][selectedUser]
-                self.userList = File.env_files_plus_users[self.env_used]["Users"]["Usernames"]
-                File.write_username_password(
-                    File.folder+File.env_files_plus_users[self.env_used]["Users"]["file"], self.userList)
-                window["-ULIST-"].update(values=list(self.userList.keys()))
-                window.refresh()
+    def env_change(self):
+    
+        admin_users = File.get_admin_users()
 
-            if event == "-REMPROD-" and len(File.env_files_plus_users[self.env_used]["Producers"]["ProducerNames"]) > 0 and producer != "":
-                File.env_files_plus_users[self.env_used]["Producers"]["ProducerNames"].remove(
-                    producer)
-                prod_list = File.env_files_plus_users[self.env_used]["Producers"]["ProducerNames"]
-                File.write_producer(
-                    File.folder+File.env_files_plus_users[self.env_used]["Producers"]["file"], prod_list)
-                window["-PRODUCER-"].update(values=prod_list)
-                window.refresh()
+        self.user_value.configure(values=list(admin_users))
+        self.user_value.set(list(admin_users)[0])
 
-            if event == "-ADDRESS-":
-                Address.custom_address["Address"] = self.address1
-                Address.custom_address["Address2"] = self.address2
-                Address.custom_address["City"] = self.city
-                window["ADD_DISP"].update(value=self.address1)
-                window["CITY_DISP"].update(value=self.city)
-                window.refresh()
+        try:
+            if self.environment != "Local":
+                self.users_to_create_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="")
+                self.users_to_create_label.grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+                self.users_to_create_value.destroy()
+                self.create_user_button.destroy()
+            else:
+                self.users_to_create_label = ctk.CTkLabel(master=self.tab(self.tabs[1]), text="Create User in Andover (Local ONLY)", font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold"))
+                self.users_to_create_label.grid(row=7, column=0, padx=10, pady=(40,5), sticky="ew", columnspan=3)
+                self.users_to_create_value = ctk.CTkOptionMenu(master=self.tab(self.tabs[1]), values=list(self.user_dict.keys()), command=lambda x: print(f"Selected user to create: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+                self.users_to_create_value.grid(row=8, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+                self.create_user_button = ctk.CTkButton(master=self.tab(self.tabs[1]), text="Create User", command=lambda: self.start_user_create(self.users_to_create_value.get()), width=100)
+                self.create_user_button.grid(row=8, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
+        except AttributeError:
+            pass    
 
-            if event == "Submit" and self.custom_address:
-                if self.address1 != "" and self.address2 == None:
-                    self.verified = Address.verify_address(
-                        self.city, STATES[self.state], self.address1)
-                elif self.address1 != "" and self.address2 is not None:
-                    self.verified = Address.verify_address(
-                        self.city, STATES[self.state], self.address1, address2=self.address2)
+class App(ctk.CTk):
+    VERSION = "0.5.0"
+    LOG_PATH = "Logs/"
+    browser = None
+    environment = "Local"
+    producers = None
+    browsers = ["Chrome", "Firefox"]
+    gw_environment = {"Local": "https://localhost:9443", "QA": "https://qa-advr.iscs.com/", "QA2": "https://qa2-acx-advr.in.guidewire.net/innovation", 
+                               "UAT3": "https://uat3-advr.in.guidewire.net/innovation?saml=off", "UAT4": "https://uat4-advr.in.guidewire.net/innovation"}
+    selected_producer = None
 
-            if not self.custom_address:
-                self.verified = True
+    #dropdown menu background and hover colors
+    drop_back_color = "#144870"
+    drop_hover_color = "#073972"
 
-            if event == "Submit" and selectedUser and selectedEnviron and producer and doc_type and browser_chose and lob and self.state and date_selected and self.verified:
-                self.application.line_of_business = lob
-                self.application.browser_chosen = browser_chose
-                self.application.state_chosen = STATES[self.state]
-                self.application.date_chosen = date_selected
-                self.application.producer_selected = producer
-                self.application.create_type = doc_type
-                self.application.user_chosen = selectedUser
+    def __init__(self):
+        super().__init__()
 
-                if self.custom_address:
-                    Address.custom_address["Address"] = self.address1
-                    Address.custom_address["City"] = self.city
-                    Address.custom_address["Address2"] = self.address2
-                    Address.custom_address["Flag"] = True
+        if (not os.path.exists(self.LOG_PATH)):
+            os.mkdir(self.LOG_PATH)
+        File.create_folders()
+        File.create_files()
 
-                if custom_name:
-                    self.application.first_name = values["-FIRST-"]
-                    self.application.mid_name = values["-MID-"]
-                    self.application.last_name = values["-LAST-"]
-                else:
-                    self.application.first_name = self.application.state_chosen
-                    self.application.last_name = self.application.line_of_business
+        self.title("Andover Automation")
+        self.geometry("630x750")
+        File.read_producers()
 
-                if self.application.line_of_business == "Dwelling Property":
-                    self.application.dwelling_program = dwelling_program
+        #default to local environment
+        File.env_used = self.environment
+    
+        #Select Local or QA Environment Here 
+        ctk.CTkLabel(self, text="Select Local or QA Environment: ", corner_radius=10).grid(row=0, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+        self.environment = ctk.CTkOptionMenu(self,values=list(self.gw_environment.keys()), command=lambda x: self.set_environment(x),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.environment.grid(row=0, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+      
+        #Select Browser Here
+        ctk.CTkLabel(self, text="Select Browser: ", corner_radius=10).grid(row=1, column=0, padx=5, pady=5, sticky="ew",columnspan=1)
+        self.browser = ctk.CTkOptionMenu(self, values=self.browsers, command=lambda x: self.set_browser(x),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.browser.grid(row=1, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
 
-                if (self.application.line_of_business != "Businessowners"):
-                    # if line_of_business == "Homeowners":
-                    # pay_plan = payment_plan + " "+state_chosen
-                    if self.application.line_of_business == "Personal Umbrella" or self.application.line_of_business == "Commercial Umbrella":
-                        self.application.pay_plan = payment_p_pumb
-                    else:
-                        self.application.pay_plan = payment_p
-                else:
-                    self.application.pay_plan = payment_p_bop
+        #Select Producer Here
+        ctk.CTkLabel(self, text="Select Producer: ", text_color="white", corner_radius=10).grid(row=2, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
+        self.producer = ctk.CTkOptionMenu(self, values=File.get_producers("Local"), command=lambda x: self.set_producer(x),corner_radius=10,dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.producer.grid(row=2, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
 
-                if (multi == "Yes" and lob == "Dwelling Property"):
-                    self.application.multiAdd = True
-                    self.application.number_of_addresses = values["-NUMLOC-"]
-                else:
-                    self.application.number_of_addresses = 1
-                    self.application.multiAdd = False
+        #Producer Delete Button
+        self.producer_delete_button = ctk.CTkButton(self, text="Delete", command=lambda: self.delete_producer(), width=50)
+        self.producer_delete_button.grid(row=2, column=2, padx=50, pady=5, sticky="ew")
 
-                if self.custom_address:
-                    app_thread = threading.Thread(target=self.application.startApplication, args=(
-                        self.application.multiAdd, subType, carrier))
+        #Tabs setup here
+        self.tab_view = MyTabView(master=self,width=600)
+        self.tab_view.grid(row=3, column=0, padx=10, pady=5,columnspan=3, sticky="nsew")
 
-                    app_thread.start()
-                else:
-                    app_thread = threading.Thread(target=self.application.startApplication, args=(
-                        self.application.multiAdd, subType, carrier))
+        my_font = ctk.CTkFont(family="TimesNewRoman",size=15, weight="bold")
 
-                    app_thread.start()
+        # Configure the segmented button's font
+        for button in self.tab_view._segmented_button._buttons_dict.values():
+            button.configure(font=my_font)
 
-                if not app_thread.is_alive():
-                    del self.application
+        self.tab_view.scrollable_checkbox_frame.producer = self.producer._values[0]
 
-            elif event == "Submit":
-                self.check_for_errors(selectedUser, selectedEnviron, producer, browser_chose,
-                                      date_selected, doc_type, subType)
+    def delete_producer(self):
+        print(self.producer.get())
+        self.producers = File.remove_producer(self.selected_producer)
+        self.producer.configure(values=self.producers)
+        self.producer.set(self.producers[0] if len(self.producers) > 0 else "Add Producer")
+        if len(self.producers) > 0:
+            self.producer.set("Select Producer")
+        else:
+            self.producer.set("Add Producer")
+    
+    def set_environment(self, env):
+            File.env_used = env
+            self.environment = env
+            self.tab_view.environment = env
+            self.tab_view.scrollable_checkbox_frame.environment = env
+            self.producers = File.get_producers(env)
+            self.producer.configure(values=self.producers)
+            self.tab_view.scrollable_checkbox_frame.producer = self.producer._values[0]
+        
+            if len(self.producers) != 0:
+                self.producer.set(self.producers[0])
+            else:
+                self.producer.set("Add Producer")
 
-                sg.popup_auto_close(
-                    'This Address Has Not been Verified. Check the address and enter it again.')
+            self.tab_view.scrollable_checkbox_frame.set_users()
+            self.tab_view.env_change()  # Update the environment in the tab view
+            self.tab_view.scrollable_checkbox_frame.application.env_used = env
 
-        window.close()
+    def set_browser(self, browser):
+        self.browser = browser
+        self.tab_view.browser = browser
+        self.tab_view.scrollable_checkbox_frame.browser = browser
+        self.tab_view.scrollable_checkbox_frame.application.browser_chosen = browser
+    
+    def set_producer(self, producer):
+        self.selected_producer = producer
+        self.tab_view.producer = producer
+        self.tab_view.scrollable_checkbox_frame.producer = producer
+        self.tab_view.scrollable_checkbox_frame.application.producer_selected = producer
+
+app = App()
+app.wm_protocol(func = app.destroy) 
+
+#Added Andover Image as Icon
+advr_image1 = ImageTk.PhotoImage(Image.open("SupportFiles/Andover-Cambridge-Mutual.png").resize((64, 64)))  # Resize the image to fit the icon size
+app.iconphoto(False, advr_image1)  # Set the icon for the application
+app.after(100, lambda: app.iconphoto(False, advr_image1))  # Ensure the icon is set after the main loop starts
+
+app.mainloop()
+del app

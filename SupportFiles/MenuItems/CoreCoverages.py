@@ -62,6 +62,8 @@ class CoreCoverages:
         Actions.check_for_value(self.browser, "Risk.ListOfTenantsAndOccupancy", keys="None")
         Actions.check_for_value(self.browser, "Risk.NumOfStories", keys=3)
         Actions.check_for_value(self.browser, "Building.ProtectionClass", keys=3)
+        Actions.check_for_value(self.browser, "Building.RoofingYear", keys="2020")
+        Actions.check_for_value(self.browser, "Building.RoofingCd", "Tile")
 
         # if line_of_business == "Businessowners" or line_of_business == "Commercial Umbrella":
         for value in self.core_values:
