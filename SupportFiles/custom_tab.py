@@ -10,7 +10,6 @@ from .File import File
 from .Producer import Producer
 from .User import User
 
-
 class ScrollableTabView(ctk.CTkScrollableFrame):
     states = {"Connecticut": "CT", "Illinois":"IL","Maine": "ME","Massachusetts": "MA", "New Hampshire": "NH", "New Jersey": "NJ","New York": "NY", "Rhode Island": "RI"}
     line_of_business = ["Dwelling Property", "Homeowners", "Businessowners","Personal Umbrella", "Commercial Umbrella"]
@@ -34,7 +33,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
     producer = None
     application = Application()
     address = Address()
-    environment = None
 
     carrier_keys = list(carriers.keys())
     carrier_list = {"Dwelling Property":{"CT":[carrier_keys[0]],
@@ -170,25 +168,30 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.required_info.grid(row=19, column=1, padx=10, pady=(10,0), sticky="w", columnspan=1)
 
     def submit_values(self):
-        submit_values = {"Cust_Name":0,"Cust_Address":0}   
-        
-        if self.custom_address.get() == 0:
-            self.address1 = "Address1"
-        
-        print(f"Custom Name {self.custom_name.get()}")
-        if self.custom_name.get() == 1:
-            if self.first_name.get() and self.last_name.get():
-                print(f"First Name: {self.first_name.get()}")
-                print(f"Last Name: {self.last_name.get()}")
-        print(f"Username: {self.user_val.get()}")
-        print(f"Environment: {app.environment.get()}")
-        print(f"Browser: {app.browser.get()}")
-        print(f"Producer: {app.producer.get() if app.producer else 'N/A'}")
+        submit_values = {"Cust_Name":False,"Cust_Address":False}
+        self.application.producer_selected = self.producer
+        self.application.state_chosen = self.states[self.state_val.get()]
+        self.application.line_of_business = self.lob_val.get()
+        self.application.date_chosen = self.dateInput.get()
+        self.application.user_chosen = self.user_val.get()
+
+        #Address Check
+        if self.custom_address.get() == 1:
+            if self.address1.get() and self.city.get():
+                self.application.address1 = self.address1
+                self.application.city = self.city
+                submit_values["Cust_Address"] = self.address.verify_address(self,city,self.application.state_chosen,self.address1,self.address2)
+        else:
+            address_vals = self.address.addresses[self.states[self.state_val.get()]]
+            self.application.state_chosen = address_vals[0]
+            self.application.address1 = address_vals[2]
         
         # Change custom name to red if not filled out when checked
         if self.custom_name.get() == 1:
             if self.first_name.get() and self.last_name.get():
                 submit_values["Cust_Name"] = 1
+                self.application.first_name = self.first_name.get()
+                self.application.last_name = self.last_name.get()
             if not self.first_name.get():
                 self.first_name.configure(placeholder_text_color ="red")
                 submit_values["Cust_Name"] = 0
@@ -200,28 +203,10 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             else:
                 self.last_name.configure(placeholder_text_color ="white")
         else:
-            pass #Add code here to handle automation name for not having a custom name
+            self.application.first_name = self.states[self.state_val.get()]
+            self.application.last_name = self.lob_val.get()
         
-        # Change custom address to red if not filled out when checked
-        if self.custom_address.get() == 1:
-            if self.address1.get() and self.city.get():
-                submit_values["Cust_Address"] = 1
-                self.address.custom_address["Address"] = self.address1.get()
-                self.address.custom_address["Address2"] = self.address2.get() if self.address2.get() != '' else None
-                self.address.custom_address["City"] = self.city.get()
-            if not self.address1.get():
-                self.address1.configure(placeholder_text_color ="red")
-                submit_values["Cust_Address"] = 0
-            else:
-                self.address1.configure(placeholder_text_color ="white")
-            if not self.city.get():
-                self.city.configure(placeholder_text_color ="red")
-                submit_values["Cust_Address"] = 0
-            else:
-                self.city.configure(placeholder_text_color ="white")
-        else:
-            pass #Add code here to handle automation address for not having a custom address
-              
+        
         print(f"State: {self.state_val.get()}")
         print(f"Date: {self.dateInput.get()}")
         print(f"Payment Method: {self.payment_method.get()}")
@@ -234,11 +219,26 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             print("Logging is disabled")
             MultiLog.log_data = False
 
+        if self.custom_name.get() == 1:
+            if submit_values["Cust_Name"] == False:
+                submit_error += 1
+        if self.custom_address.get() == 1:
+            if submit_values["Cust_Address"] == False:
+                submit_error+=1
+
         # if required fields are not filled, show an error message
         if self.submit_error != 0:
             self.required_info.configure(text=self.required_info_text)  # Reset the required info text
         else:
-            pass
+            if self.lob_val.get() == self.line_of_business[1]:
+                self.application.startApplication(None,self.subtype.get(),self.carrier_val.get())
+            else:
+                if self.lob_val.get() == self.line_of_business[0]:
+                    print(f"Multiple Locations {self.multiple_locations.get()}")
+                    self.application.startApplication(self.multiple_locations.get(),None,self.carrier_val.get())
+                else:
+                    self.application.startApplication(None,None,self.carrier_val.get())
+
 
     def toggle_custom_name(self):
         # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
@@ -275,7 +275,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                 pass        
 
     def toggle_program(self,lob_val):
-        self.lob_val = lob_val  # Store the selected line of business value
+        self.lob_val.set(lob_val)
         if lob_val == self.line_of_business[0]:  # If Dwelling Property is selected
             if not self.program_repeat:
                     self.program_label = ctk.CTkLabel(master=self, text="Program")
@@ -360,7 +360,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             self.user_val.set("Add User")
 
 class MyTabView(ctk.CTkTabview):
-    tabs = ["Creating New Applications", "Add Users and Producers","Core Coverages"]
+    tabs = ["Creating New Applications", "Add Users and Producers"]
     browser= None
     producer = None
     environment = None
@@ -392,7 +392,6 @@ class MyTabView(ctk.CTkTabview):
         self.scrollable_checkbox_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
 
         ################### Second Tab Start ###################
-
         # Add Font to second tab that says Add Producer
         ctk.CTkLabel(master=self.tab(self.tabs[1]),text="Add Producer",font=ctk.CTkFont(family=self.font_family, size=self.producer_font_size, weight="bold")).grid(padx=0, pady=10,sticky="ew",columnspan=3)
 
@@ -439,7 +438,7 @@ class MyTabView(ctk.CTkTabview):
         self.create_user_button.grid(row=8, column=2, padx=10, pady=5, sticky="ew", columnspan=1)
         
         ################### Third Tab Start ###################
-        ctk.CTkLabel(master=self.tab(self.tabs[2]),text="Core Coverages Feature Will be added soon").grid(row=0, column=0, padx=10, pady=20)
+        #ctk.CTkLabel(master=self.tab(self.tabs[2]),text="Core Coverages Feature Will be added soon").grid(row=0, column=0, padx=10, pady=20)
 
     def start_user_create(self,user_selected):
         if self.user_value != "Add Admin User":
@@ -471,7 +470,6 @@ class MyTabView(ctk.CTkTabview):
             usernames = File.env_files_plus_users[File.env_used]["Users"]["Usernames"]
             self.scrollable_checkbox_frame.user_val.set(list(usernames.keys())[0])
             self.scrollable_checkbox_frame.user_val.configure(values=usernames.keys())
-            #[x for x in usernames if x.lower().__contains__("admin")]
             admin_usernames = File.get_admin_users()
             if len(admin_usernames) > 0:
                 self.user_value.configure(values=admin_usernames)
@@ -573,7 +571,9 @@ class App(ctk.CTk):
         # Configure the segmented button's font
         for button in self.tab_view._segmented_button._buttons_dict.values():
             button.configure(font=my_font)
-        
+
+        self.tab_view.scrollable_checkbox_frame.producer = self.producer._values[0]
+
     def delete_producer(self):
         print(self.producer.get())
         self.producers = File.remove_producer(self.selected_producer)
@@ -591,7 +591,8 @@ class App(ctk.CTk):
             self.tab_view.scrollable_checkbox_frame.environment = env
             self.producers = File.get_producers(env)
             self.producer.configure(values=self.producers)
-
+            self.tab_view.scrollable_checkbox_frame.producer = self.producer._values[0]
+        
             if len(self.producers) != 0:
                 self.producer.set(self.producers[0])
             else:
@@ -599,16 +600,19 @@ class App(ctk.CTk):
 
             self.tab_view.scrollable_checkbox_frame.set_users()
             self.tab_view.env_change()  # Update the environment in the tab view
+            self.tab_view.scrollable_checkbox_frame.application.env_used = env
 
     def set_browser(self, browser):
         self.browser = browser
         self.tab_view.browser = browser
         self.tab_view.scrollable_checkbox_frame.browser = browser
+        self.tab_view.scrollable_checkbox_frame.application.browser_chosen = browser
     
     def set_producer(self, producer):
         self.selected_producer = producer
         self.tab_view.producer = producer
         self.tab_view.scrollable_checkbox_frame.producer = producer
+        self.tab_view.scrollable_checkbox_frame.application.producer_selected = producer
 
 app = App()
 app.wm_protocol(func = app.destroy) 
