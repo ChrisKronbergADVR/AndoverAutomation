@@ -16,9 +16,9 @@ class File:
         "QA2": {"Users": {"file": "qa2_user.csv", "Usernames": {}},
                 "Producers": {"file": "qa2_prod.csv", "ProducerNames": ["ALLSTATES HO and DW"]}},
         "UAT3": {"Users": {"file": "uat3_user.csv", "Usernames": {}},
-                 "Producers": {"file": "uat3_prod.csv", "ProducerNames": [""]}},
+                 "Producers": {"file": "uat3_prod.csv", "ProducerNames": []}},
         "UAT4": {"Users": {"file": "uat4_user.csv", "Usernames": {}},
-                 "Producers": {"file": "uat4_prod.csv", "ProducerNames": [""]}},
+                 "Producers": {"file": "uat4_prod.csv", "ProducerNames": []}},
     }
     
     filePath = "Logs/"

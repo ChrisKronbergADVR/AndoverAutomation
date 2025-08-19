@@ -23,8 +23,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                                   "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
     payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
                                  "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
-    payment_plan_bop_wrong = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
-                                       "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill 9 Pay": "BasicPolicy.PayPlanCd_9", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_10", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_11"}
     payment_plan_pumb = {"Automated Monthly": "BasicPolicy.PayPlanCd_1", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_2", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_3", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_4",
                                   "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_5", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_7", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_8", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_9"}
     submit_error = 0
@@ -149,9 +147,9 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.dateInput = DateEntry(master=self, background='darkblue', foreground='white', borderwidth=1,date_pattern='MM/dd/yyyy')
         self.dateInput.grid(row=15, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
 
-        # Payment Method Label and Option Menu
+        # `Payment` Method Label and Option Menu
         ctk.CTkLabel(master=self, text="Payment Method").grid(row=16, column=0, padx=10, pady=10)
-        self.payment_method = ctk.CTkOptionMenu(master=self, values=list(self.payment_plan_most.keys()), command=lambda x: print(f"Selected Payment Method: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+        self.payment_method = ctk.CTkOptionMenu(master=self, values=list(self.payment_plan_most.keys()), command=lambda x: self.set_payment_value(x),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.payment_method.grid(row=16, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
         
         # Create Quote, Application, or Policy Label and Option Menu
@@ -179,11 +177,26 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
 
         #Address Check
         if self.custom_address.get() == 1:
+            self.application.custom_address = True
             if self.address1.get() and self.city.get():
-                self.application.address1 = self.address1
-                self.application.city = self.city
-                submit_values["Cust_Address"] = self.address.verify_address(self,self.city,self.application.state_chosen,self.address1,self.address2)
+                self.application.address1 = self.address1.get()
+                self.application.city = self.city.get()
+                if self.address2.get() != "":
+                    self.application.address2 = self.address2.get()
+                    submit_values["Cust_Address"] = self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get(),self.address2.get())
+                    self.address.custom_address["City"] = self.city.get()
+                    self.address.custom_address["State"] = self.state_val.get()
+                    self.address.custom_address["Address"] = self.address1.get()
+                    self.address.custom_address["Address2"] = self.address2.get()
+                
+                else:
+                    submit_values["Cust_Address"] = self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get())
+                    self.address.custom_address["City"] = self.city.get()
+                    self.address.custom_address["State"] = self.state_val.get()
+                    self.address.custom_address["Address"] = self.address1.get()
+          
         else:
+            self.application.custom_address = False
             address_vals = self.address.addresses[self.states[self.state_val.get()]]
             self.application.state_chosen = address_vals[0]
             self.application.address1 = address_vals[2]
@@ -204,6 +217,9 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                 submit_values["Cust_Name"] = 0
             else:
                 self.last_name.configure(placeholder_text_color ="white")
+
+            if self.mid_name.get() != "":
+                    self.application.mid_name = self.mid_name.get()
         else:
             self.application.first_name = self.states[self.state_val.get()]
             self.application.last_name = self.lob_val.get()
@@ -223,10 +239,10 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
 
         if self.custom_name.get() == 1:
             if submit_values["Cust_Name"] == False:
-                submit_error += 1
+                self.submit_error += 1
         if self.custom_address.get() == 1:
             if submit_values["Cust_Address"] == False:
-                submit_error+=1
+                self.submit_error += 1
 
         # if required fields are not filled, show an error message
         if self.submit_error != 0:
@@ -241,7 +257,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                     self.application.startApplication(self.multiple_locations.get(),None,self.carrier_val.get())
                 else:
                     self.application.startApplication(None,None,self.carrier_val.get())
-
 
     def toggle_custom_name(self):
         # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
@@ -314,7 +329,25 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             except AttributeError:
                 pass
 
+        if lob_val == self.line_of_business[2]:  # If Businessowners is selected
+            self.payment_method.configure(values=list(self.payment_plan_bop.keys()))
+        if lob_val == self.line_of_business[4]:  # If Personal Umbrella is selected
+            self.payment_method.configure(values=list(self.payment_plan_pumb.keys()))
+        else:
+            self.payment_method.configure(values=list(self.payment_plan_most.keys()))
+
+        if self.lob_val.get() != self.line_of_business[2]:  # If Dwelling Property is selected
+            self.carrier_val.configure(values=list(self.carrier_list[self.lob_val.get()][self.states[self.state_val.get()]]))
+
         self.state_selected(self.state_val.get())  # Update the carrier options based on the selected state
+
+    def set_payment_value(self, payment_method):
+        if self.lob_val.get() == self.line_of_business[2]:
+            self.application.payment_method = self.payment_plan_bop[payment_method]
+        elif self.lob_val.get() == self.line_of_business[4]:
+            self.application.payment_method = self.payment_plan_pumb[payment_method]
+        else:
+            self.application.payment_method = self.payment_plan_most[payment_method]
 
     def toggle_multiple_locations(self, loc_val):
         if loc_val == True:

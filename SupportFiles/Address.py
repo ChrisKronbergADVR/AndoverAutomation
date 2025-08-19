@@ -20,7 +20,7 @@ class Address:
 
     custom_address = {"Address": "", "Address2": "", "City": "", "Flag": False}
 
-    def verify_address(city, state, address1, address2=None):
+    def verify_address(self,city, state, address1, address2=None):
         verified = False
 
         if address2 == None:

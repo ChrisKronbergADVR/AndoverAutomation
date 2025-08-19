@@ -1,5 +1,3 @@
-import os
-from SupportFiles.File import File
 from SupportFiles.custom_tab import App
 
 def main():
