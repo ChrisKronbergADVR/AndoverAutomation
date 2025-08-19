@@ -63,7 +63,7 @@ class File:
                         file_user, File.env_files_plus_users[env_name]["Users"]["Usernames"])
                 with open(folder+file_prod, "w") as file_prods:
                     File.write_producer(
-                        folder+file_prod, File.env_files_plus_users[env_name]["Producers"]["ProducerNames"])
+                        file_prod, File.env_files_plus_users[env_name]["Producers"]["ProducerNames"])
 
     @staticmethod
     def get_password(user):
@@ -80,7 +80,7 @@ class File:
             if os.path.getsize(user_file) == 0:
                 writer.writeheader()
             for user, password in user_dict.items():
-                writer.writerow({'Username': user, ' Password': password})
+                writer.writerow({'Username': user, 'Password': password})
 
     @staticmethod
     def read_username_password(): 

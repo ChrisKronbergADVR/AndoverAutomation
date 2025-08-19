@@ -8,7 +8,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
-from selenium.webdriver import FirefoxOptions
+from selenium.webdriver import FirefoxOptions,FirefoxProfile
 
 from .MultiLog import MultiLog
 from .Address import Address
@@ -35,10 +35,10 @@ class Application:
         self.producer_selected = None
         self.doc_types = ["Quote", "Application", "Policy"]
         self.create_type = self.doc_types[1]
-        self.browser_chosen = ""
+        self.browser_chosen = None
         self.multiAdd = None
         self.number_of_addresses = 1
-        self.pay_plan = None
+        self.pay_plan = "Direct Bill Full Pay"
         self.dwelling_program = None
         self.first_name = None
         self.mid_name = None
@@ -48,6 +48,7 @@ class Application:
         self.address1 = None
         self.address2 = None
         self.city = None
+        self.subtype = None
 
         self.verified = False
         self.user_chosen = None
@@ -78,12 +79,16 @@ class Application:
             self.browser = webdriver.Chrome(options=chrome_options)
         else:
             firefox_options = FirefoxOptions()
+            firefox_profile = FirefoxProfile()
+            firefox_profile.set_preference("javascript.enabled", True)
             self.browser = webdriver.Firefox(options=firefox_options)
 
         self.browser.get(self.gw_environment[self.env_used])
-
-        Actions.check_for_value(self.browser, "details-button", keys="click")
-        Actions.check_for_value(self.browser, "proceed-link", keys="click")
+        if self.browser_chosen == "Chrome" or self.browser_chosen == None:
+            self.browser.execute_script('document.getElementById("details-button").click();')
+            self.browser.execute_script('document.getElementById("proceed-link").click();')
+        #Actions.check_for_value(self.browser, "details-button", keys="click")
+        #Actions.check_for_value(self.browser, "proceed-link", keys="click")
         Actions.waitPageLoad(self.browser)
 
         assert "Guidewire InsuranceNow™ Login" in self.browser.title

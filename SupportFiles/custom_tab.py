@@ -3,6 +3,8 @@ from datetime import date
 from tkcalendar import DateEntry
 from PIL import Image, ImageTk
 import threading
+import os
+
 from .MultiLog import MultiLog
 from .Address import Address
 from .Application import Application
@@ -180,7 +182,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             if self.address1.get() and self.city.get():
                 self.application.address1 = self.address1
                 self.application.city = self.city
-                submit_values["Cust_Address"] = self.address.verify_address(self,city,self.application.state_chosen,self.address1,self.address2)
+                submit_values["Cust_Address"] = self.address.verify_address(self,self.city,self.application.state_chosen,self.address1,self.address2)
         else:
             address_vals = self.address.addresses[self.states[self.state_val.get()]]
             self.application.state_chosen = address_vals[0]
@@ -231,6 +233,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             self.required_info.configure(text=self.required_info_text)  # Reset the required info text
         else:
             if self.lob_val.get() == self.line_of_business[1]:
+
                 self.application.startApplication(None,self.subtype.get(),self.carrier_val.get())
             else:
                 if self.lob_val.get() == self.line_of_business[0]:
@@ -300,7 +303,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             if not self.repeat:
                     self.subtype_label = ctk.CTkLabel(master=self, text="Subtype")
                     self.subtype_label.grid(row=12, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
-                    self.subtype = ctk.CTkOptionMenu(master=self, values=["HO3", "HO4", "HO5","HO5 Superior","HO6"], command=lambda x: print(f"Selected Subtype: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
+                    self.subtype = ctk.CTkOptionMenu(master=self, values=["HO3", "HO4", "HO5","HO5 Superior","HO6"], command=lambda x:print(f"Subtype Selected: {x}"),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
                     self.subtype.grid(row=12, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
                     self.repeat = True
         else:
@@ -521,6 +524,7 @@ class MyTabView(ctk.CTkTabview):
 
 class App(ctk.CTk):
     VERSION = "0.5.0"
+    LOG_PATH = "Logs/"
     browser = None
     environment = "Local"
     producers = None
@@ -535,6 +539,11 @@ class App(ctk.CTk):
 
     def __init__(self):
         super().__init__()
+
+        if (not os.path.exists(self.LOG_PATH)):
+            os.mkdir(self.LOG_PATH)
+        File.create_folders()
+        File.create_files()
 
         self.title("Andover Automation")
         self.geometry("630x750")
