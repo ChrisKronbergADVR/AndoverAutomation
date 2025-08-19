@@ -1,5 +1,5 @@
 # AndoverAutomation
-Python Automation with GUI for Andover Local and QA Environments
+Python Automation with GUI for Andover Local and QA Environments. This has been updated with a new GUI. I have not updated the documents here yet but If you would like help setting it up I can help you out. 
 
 ### **** If you find any bugs or features you would like to be added. click on the issues Tab on Github - New Issue Button then either bug report Button or feature request Button and fill out the Information. ****
 
