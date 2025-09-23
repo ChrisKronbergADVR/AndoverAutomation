@@ -4,3 +4,4 @@ requests
 pillow
 customtkinter
 tkcalendar
+ctkdlib

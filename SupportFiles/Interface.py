@@ -1,7 +1,6 @@
 import customtkinter as ctk
 from datetime import date
 from tkcalendar import DateEntry
-from PIL import Image, ImageTk
 import threading
 import os
 
@@ -240,19 +239,21 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             if submit_values["Cust_Address"] == False:
                 self.submit_error += 1
 
+        
         # if required fields are not filled, show an error message
         if self.submit_error != 0:
             self.required_info.configure(text=self.required_info_text)  # Reset the required info text
         else:
             if self.lob_val.get() == self.line_of_business[1]:
-
-                self.application.startApplication(None,self.subtype.get(),self.carrier_val.get())
+                start_thread = threading.Thread(target=self.application.startApplication, args=(None,self.subtype.get(),self.carrier_val.get()))
+                start_thread.start()
             else:
                 if self.lob_val.get() == self.line_of_business[0]:
-                    print(f"Multiple Locations {self.multiple_locations.get()}")
-                    self.application.startApplication(self.multiple_locations.get(),None,self.carrier_val.get())
+                    multiple_location_thread = threading.Thread(target=self.application.startApplication, args=(self.multiple_locations.get(),None,self.carrier_val.get()))
+                    multiple_location_thread.start()
                 else:
-                    self.application.startApplication(None,None,self.carrier_val.get())
+                    start_thread = threading.Thread(target=self.application.startApplication, args=(None,None,self.carrier_val.get()))
+                    start_thread.start()
 
     def toggle_custom_name(self):
         # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
@@ -653,14 +654,3 @@ class App(ctk.CTk):
         self.tab_view.producer = producer
         self.tab_view.scrollable_checkbox_frame.producer = producer
         self.tab_view.scrollable_checkbox_frame.application.producer_selected = producer
-
-app = App()
-app.wm_protocol(func = app.destroy) 
-
-#Added Andover Image as Icon
-advr_image1 = ImageTk.PhotoImage(Image.open("SupportFiles/Andover-Cambridge-Mutual.png").resize((64, 64)))  # Resize the image to fit the icon size
-app.iconphoto(False, advr_image1)  # Set the icon for the application
-app.after(100, lambda: app.iconphoto(False, advr_image1))  # Ensure the icon is set after the main loop starts
-
-app.mainloop()
-del app
