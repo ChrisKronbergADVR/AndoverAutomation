@@ -26,14 +26,12 @@ class User:
     def login(self, user="admin", password="Not9999!"):
         Actions.waitPageLoad(self.browser)
         Actions.find_Element(self.browser, "j_username").send_keys(user)
-        Actions.find_Element(self.browser, "j_password").send_keys(
-            password + Keys.RETURN)
+        Actions.find_Element(self.browser, "j_password").send_keys(password + Keys.RETURN)
 
         Actions.remove_javascript(self.browser)
         script = "return window.seleniumPageLoadOutstanding == 0;"
 
-        WebDriverWait(self.browser, 60).until(
-            lambda browser: browser.execute_script(script))
+        WebDriverWait(self.browser, 60).until(lambda browser: browser.execute_script(script))
         
     # * This function is used to decide whether to use chrome or edge browser
     def load_page(self):
@@ -116,47 +114,30 @@ class User:
             pass
 
         Actions.check_for_value(self.browser, "AddUser", keys="click")
-        Actions.check_for_value(
-            self.browser, "UserInfo.LoginId", keys=user_type)
-        if (user_type == "Agent" or user_type == "Agent Admin"):
-            Actions.check_for_value(
-                self.browser, "UserInfo.TypeCd", "Producer")
-        else:
-            Actions.check_for_value(self.browser, "UserInfo.TypeCd", "Company")
-
-        Actions.check_for_value(
-            self.browser, "UserInfo.DefaultLanguageCd", "en_US")
-        Actions.check_for_value(
-            self.browser, "UserInfo.FirstName", keys=user_type)
+        Actions.check_for_value(self.browser, "UserInfo.LoginId", keys=user_type)
+        Actions.check_for_value(self.browser, "UserInfo.TypeCd", "Company")
+        Actions.check_for_value(self.browser, "UserInfo.DefaultLanguageCd", "en_US")
+        Actions.check_for_value(self.browser, "UserInfo.FirstName", keys=user_type)
         Actions.check_for_value(self.browser, "UserInfo.LastName", keys="User")
-        Actions.check_for_value(
-            self.browser, "UserInfo.ConcurrentSessions", keys=100)
-        Actions.check_for_value(
-            self.browser, "PasswordInfo.PasswordRequirementTemplateId", "Exempt")
-        Actions.check_for_value(
-            self.browser, "ChangePassword", keys=new_user_password)
-        Actions.check_for_value(self.browser, "ConfirmPassword",
-                                keys=new_user_password)
+        Actions.check_for_value(self.browser, "UserInfo.ConcurrentSessions", keys=100)
+        Actions.check_for_value(self.browser, "PasswordInfo.PasswordRequirementTemplateId", "Exempt")
+        Actions.check_for_value(self.browser, "ChangePassword", keys=new_user_password)
+        Actions.check_for_value(self.browser, "ConfirmPassword", keys=new_user_password)
         
         script = "document.getElementById(\"UserInfo.PasswordMustChangeInd\").checked = false"
         self.browser.execute_script(script)
-        Actions.check_for_value(self.browser, "ProviderNumber",
-                                keys=self.producer_selected)
-        Actions.check_for_value(
-            self.browser, "UserInfo.BranchCd", "Home Office")
+        Actions.check_for_value(self.browser, "ProviderNumber", keys=self.producer_selected)
+        Actions.check_for_value(self.browser, "UserInfo.BranchCd", "Home Office")
         
         Actions.save(self.browser)
 
-        Actions.check_for_value(
-            self.browser, "AddProviderSecurity", keys="click")
-        Actions.check_for_value(
-            self.browser, "ProviderSecurity.ProviderSecurityCd", keys=self.producer_selected)
+        Actions.check_for_value(self.browser, "AddProviderSecurity", keys="click")
+        Actions.check_for_value(self.browser, "ProviderSecurity.ProviderSecurityCd", keys=self.producer_selected)
         Actions.save(self.browser)
         Actions.waitPageLoad(self.browser)
 
         Actions.check_for_value(self.browser, "AddRole", keys="click")
-        Actions.check_for_value(
-            self.browser, "UserRole.AuthorityRoleIdRef", user_dict[user_type])
+        Actions.check_for_value(self.browser, "UserRole.AuthorityRoleIdRef", user_dict[user_type])
         Actions.save(self.browser)
         Actions.waitPageLoad(self.browser)
 
@@ -164,10 +145,8 @@ class User:
             values_used = ["UWServicesPersonal", "UnderwritingPersonalLines", "UnderwritingCommercialLines",
                            "UWServicesCommercial", "UWServicesPersonal-CLM", "UWServicesCommercial-CLM", "UnderwritingPersonalLines-CLM"]
             for value in values_used:
-                Actions.check_for_value(
-                    self.browser, "AddTaskGroup", keys="click")
-                Actions.check_for_value(
-                    self.browser, "UserTaskGroup.TaskGroupCd", value)
+                Actions.check_for_value(self.browser, "AddTaskGroup", keys="click")
+                Actions.check_for_value(self.browser, "UserTaskGroup.TaskGroupCd", value)
                 Actions.save(self.browser)
 
         Actions.waitPageLoad(self.browser)

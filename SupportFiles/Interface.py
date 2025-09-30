@@ -32,7 +32,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
     producer = None
     application = Application()
     address = Address()
-
+    thread_num = 0
     carrier_keys = list(carriers.keys())
     carrier_list = {"Dwelling Property":{"CT":[carrier_keys[0]],
                                 "IL":[carrier_keys[0],carrier_keys[1]],
@@ -239,21 +239,18 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             if submit_values["Cust_Address"] == False:
                 self.submit_error += 1
 
-        
         # if required fields are not filled, show an error message
         if self.submit_error != 0:
             self.required_info.configure(text=self.required_info_text)  # Reset the required info text
         else:
             if self.lob_val.get() == self.line_of_business[1]:
-                start_thread = threading.Thread(target=self.application.startApplication, args=(None,self.subtype.get(),self.carrier_val.get()))
-                start_thread.start()
+                threading.Thread(target=self.application.startApplication, args=(None,self.subtype.get(),self.carrier_val.get())).start()
             else:
                 if self.lob_val.get() == self.line_of_business[0]:
-                    multiple_location_thread = threading.Thread(target=self.application.startApplication, args=(self.multiple_locations.get(),None,self.carrier_val.get()))
-                    multiple_location_thread.start()
+                    threading.Thread(target=self.application.startApplication, args=(self.multiple_locations.get(),None,self.carrier_val.get())).start()
                 else:
-                    start_thread = threading.Thread(target=self.application.startApplication, args=(None,None,self.carrier_val.get()))
-                    start_thread.start()
+                    threading.Thread(target=self.application.startApplication, args=(None,None,self.carrier_val.get())).start()
+                    
 
     def toggle_custom_name(self):
         # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
@@ -479,8 +476,7 @@ class MyTabView(ctk.CTkTabview):
         if self.user_value != "Add Admin User":
             self.user.browser_chosen = self.browser
             self.user.producer_selected = self.producer
-            user_thread = threading.Thread(target=self.user.create_user, args=(user_selected,self.user_value.get()))
-            user_thread.start()
+            threading.Thread(target=self.user.create_user, args=(user_selected,self.user_value.get())).start()
         else:
             print("Please add an admin user first before creating other users.")
 
@@ -488,8 +484,7 @@ class MyTabView(ctk.CTkTabview):
         self.producer.env_used = self.environment
         if self.user_value != "Add Admin User" and self.producer_value.get() != "" and self.producer_value.get() != None:
             self.producer.browser_chosen = self.browser
-            prod_thread = threading.Thread(target=self.producer.create_producer, args=(
-                producer_name, self.user_value.get()))
+            prod_thread = threading.Thread(target=self.producer.create_producer, args=(producer_name, self.user_value.get()))
             prod_thread.start()
            
         else:
@@ -499,7 +494,7 @@ class MyTabView(ctk.CTkTabview):
         if len(self.user_name_value.get()) != 0 and len(self.user_password_value.get()) != 0:
             self.username_add_label.configure(text="Username", text_color="white")
             self.password_add_label.configure(text="User Password", text_color="white")
-            File.env_used = app.environment.get()
+            File.env_used = self.environment
             File.add_user(self.user_name_value.get(), self.user_password_value.get())
             File.read_username_password()
             usernames = File.env_files_plus_users[File.env_used]["Users"]["Usernames"]
@@ -532,9 +527,7 @@ class MyTabView(ctk.CTkTabview):
             self.user_value.set("Add Admin User")
 
     def env_change(self):
-    
         admin_users = File.get_admin_users()
-
         self.user_value.configure(values=list(admin_users))
         self.user_value.set(list(admin_users)[0])
 
