@@ -1,5 +1,4 @@
 ﻿selenium
-PySimpleGUI
 requests
 pillow
 customtkinter

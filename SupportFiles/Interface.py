@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from datetime import date
 from tkcalendar import DateEntry
-import threading
+from threading import Thread
 import os
 
 from .MultiLog import MultiLog
@@ -17,7 +17,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
     carriers = {"Merrimack Mutual Fire Insurance": "MMFI",
                    "Cambrige Mutual Fire Insurance": "CMFI", "Bay State Insurance Company": "BSIC"}
     payment_methods = ["Credit Card", "Check", "ACH"]
-
     payment_plan_most = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
                                   "Direct Bill 6 Pay": "BasicPolicy.PayPlanCd_6", "Bill To Other 4 Pay": "BasicPolicy.PayPlanCd_7", "Bill To Other 6 Pay": "BasicPolicy.PayPlanCd_8", "Direct Bill Full Pay": "BasicPolicy.PayPlanCd_9", "Bill To Other Full Pay": "BasicPolicy.PayPlanCd_10"}
     payment_plan_bop = {"Mortgagee Direct Bill Full Pay": "BasicPolicy.PayPlanCd_1", "Automated Monthly": "BasicPolicy.PayPlanCd_2", "Bill To Other Automated Monthly": "BasicPolicy.PayPlanCd_3", "Direct Bill 2 Pay": "BasicPolicy.PayPlanCd_4", "Direct Bill 4 Pay": "BasicPolicy.PayPlanCd_5",
@@ -90,7 +89,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
 
     # Text for showing required fields still needed when clicking submit
     required_info_text = "* Required Information"
-
+ 
     #dropdown menu background and hover colors
     drop_back_color = "#144870"
     drop_hover_color = "#073972"
@@ -143,13 +142,15 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         ctk.CTkLabel(master=self, text="Date",width=80).grid(row=15, column=0, padx=10, pady=10)
 
         # Date Input in MM/DD/YYYY format
-        self.dateInput = DateEntry(master=self, background='darkblue', foreground='white', borderwidth=1,date_pattern='MM/dd/yyyy')
-        self.dateInput.grid(row=15, column=1, padx=10, pady=5, sticky="ew", columnspan=1)
+        self.dateInput = DateEntry(master=self, background='darkblue', foreground='white',borderwidth=1,date_pattern='mm/dd/yyyy',selectmode='day')
+        self.dateInput.grid(row=15, column=1, padx=10, pady=10, sticky="ew", columnspan=1)
+        
 
-        # `Payment` Method Label and Option Menu
+        # Payment Method Label and Option Menu
         ctk.CTkLabel(master=self, text="Payment Method").grid(row=16, column=0, padx=10, pady=10)
         self.payment_method = ctk.CTkOptionMenu(master=self, values=list(self.payment_plan_most.keys()), command=lambda x: self.set_payment_value(x),dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.payment_method.grid(row=16, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
+        self.payment_method.set("Direct Bill Full Pay")  # Set default value
         
         # Create Quote, Application, or Policy Label and Option Menu
         ctk.CTkLabel(master=self, text="Product").grid(row=17, column=0, padx=10, pady=10)
@@ -224,7 +225,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
             self.application.first_name = self.states[self.state_val.get()]
             self.application.last_name = self.lob_val.get()
         
-    
         if self.logging_checkbox.get() == 1:
             print("Logging is enabled")
             MultiLog.log_data = True
@@ -243,14 +243,15 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         if self.submit_error != 0:
             self.required_info.configure(text=self.required_info_text)  # Reset the required info text
         else:
-            if self.lob_val.get() == self.line_of_business[1]:
-                threading.Thread(target=self.application.startApplication, args=(None,self.subtype.get(),self.carrier_val.get())).start()
+            if self.lob_val.get() == self.line_of_business[1] or self.lob_val.get() == self.line_of_business[3]:
+                app_thread = Thread(target=self.application.startApplication, args=(None,self.subtype.get(),self.carrier_val.get()),daemon=True)
             else:
                 if self.lob_val.get() == self.line_of_business[0]:
-                    threading.Thread(target=self.application.startApplication, args=(self.multiple_locations.get(),None,self.carrier_val.get())).start()
+                    app_thread = Thread(target=self.application.startApplication, args=(self.multiple_locations.get(),None,self.carrier_val.get()),daemon=True)
                 else:
-                    threading.Thread(target=self.application.startApplication, args=(None,None,self.carrier_val.get())).start()
-                    
+                    app_thread = Thread(target=self.application.startApplication, args=(None,None,self.carrier_val.get()),daemon=True)
+        app_thread.start()
+        app_thread.join()
 
     def toggle_custom_name(self):
         # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
@@ -288,7 +289,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
 
     def toggle_program(self,lob_val):
         self.lob_val.set(lob_val)
-        #if lob_val == self.line_of_business[0]:  # If Dwelling Property is selected
+        # If Dwelling Property is selected
         if (not self.program_repeat) and (lob_val == self.line_of_business[0]):
             self.program_label = ctk.CTkLabel(master=self, text="Program")
             self.program_label.grid(row=10, column=0, padx=5, pady=5, sticky="ew", columnspan=1)
@@ -476,7 +477,9 @@ class MyTabView(ctk.CTkTabview):
         if self.user_value != "Add Admin User":
             self.user.browser_chosen = self.browser
             self.user.producer_selected = self.producer
-            threading.Thread(target=self.user.create_user, args=(user_selected,self.user_value.get())).start()
+            user_thread = Thread(target=self.user.create_user, args=(user_selected,self.user_value.get()),daemon=True)
+            user_thread.start()
+            user_thread.join()
         else:
             print("Please add an admin user first before creating other users.")
 
@@ -484,9 +487,9 @@ class MyTabView(ctk.CTkTabview):
         self.producer.env_used = self.environment
         if self.user_value != "Add Admin User" and self.producer_value.get() != "" and self.producer_value.get() != None:
             self.producer.browser_chosen = self.browser
-            prod_thread = threading.Thread(target=self.producer.create_producer, args=(producer_name, self.user_value.get()))
+            prod_thread = Thread(target=self.producer.create_producer, args=(producer_name, self.user_value.get()),daemon=True)
             prod_thread.start()
-           
+            prod_thread.join()
         else:
             print("Please add an admin user first before creating other users.")
 

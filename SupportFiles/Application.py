@@ -7,7 +7,6 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
-from datetime import datetime
 from selenium.webdriver import FirefoxOptions,FirefoxProfile
 
 from .MultiLog import MultiLog
@@ -15,9 +14,10 @@ from .Address import Address
 from .File import File
 from .Timing import Timing
 from .Actions import Actions
-from SupportFiles.MenuItems.Billing import Billing
-from SupportFiles.MenuItems.CoreCoverages import CoreCoverages
-from SupportFiles.MenuItems.Underwriting import Underwriting
+from .MenuItems.Billing import Billing
+from .MenuItems.CoreCoverages import CoreCoverages
+from .MenuItems.Underwriting import Underwriting
+from .Umbrella import Umbrella
 
 class Application:
     TEST = False
@@ -75,7 +75,8 @@ class Application:
             self.browser = webdriver.Firefox(options=firefox_options)
 
         self.browser.get(self.gw_environment[self.env_used])
-        if self.browser_chosen == "Chrome" or self.browser_chosen == None:
+
+        if self.browser_chosen == "Chrome" or self.browser_chosen == None and self.env_used == "Local":
             self.browser.execute_script('document.getElementById("details-button").click();')
             self.browser.execute_script('document.getElementById("proceed-link").click();')
 
@@ -136,6 +137,7 @@ class Application:
         env_used = self.env_used
         date_chosen = self.date_chosen
         producer_selected = self.producer_selected
+        self.subType = subType
 
         if MultiLog.log_data:
             MultiLog.create_log(self.state_chosen, self.line_of_business)
@@ -221,6 +223,7 @@ class Application:
             Actions.find_Element(self.browser, self.line_of_business,By.LINK_TEXT).click()
 
         # enter producer here
+        Actions.waitPageLoad(self.browser)
         Actions.check_for_value(self.browser, "ProviderNumber", keys=producer)
 
         # select entity type
@@ -333,7 +336,6 @@ class Application:
         #        Actions.find_Element(self.browser, "CopyRisk").click()
         #        Actions.save(self.browser)
 
-
         if (self.create_type == "Application" or self.create_type == "Policy"):
             Actions.waitPageLoad(self.browser)
             Actions.check_for_value(self.browser, "Wizard_Policy", keys="click")
@@ -370,105 +372,37 @@ class Application:
 
             self.billing.run_billing()
 
-            if self.line_of_business == "Personal Umbrella":
-                Actions.find_Element(self.browser, "GetUmbrellaQuote").click()
-                Actions.waitPageLoad(self.browser)
-                Actions.find_Element(self.browser, "Wizard_UmbrellaLiability").click()
-                Select(Actions.find_Element(self.browser, "Line.PersonalLiabilityLimit")).select_by_value("1000000")
-                Actions.find_Element(self.browser, "Line.TotMotOwnLeasBus").send_keys(0)
-                Actions.find_Element(self.browser, "Line.NumMotExcUmb").send_keys(0)
-                Actions.find_Element(self.browser, "Line.NumHouseAutoRec").send_keys(0)
-                Actions.find_Element(self.browser, "Line.NumOfYouthInexp").send_keys(0)
-                if self.state_chosen == "NH":
-                    Select(Actions.find_Element(self.browser, "Line.RejectExcessUninsuredMotorists")).select_by_value("No")
-                    Select(Actions.find_Element(self.browser, "Line.UnderAutLiabPerOcc")).select_by_value("No")
-                if self.state_chosen == "NJ" or self.state_chosen == "NY" or self.state_chosen == "RI" or self.state_chosen == "CT" or self.state_chosen == "IL" or self.state_chosen == "ME" or self.state_chosen == "MA":
-                    Select(Actions.find_Element(self.browser, "Line.UnderAutLiabPerOcc")).select_by_value("No")
-                Actions.find_Element(self.browser, "Bind").click()
-                Actions.find_Element(self.browser, "Wizard_Underwriting").click()
-                Select(Actions.find_Element(self.browser, "Question_DiscussedWithUnderwriter")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_DUIConvicted")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_ConvictedTraffic")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_WatercraftBusiness")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_DayCarePremises")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_UndergraduateStudents")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_AnimalsCustody")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_PoolPremises")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_TrampolinePremises")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_CancelledRecently")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_BusinessPolicies")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_OnlineHome")).select_by_value("NO")
-                Actions.save(self.browser)
-                Actions.find_Element(self.browser, "Wizard_Review").click()
-
-                self.billing.run_billing()
-
-                Actions.waitPageLoad(self.browser)
-                Actions.save(self.browser)
-
-                if self.create_type == "Policy":
-                    Actions.find_Element(self.browser, "Return").click()
-                    Actions.find_Element(self.browser, "policyLink0").click()
-                    self.submit_policy(self.browser)
-                    Actions.find_Element(self.browser, "Return").click()
-                    Actions.find_Element(self.browser, "policyLink0").click()
-                    self.billing.run_billing()
-
-            if self.line_of_business == "Commercial Umbrella":
-                Actions.find_Element(self.browser, "GetUmbrellaQuote").click()
-                Actions.waitPageLoad(self.browser)
-                Actions.find_Element(self.browser, "Wizard_UmbrellaLiability").click()
-                if self.state_chosen == "CT" or self.state_chosen == "NH" or self.state_chosen == "NY" or self.state_chosen == "RI":
-                    Select(Actions.find_Element(self.browser, "Line.CoverageTypeCd")).select_by_value("Businessowners Umbrella Liability")
-                Select(Actions.find_Element(self.browser, "Line.CommercialLiabilityLimit")).select_by_value("1000000")
-                Select(Actions.find_Element(self.browser, "Line.OwnedAutosInd")).select_by_value("No")
-                Select(Actions.find_Element(self.browser, "Line.EmplLiabCovrInsured")).select_by_value("No")
-                Actions.find_Element(self.browser, "Wizard_Policy").click()
-                Actions.find_Element(self.browser, "Bind").click()
-                Actions.find_Element(self.browser, "Wizard_Underwriting").click()
-                Select(Actions.find_Element(self.browser, "Question_OtherLiab")).select_by_value("NO")
-                Select(Actions.find_Element(self.browser, "Question_PriorCovCancelled")).select_by_value("NO")
-                Actions.find_Element(self.browser, "Question_PreviousUmbrella").send_keys("ACME")
-                Actions.save(self.browser)
-                Actions.find_Element(self.browser, "Wizard_Review").click()
-
-                self.billing.run_billing()
-
-                Actions.find_Element(self.browser, "Navigate_Location_2").click()
-                Select(Actions.find_Element(self.browser, "Location.UnderlyingEmplLimitConf")).select_by_value("Yes")
-                Actions.find_Element(self.browser, "NextPage").click()
-
-                if self.create_type == "Policy":
-                    Actions.find_Element(self.browser, "Return").click()
-                    Actions.find_Element(self.browser, "policyLink0").click()
-                    self.submit_policy(self.browser)
-                    Actions.find_Element(self.browser, "Return").click()
-                    Actions.find_Element(self.browser, "policyLink0").click()
-                    if self.pay_plan.__contains__("Bill To Other"):
-                        self.billing.run_billing()
-
         Actions.check_for_value(self.browser, "Wizard_Policy", keys="click")
         warning_value = Actions.value_exists(self.browser, "WarningIssues")
         error_value = Actions.value_exists(self.browser, "ErrorIssues")
+
+        #Find if there are any warnings in the application
         if warning_value is not None:
             for warning in warning_value:
                 MultiLog.add_log(f"Issues: {warning.text}", logging.WARNING)
+
+        #Find if there are any errors in the application
         if error_value is not None:
             for error in error_value:
                 MultiLog.add_log(f"Issues: {error.text}", logging.ERROR)
 
-        if (self.create_type == "Policy" and error_value is None):
+        if ((self.create_type == "Policy" or self.line_of_business=="Personal Umbrella" or self.line_of_business=="Commercial Umbrella") and error_value is None):
             self.submit_policy()
             policy_num = Actions.find_Element(self.browser, "PolicySummary_PolicyNumber")
             MultiLog.add_log(f" ", logging.INFO)
             MultiLog.add_log(f" ------------ Policy STARTED ---------------- ", logging.INFO)
             MultiLog.add_log(f"Policy Number: {policy_num.text}", logging.INFO)
 
-        elif (error_value is not None):
+        if (error_value is not None):
             MultiLog.add_log(f"Application Could not be submitted due to {error_value.text}", logging.ERROR)
 
         if (test and self.create_type != "Policy"):
             self.delete_quote(self.browser)
 
+        if (error_value is None and self.line_of_business == "Personal Umbrella"):
+            Umbrella.start_umbrella(self,self.browser,self.create_type,self.billing)
+        if (error_value is None and self.line_of_business == "Commercial Umbrella"):
+            Umbrella.start_commercial_umbrella(self,self.browser,self.create_type,self.billing)
+        
     def get_created_application(self, applicaiton_number: str):
         pass

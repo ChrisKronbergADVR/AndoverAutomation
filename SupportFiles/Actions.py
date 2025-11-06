@@ -5,9 +5,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from SupportFiles.MultiLog import MultiLog
 
-
 class Actions:
-
+    
     @staticmethod
     def save(browser):
         browser.execute_script('document.getElementById("Save").click();')
@@ -58,13 +57,11 @@ class Actions:
                             Actions.find_Element(
                                 browser, "Producer", id=By.LINK_TEXT).click()
                         else:
-                            browser.execute_script(
-                                'document.getElementById("'+element+'").click();')
+                            browser.execute_script('document.getElementById("'+element+'").click();')
                     elif keys == "index":
                         Select(element1).select_by_index(value)
                     else:
-                        browser.execute_script(
-                            'document.getElementById("'+element+'").value = ""')
+                        browser.execute_script('document.getElementById("'+element+'").value = ""')
                         element1.send_keys(keys)
                 elif (visible_text):
                     Select(element1).select_by_visible_text(value)
@@ -74,8 +71,7 @@ class Actions:
                 Actions.waitPageLoad(browser)
                 Actions.remove_javascript(browser)
         except:
-            MultiLog.add_log(f"Element Not Found with id {element} value:{
-                             value} keys:{keys}", logging.DEBUG)
+            MultiLog.add_log(f"Element Not Found with id {element} value:{value} keys:{keys}", logging.DEBUG)
 
     # *Removes the errors on webpage
     @staticmethod
@@ -83,10 +79,7 @@ class Actions:
         element_used = "js_error_list"
         script = """
             const parent = document.getElementById("js_error_list").parentNode;
-            if(parent != null)
-            {
-            parent.delete();  
-            }
+            if(parent != null){parent.delete();}
         """
 
         try:
