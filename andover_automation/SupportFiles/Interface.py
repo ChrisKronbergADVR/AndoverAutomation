@@ -93,7 +93,16 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                                          "NJ":[carrier_keys[0]],
                                          "NY":[carrier_keys[0]],
                                          "RI":[carrier_keys[0]]
-                                         }
+                                         },
+                    "Commercial Umbrella":{"CT":[carrier_keys[0]],
+                                           "IL":[carrier_keys[0]],
+                                           "ME":[carrier_keys[0]],
+                                           "MA":[carrier_keys[0]],
+                                           "NH":[carrier_keys[0]],
+                                           "NJ":[carrier_keys[0]],
+                                           "NY":[carrier_keys[0]],
+                                           "RI":[carrier_keys[0]]
+                                           }
                     }
 
     check_width = 17
@@ -374,7 +383,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
 
         if lob_val == self.line_of_business[2]:  # If Businessowners is selected
             self.payment_method.configure(values=list(self.payment_plan_bop.keys()))
-        if lob_val == self.line_of_business[4]:  # If Personal Umbrella is selected
+        elif lob_val in [self.line_of_business[3], self.line_of_business[4]]:  # If Personal Umbrella or Commercial Umbrella is selected
             self.payment_method.configure(values=list(self.payment_plan_pumb.keys()))
         else:
             self.payment_method.configure(values=list(self.payment_plan_most.keys()))
@@ -387,7 +396,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
     def set_payment_value(self, payment_method):
         if self.lob_val.get() == self.line_of_business[2]:
             self.application.payment_method = self.payment_plan_bop[payment_method]
-        elif self.lob_val.get() == self.line_of_business[4]:
+        elif self.lob_val.get() in [self.line_of_business[3], self.line_of_business[4]]:
             self.application.payment_method = self.payment_plan_pumb[payment_method]
         else:
             self.application.payment_method = self.payment_plan_most[payment_method]

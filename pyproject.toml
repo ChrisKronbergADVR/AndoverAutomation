@@ -3,7 +3,7 @@ name = "andover-automation"
 version = "1.0.0"
 description = "Python Automation with GUI for Andover Local and QA Environments"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.16"
 dependencies = [
     "selenium",
     "requests",
