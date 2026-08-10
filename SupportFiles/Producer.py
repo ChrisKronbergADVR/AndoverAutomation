@@ -79,6 +79,7 @@ class Producer:
         prod_values = File.env_files_plus_users[self.env_used]['Producers']['ProducerNames']
 
         self.load_page()
+        Actions.waitPageLoad(self.browser)
 
         try:
             self.login(user_name, password)

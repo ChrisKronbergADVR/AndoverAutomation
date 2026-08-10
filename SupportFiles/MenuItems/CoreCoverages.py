@@ -3,7 +3,6 @@ from SupportFiles.MultiLog import MultiLog
 from SupportFiles.Timing import Timing
 from SupportFiles.Actions import Actions
 
-
 class CoreCoverages:
     core_coverages_time = Timing()
     coverage_a = 300000
@@ -77,6 +76,7 @@ class CoreCoverages:
             Actions.check_for_value(self.browser, value, "No", False)
 
         Actions.check_for_value(self.browser, "Building.OilTankLocation", "none")
+        Actions.check_for_value(self.browser, "Building.SqFt", keys="2020")
 
         try:
             t = Actions.find_Element(self.browser, "MissingFieldError").is_displayed()

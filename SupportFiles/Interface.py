@@ -176,6 +176,8 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.application.user_chosen = self.user_val.get()
         self.application.create_type = self.application_type.get()
 
+        print(f"Custom_Address: {self.custom_address.get()}")
+        
         #Address Check
         if self.custom_address.get() == 1:
             self.application.custom_address = True
@@ -195,7 +197,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                     self.address.custom_address["City"] = self.city.get()
                     self.address.custom_address["State"] = self.state_val.get()
                     self.address.custom_address["Address"] = self.address1.get()
-          
         else:
             self.application.custom_address = False
             address_vals = self.address.addresses[self.states[self.state_val.get()]]
@@ -251,7 +252,6 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                 else:
                     app_thread = Thread(target=self.application.startApplication, args=(None,None,self.carrier_val.get()),daemon=True)
         app_thread.start()
-        app_thread.join()
 
     def toggle_custom_name(self):
         # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries
@@ -396,7 +396,7 @@ class MyTabView(ctk.CTkTabview):
     tabs = ["Creating New Applications", "Add Users and Producers"]
     browser= None
     producer = None
-    environment = None
+    environment = "Local"
     producers = None
 
     # Font settings
@@ -479,7 +479,6 @@ class MyTabView(ctk.CTkTabview):
             self.user.producer_selected = self.producer
             user_thread = Thread(target=self.user.create_user, args=(user_selected,self.user_value.get()),daemon=True)
             user_thread.start()
-            user_thread.join()
         else:
             print("Please add an admin user first before creating other users.")
 
@@ -489,7 +488,6 @@ class MyTabView(ctk.CTkTabview):
             self.producer.browser_chosen = self.browser
             prod_thread = Thread(target=self.producer.create_producer, args=(producer_name, self.user_value.get()),daemon=True)
             prod_thread.start()
-            prod_thread.join()
         else:
             print("Please add an admin user first before creating other users.")
 

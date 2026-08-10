@@ -11,7 +11,7 @@ class Address:
         "CT": ["CT", "Waterbury", "1250 W Main St"],
         "IL": ["IL", "Urbana", "1401 W Green St"],
         "ME": ["ME", "South Portland", "364 Maine Mall Rd"],
-        "MA": ["MA", "Cambridge", "1662 Massechusetts AVe"],
+        "MA": ["MA", "Cambridge", "1662 Massechusetts Ave"],
         "NH": ["NH", "Manchester", "1111 S Willow St"],
         "NJ": ["NJ", "Jackson", "50 Hannah Hill Rd"],
         "NY": ["NY", "New York", "1500 Broadway"],

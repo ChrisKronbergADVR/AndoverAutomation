@@ -71,18 +71,9 @@ Python Automation with GUI for Andover Local and QA Environments. This has been 
 - The command to enter into a command prompt is: ```pip install -r requirements.txt```
 - If the command above does not work then try: ```pip3 install -r requirements.txt```
 
-### 3. To run the file you can navigate to the directory in command prompt by opening command prompt and using cd (change directory) or copying the file path from the file explorer.
+### 3. To run the automation, double click on the file circled in red
 <br>
-<p align="center" width="100%"><img src = "docImages\file_in_exporer.jpg" height="300rem"></p>
-
-<br>
-
- - To run the program: open the command prompt and paste the file path
- - The program should run after pressing the enter key
-
-<br>
-<p align="center" width="100%"><img src = "docImages\cmd_prompt.jpg" height="300rem"></p>
-<br>
+<p align="center" width="100%"><img src = "docImages\run_automation_file.jpg" height="300rem"></p>
 
 <hr>
 
