@@ -7,8 +7,8 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 
-from SupportFiles.Actions import Actions
-from SupportFiles.MultiLog import MultiLog
+from ..Actions import Actions
+from ..MultiLog import MultiLog
 
 
 class Underwriting:

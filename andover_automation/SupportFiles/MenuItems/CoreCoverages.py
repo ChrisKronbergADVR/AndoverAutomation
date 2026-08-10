@@ -1,7 +1,7 @@
 import logging
-from SupportFiles.MultiLog import MultiLog
-from SupportFiles.Timing import Timing
-from SupportFiles.Actions import Actions
+from ..MultiLog import MultiLog
+from ..Timing import Timing
+from ..Actions import Actions
 
 class CoreCoverages:
     core_coverages_time = Timing()

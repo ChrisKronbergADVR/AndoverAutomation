@@ -3,3 +3,4 @@ SupportFiles/__pycache__/
 Logs/
 csvFiles/
 .vscode/
+.venv/

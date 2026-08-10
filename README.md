@@ -66,8 +66,19 @@ Python Automation with GUI for Andover Local and QA Environments. This has been 
 <hr>
 <br>
 
-### 2. After you have completed all of the above steps, the packages needed to run this script are in the file requirements.txt
-- first, make sure you are in the directory with the requirements.txt file
+### 2. After you have completed all of the above steps, install the required packages
+
+#### Option A: Using uv (Recommended - Faster)
+- First, install uv if you haven't already: ```pip install uv``` or ```pip3 install uv```
+- Make sure you are in the directory with the project files
+- Create a virtual environment: ```uv venv```
+- Activate the virtual environment:
+  - On Windows: ```.venv\Scripts\activate```
+  - On macOS/Linux: ```source .venv/bin/activate```
+- Install dependencies: ```uv pip install -r requirements.txt```
+
+#### Option B: Using traditional pip
+- First, make sure you are in the directory with the requirements.txt file
 - The command to enter into a command prompt is: ```pip install -r requirements.txt```
 - If the command above does not work then try: ```pip3 install -r requirements.txt```
 

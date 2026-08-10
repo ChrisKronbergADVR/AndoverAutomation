@@ -1,10 +1,10 @@
 import logging
 from selenium.webdriver.support.select import Select
-from SupportFiles.MultiLog import MultiLog
+from ..MultiLog import MultiLog
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-from SupportFiles.Actions import Actions
+from ..Actions import Actions
 
 
 class Billing:

@@ -1,0 +1,24 @@
+[project]
+name = "andover-automation"
+version = "1.0.0"
+description = "Python Automation with GUI for Andover Local and QA Environments"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "selenium",
+    "requests",
+    "pillow",
+    "customtkinter",
+    "tkcalendar",
+    "ctkdlib",
+]
+
+[project.scripts]
+andover-automation = "andover_automation.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["andover_automation"]

@@ -1,4 +1,5 @@
 import customtkinter as ctk
+import tkinter as tk
 from datetime import date
 from tkcalendar import DateEntry
 from threading import Thread
@@ -10,6 +11,30 @@ from .Application import Application
 from .File import File
 from .Producer import Producer
 from .User import User
+
+class FixedDateEntry(DateEntry):
+    """Custom DateEntry that fixes the calendar navigation button issue"""
+    
+    def drop_down(self):
+        """Override drop_down to prevent focus_set() from interfering with navigation"""
+        # This is a fixed version of DateEntry.drop_down() that removes the problematic
+        # self._calendar.focus_set() call which causes the calendar to close when clicking
+        # navigation buttons. This is a known issue in tkcalendar library.
+        if self._calendar.winfo_ismapped():
+            self._top_cal.withdraw()
+        else:
+            self._validate_date()
+            date = self.parse_date(self.get())
+            x = self.winfo_rootx()
+            y = self.winfo_rooty() + self.winfo_height()
+            if self.winfo_toplevel().attributes('-topmost'):
+                self._top_cal.attributes('-topmost', True)
+            else:
+                self._top_cal.attributes('-topmost', False)
+            self._top_cal.geometry('+%i+%i' % (x, y))
+            self._top_cal.deiconify()
+            # NOTE: Removed self._calendar.focus_set() here - this was causing the issue
+            self._calendar.selection_set(date)
 
 class ScrollableTabView(ctk.CTkScrollableFrame):
     states = {"Connecticut": "CT", "Illinois":"IL","Maine": "ME","Massachusetts": "MA", "New Hampshire": "NH", "New Jersey": "NJ","New York": "NY", "Rhode Island": "RI"}
@@ -130,7 +155,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         # Line of Business Value Selection
         self.lob_val = ctk.CTkOptionMenu(master=self, values=self.line_of_business, command=lambda x: self.toggle_program(x), dropdown_fg_color=self.drop_back_color,dropdown_hover_color=self.drop_hover_color)
         self.lob_val.grid(row=9, column=1, padx=5, pady=5, sticky="ew", columnspan=1)
-        self.lob_val.set("Select Value")  # Set default value
+        self.lob_val.set(self.line_of_business[0])  # Set default value to first item
 
         # Line of Business Label
         ctk.CTkLabel(master=self, text="Carrier").grid(row=14, column=0, padx=10, pady=10)
@@ -142,8 +167,15 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         ctk.CTkLabel(master=self, text="Date",width=80).grid(row=15, column=0, padx=10, pady=10)
 
         # Date Input in MM/DD/YYYY format
-        self.dateInput = DateEntry(master=self, background='darkblue', foreground='white',borderwidth=1,date_pattern='mm/dd/yyyy',selectmode='day')
-        self.dateInput.grid(row=15, column=1, padx=10, pady=10, sticky="ew", columnspan=1)
+        # Create a tkinter Frame to properly host the DateEntry widget
+        self.date_frame = tk.Frame(master=self, bg='#2b2b2b')
+        self.date_frame.grid(row=15, column=1, padx=10, pady=10, sticky="ew", columnspan=1)
+        # Create FixedDateEntry widget (fixes navigation button issues)
+        self.dateInput = FixedDateEntry(master=self.date_frame, background='darkblue', foreground='white',
+                                        borderwidth=1, date_pattern='mm/dd/yyyy', selectmode='day')
+        self.dateInput.pack(fill='both', expand=True)
+        # Keep the calendar popup on top
+        self.dateInput._top_cal.wm_attributes('-topmost', True)
         
 
         # Payment Method Label and Option Menu
@@ -167,6 +199,9 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         self.required_info = ctk.CTkLabel(master=self, text="", text_color="red")
         self.required_info.grid(row=19, column=1, padx=10, pady=(10,0), sticky="w", columnspan=1)
 
+        # Initialize the UI for the default Line of Business selection
+        self.toggle_program(self.line_of_business[0])
+
     def submit_values(self):
         submit_values = {"Cust_Name":False,"Cust_Address":False}
         self.application.producer_selected = self.producer
@@ -182,41 +217,52 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
         if self.custom_address.get() == 1:
             self.application.custom_address = True
             if self.address1.get() and self.city.get():
+                self.submit_error = 0
                 self.application.address1 = self.address1.get()
                 self.application.city = self.city.get()
+                # Mark as valid since required fields are filled
+                submit_values["Cust_Address"] = True
                 if self.address2.get() != "":
                     self.application.address2 = self.address2.get()
-                    submit_values["Cust_Address"] = self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get(),self.address2.get())
+                    self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get(),self.address2.get())
                     self.address.custom_address["City"] = self.city.get()
                     self.address.custom_address["State"] = self.state_val.get()
                     self.address.custom_address["Address"] = self.address1.get()
                     self.address.custom_address["Address2"] = self.address2.get()
-                
                 else:
-                    submit_values["Cust_Address"] = self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get())
+                    self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get())
                     self.address.custom_address["City"] = self.city.get()
                     self.address.custom_address["State"] = self.state_val.get()
                     self.address.custom_address["Address"] = self.address1.get()
+            else:
+                if not self.address1.get():
+                    self.address1.configure(placeholder_text_color ="red")
+                if not self.city.get():
+                    self.city.configure(placeholder_text_color ="red")
+                self.submit_error = 1
         else:
             self.application.custom_address = False
             address_vals = self.address.addresses[self.states[self.state_val.get()]]
             self.application.state_chosen = address_vals[0]
             self.application.address1 = address_vals[2]
+            self.submit_error = 0
         
         # Change custom name to red if not filled out when checked
         if self.custom_name.get() == 1:
             if self.first_name.get() and self.last_name.get():
-                submit_values["Cust_Name"] = 1
                 self.application.first_name = self.first_name.get()
                 self.application.last_name = self.last_name.get()
+                # Mark as valid since required fields are filled
+                submit_values["Cust_Name"] = True
+                self.submit_error = 0
             if not self.first_name.get():
                 self.first_name.configure(placeholder_text_color ="red")
-                submit_values["Cust_Name"] = 0
+                self.submit_error = 1
             else:
                 self.first_name.configure(placeholder_text_color ="white")
             if not self.last_name.get():
                 self.last_name.configure(placeholder_text_color ="red")
-                submit_values["Cust_Name"] = 0
+                self.submit_error = 1
             else:
                 self.last_name.configure(placeholder_text_color ="white")
 
@@ -251,7 +297,7 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                     app_thread = Thread(target=self.application.startApplication, args=(self.multiple_locations.get(),None,self.carrier_val.get()),daemon=True)
                 else:
                     app_thread = Thread(target=self.application.startApplication, args=(None,None,self.carrier_val.get()),daemon=True)
-        app_thread.start()
+            app_thread.start()
 
     def toggle_custom_name(self):
         # Checking to see if custom name is selected, and if it is add entries for first, middle, and last name Otherwise remove these entries

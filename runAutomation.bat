@@ -1,2 +1,2 @@
 @echo off
-start /min py AndoverAutomation.py
+start /min py -m andover_automation
