@@ -30,7 +30,7 @@ class Umbrella:
             Actions.waitPageLoad(browser)
             Actions.save(browser)
 
-        if create_type == "Application":
+        if create_type == "Application" or create_type == "Policy":
             Actions.find_Element(browser, "Bind").click()
             Actions.find_Element(browser, "Wizard_Underwriting").click()
             Select(Actions.find_Element(browser, "Question_DUIConvicted")).select_by_value("NO")
@@ -53,13 +53,6 @@ class Umbrella:
             Actions.waitPageLoad(browser)
             Actions.save(browser)
 
-        if create_type == "Policy":
-            Actions.find_Element(browser, "Return").click()
-            Actions.find_Element(browser, "policyLink0").click()
-            self.submit_policy(browser)
-            Actions.find_Element(browser, "Return").click()
-            Actions.find_Element(browser, "policyLink0").click()
-            self.billing.run_billing()
     
     @staticmethod
     def start_commercial_umbrella(self,browser,create_type,billing:Billing):
@@ -74,22 +67,16 @@ class Umbrella:
         Select(Actions.find_Element(browser, "Line.OwnedAutosInd")).select_by_value("No")
         Select(Actions.find_Element(browser, "Line.EmplLiabCovrInsured")).select_by_value("No")
         Actions.find_Element(browser, "Wizard_Policy").click()
-        Actions.find_Element(browser, "Bind").click()
-        Actions.find_Element(browser, "Wizard_Underwriting").click()
-        Select(Actions.find_Element(browser, "Question_OtherLiab")).select_by_value("NO")
-        Select(Actions.find_Element(browser, "Question_PriorCovCancelled")).select_by_value("NO")
-        Actions.find_Element(browser, "Question_PreviousUmbrella").send_keys("ACME")
-        Actions.save(browser)
-        Actions.find_Element(browser, "Wizard_Review").click()
-        billing.run_billing()
-        Actions.find_Element(browser, "Navigate_Location_2").click()
-        Select(Actions.find_Element(browser, "Location.UnderlyingEmplLimitConf")).select_by_value("Yes")
-        Actions.find_Element(browser, "NextPage").click()
-        if self.create_type == "Policy":
-            Actions.find_Element(browser, "Return").click()
-            Actions.find_Element(browser, "policyLink0").click()
-            self.submit_policy(browser)
-            Actions.find_Element(browser, "Return").click()
-            Actions.find_Element(browser, "policyLink0").click()
-            if self.pay_plan.__contains__("Bill To Other"):
-                billing.run_billing()
+
+        if create_type == "Application" or create_type == "Policy":
+            Actions.find_Element(browser, "Bind").click()
+            Actions.find_Element(browser, "Wizard_Underwriting").click()
+            Select(Actions.find_Element(browser, "Question_OtherLiab")).select_by_value("NO")
+            Select(Actions.find_Element(browser, "Question_PriorCovCancelled")).select_by_value("NO")
+            Actions.find_Element(browser, "Question_PreviousUmbrella").send_keys("ACME")
+            Actions.save(browser)
+            Actions.find_Element(browser, "Wizard_Review").click()
+            billing.run_billing()
+            Actions.find_Element(browser, "Navigate_Location_2").click()
+            Select(Actions.find_Element(browser, "Location.UnderlyingEmplLimitConf")).select_by_value("Yes")
+            Actions.find_Element(browser, "NextPage").click()

@@ -3,7 +3,6 @@ from selenium.webdriver.support.select import Select
 from ..MultiLog import MultiLog
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-
 from ..Actions import Actions
 
 
