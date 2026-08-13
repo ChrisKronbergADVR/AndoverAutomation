@@ -233,13 +233,11 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                 submit_values["Cust_Address"] = True
                 if self.address2.get() != "":
                     self.application.address2 = self.address2.get()
-                    self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get(),self.address2.get())
                     self.address.custom_address["City"] = self.city.get()
                     self.address.custom_address["State"] = self.state_val.get()
                     self.address.custom_address["Address"] = self.address1.get()
                     self.address.custom_address["Address2"] = self.address2.get()
                 else:
-                    self.address.verify_address(self.city.get(),self.state_val.get(),self.address1.get())
                     self.address.custom_address["City"] = self.city.get()
                     self.address.custom_address["State"] = self.state_val.get()
                     self.address.custom_address["Address"] = self.address1.get()
@@ -263,15 +261,15 @@ class ScrollableTabView(ctk.CTkScrollableFrame):
                 self.application.last_name = self.last_name.get()
                 # Mark as valid since required fields are filled
                 submit_values["Cust_Name"] = True
-                self.submit_error = 0
+                self.submit_error == 0
             if not self.first_name.get():
                 self.first_name.configure(placeholder_text_color ="red")
-                self.submit_error = 1
+                self.submit_error += 1
             else:
                 self.first_name.configure(placeholder_text_color ="white")
             if not self.last_name.get():
                 self.last_name.configure(placeholder_text_color ="red")
-                self.submit_error = 1
+                self.submit_error += 1
             else:
                 self.last_name.configure(placeholder_text_color ="white")
 

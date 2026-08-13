@@ -20,23 +20,27 @@ class Address:
 
     custom_address = {"Address": "", "Address2": "", "City": "", "Flag": False}
 
+
+    # Removed Address verification because USPS changed to an API that requires a key and is not free. The function is still here in case it is needed in the future.
+    """
     def verify_address(self,city, state, address1, address2=None):
         verified = False
 
         if address2 == None:
-            address_validaiton_request = requests.post(f"""http://production.shippingapis.com/ShippingAPI.dll?API=Verify
+            address_validaiton_request = requests.post(f"http://production.shippingapis.com/ShippingAPI.dll?API=Verify
                                                         &XML=<AddressValidateRequest USERID="005FSELF04917"><Address
                                                         ID="0"><Address1>{address1}</Address1>
                                                         <Address2></Address2><City>{city}</City><State>{state}</State>
-                                                        <Zip5></Zip5><Zip4></Zip4></Address></AddressValidateRequest>""")
+                                                        <Zip5></Zip5><Zip4></Zip4></Address></AddressValidateRequest>")
         else:
-            address_validaiton_request = requests.post(f"""http://production.shippingapis.com/ShippingAPI.dll?API=Verify
+            address_validaiton_request = requests.post(f"http://production.shippingapis.com/ShippingAPI.dll?API=Verify
                                                         &XML=<AddressValidateRequest USERID="005FSELF04917"><Address
                                                         ID="0"><Address1>{address1}</Address1>
                                                         <Address2>{address2}</Address2><City>{city}</City><State>{state}</State>
-                                                        <Zip5></Zip5><Zip4></Zip4></Address></AddressValidateRequest>""")
+                                                        <Zip5></Zip5><Zip4></Zip4></Address></AddressValidateRequest>")
 
         if not address_validaiton_request.text.__contains__('Error'):
             verified = True
 
         return verified
+        """

@@ -394,7 +394,7 @@ class Application:
             MultiLog.add_log(f"Policy Number: {policy_num.text}", logging.INFO)
 
         if (error_value is not None):
-            MultiLog.add_log(f"Application Could not be submitted due to {error_value.text}", logging.ERROR)
+            MultiLog.add_log(f"Application Could not be submitted due to {error_value}", logging.ERROR)
 
         if (test and self.create_type != "Policy"):
             self.delete_quote(self.browser)
